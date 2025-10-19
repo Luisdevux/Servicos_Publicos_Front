@@ -4,8 +4,9 @@
 
 import CardDemanda from "@/components/cardDemanda";
 import Banner from "@/components/banner";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { getAccessToken } from "@/hooks/useAuthMutations";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
@@ -20,10 +21,7 @@ export default function DemandaPage() {
   const router = useRouter();
   const params = useParams();
   
-  const [cards, setCards] = useState<TipoDemandaModel[]>([]);
-  const [bannerData, setBannerData] = useState<TipoDemandaModel | null>(null);
   const [imageBlobs, setImageBlobs] = useState<Record<string, string>>({});
-  const [isLoadingCards, setIsLoadingCards] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTipo, setSelectedTipo] = useState<string>('');
   
@@ -36,48 +34,22 @@ export default function DemandaPage() {
     }
   }, [isAuthLoading, isAuthenticated, router]);
 
-  // Busca a imagem de um card específico
-  const fetchCardImage = useCallback(async (cardId: string) => {
-    const token = getAccessToken();
-    
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_URL}/tipoDemanda/${cardId}/foto`, {
-        headers: { 
-          'Authorization': `Bearer ${token}` 
-        }
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const imageUrl = URL.createObjectURL(blob);
-        setImageBlobs(prev => ({ ...prev, [cardId]: imageUrl }));
-      } else if (response.status === 401) {
+  const {
+    data: demandasData,
+    isLoading: demandasIsLoading,
+    isError: demandasIsError,
+    error: demandasError,
+    refetch: demandasRefetch,
+  } = useQuery({
+    queryKey: ['tipoDemanda', tipoFiltro],
+    queryFn: async () => {
+      const token = getAccessToken();
+      
+      if (!token) {
         router.push('/login');
+        throw new Error('Token não encontrado');
       }
-    } catch (error) {
-      console.error(`Erro ao buscar imagem do card ${cardId}:`, error);
-    }
-  }, [router]);
 
-  // Busca os dados das demandas filtradas por tipo
-  const fetchDemandas = useCallback(async () => {
-    if (!tipoFiltro) return;
-
-    const token = getAccessToken();
-    
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    setIsLoadingCards(true);
-
-    try {
       const response = await fetch(`${API_URL}/tipoDemanda`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -87,7 +59,7 @@ export default function DemandaPage() {
 
       if (response.status === 401) {
         router.push('/login');
-        return;
+        throw new Error('Não autorizado');
       }
 
       if (!response.ok) {
@@ -95,46 +67,50 @@ export default function DemandaPage() {
       }
 
       const result: ApiResponse<PaginatedResponse<TipoDemandaModel>> = await response.json();
+      return result.data?.docs || [];
+    },
+    enabled: !!tipoFiltro && !isAuthLoading && isAuthenticated,
+    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
+    retry: 1,
+  });
 
-      if (result.data?.docs?.length) {
-        const filteredItems = result.data.docs.filter(
-          (item) => item.tipo?.toLowerCase() === tipoFiltro.toLowerCase()
-        );
+  // Filtra cards por tipo
+  const cardsFiltrados = demandasData?.filter(
+    (item) => item.tipo?.toLowerCase() === tipoFiltro.toLowerCase()
+  ) || [];
 
-        // Define o primeiro item como banner
-        const bannerItem = filteredItems[0];
-        if (bannerItem) {
-          setBannerData(bannerItem);
-          fetchCardImage(bannerItem._id);
-        }
+  const bannerData = cardsFiltrados[0] || null;
 
-        // Atualiza os cards
-        setCards(filteredItems);
+  // Busca imagem de um card
+  const fetchCardImage = async (cardId: string) => {
+    const token = getAccessToken();
+    if (!token) return;
 
-        // Busca as imagens de todos os cards
-        filteredItems.forEach((card) => {
-          fetchCardImage(card._id);
-        });
-      } else {
-        setCards([]);
-        setBannerData(null);
+    try {
+      const response = await fetch(`${API_URL}/tipoDemanda/${cardId}/foto`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
+        setImageBlobs(prev => ({ ...prev, [cardId]: imageUrl }));
       }
     } catch (error) {
-      console.error('Erro ao buscar demandas:', error);
-      setCards([]);
-      setBannerData(null);
-    } finally {
-      setIsLoadingCards(false);
+      console.error(`Erro ao buscar imagem do card ${cardId}:`, error);
     }
-  }, [tipoFiltro, router, fetchCardImage]);
+  };
 
-  // Busca as demandas quando a autenticação é concluída
+  // Carrega imagens dos cards quando dados mudam
   useEffect(() => {
-    if (!isAuthLoading && isAuthenticated) {
-      fetchDemandas();
+    if (cardsFiltrados.length > 0) {
+      cardsFiltrados.forEach((card) => {
+        fetchCardImage(card._id);
+      });
     }
-  }, [isAuthLoading, isAuthenticated, fetchDemandas]);
+  }, [cardsFiltrados.length]);
 
+  // Limpa URLs de imagem ao desmontar
   useEffect(() => {
     return () => {
       Object.values(imageBlobs).forEach((url) => {
@@ -175,11 +151,29 @@ export default function DemandaPage() {
           </Button>
         </div>
 
-        {isLoadingCards ? (
+        {demandasIsLoading && (
           <div className="flex justify-center items-center py-20">
             <div className="text-lg text-gray-600">Carregando serviços...</div>
           </div>
-        ) : cards.length === 0 ? (
+        )}
+
+        {demandasIsError && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="text-center">
+              <p className="text-lg text-red-600 mb-2">
+                Erro ao carregar serviços
+              </p>
+              <p className="text-sm text-gray-500 mb-4">
+                {demandasError?.message || 'Ocorreu um erro inesperado'}
+              </p>
+              <Button onClick={() => demandasRefetch()}>
+                Tentar novamente
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!demandasIsLoading && !demandasIsError && cardsFiltrados.length === 0 && (
           <div className="flex justify-center items-center py-20">
             <div className="text-center">
               <p className="text-lg text-gray-600 mb-2">
@@ -190,12 +184,14 @@ export default function DemandaPage() {
               </p>
             </div>
           </div>
-        ) : (
+        )}
+
+        {!demandasIsLoading && !demandasIsError && cardsFiltrados.length > 0 && (
           <div 
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-stretch" 
             data-test="demanda-cards-grid"
           >
-            {cards.map((card) => (
+            {cardsFiltrados.map((card) => (
               <div key={card._id} data-test={`demanda-card-${card._id}`}>
                 <CardDemanda 
                   titulo={card.titulo}
