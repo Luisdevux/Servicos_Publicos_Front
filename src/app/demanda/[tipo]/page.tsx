@@ -11,22 +11,7 @@ import { getAccessToken } from "@/hooks/useAuthMutations";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface Demanda {
-  titulo: string;
-  descricao: string;
-  link_imagem: string;
-  _id: string;
-  tipo?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-interface ApiResponse {
-  data?: {
-    docs?: Demanda[];
-  };
-}
+import type { TipoDemandaModel, ApiResponse, PaginatedResponse } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011';
 
@@ -35,8 +20,8 @@ export default function DemandaPage() {
   const router = useRouter();
   const params = useParams();
   
-  const [cards, setCards] = useState<Demanda[]>([]);
-  const [bannerData, setBannerData] = useState<Demanda | null>(null);
+  const [cards, setCards] = useState<TipoDemandaModel[]>([]);
+  const [bannerData, setBannerData] = useState<TipoDemandaModel | null>(null);
   const [imageBlobs, setImageBlobs] = useState<Record<string, string>>({});
   const [isLoadingCards, setIsLoadingCards] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -109,7 +94,7 @@ export default function DemandaPage() {
         throw new Error(`Erro na requisição: ${response.status}`);
       }
 
-      const result: ApiResponse = await response.json();
+      const result: ApiResponse<PaginatedResponse<TipoDemandaModel>> = await response.json();
 
       if (result.data?.docs?.length) {
         const filteredItems = result.data.docs.filter(
@@ -215,9 +200,9 @@ export default function DemandaPage() {
                 <CardDemanda 
                   titulo={card.titulo}
                   descricao={card.descricao}
-                  imagem={imageBlobs[card._id] || card.link_imagem}
+                  imagem={imageBlobs[card._id] || card.link_imagem || ''}
                   onCreateClick={() => {
-                    setSelectedTipo(`${card.tipo} - ${card.titulo}`);
+                    setSelectedTipo(card.titulo);
                     setIsDialogOpen(true);
                   }}
                 />

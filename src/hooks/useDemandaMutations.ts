@@ -4,37 +4,18 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAccessToken } from './useAuthMutations';
+import type { Endereco, Demanda } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011';
-
-interface EnderecoDemanda {
-  logradouro: string;
-  cep: string;
-  bairro: string;
-  numero: number;
-  complemento?: string;
-  cidade: string;
-  estado: string;
-}
 
 interface CreateDemandaInput {
   tipo: string;
   descricao: string;
-  endereco: EnderecoDemanda;
+  endereco: Endereco;
   imagem?: File;
 }
 
-interface DemandaResponse {
-  _id: string;
-  tipo: string;
-  descricao: string;
-  status: string;
-  endereco: EnderecoDemanda;
-  link_imagem?: string;
-  data: string;
-}
-
-async function createDemandaRequest(input: CreateDemandaInput): Promise<DemandaResponse> {
+async function createDemandaRequest(input: CreateDemandaInput): Promise<Demanda> {
   const token = getAccessToken();
 
   if (!token) {
