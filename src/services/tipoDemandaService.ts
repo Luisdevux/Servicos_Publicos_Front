@@ -68,7 +68,7 @@ export const tipoDemandaService = {
 
   /**
    * Busca foto de um tipo de demanda
-   * GET /tipodemanda/:id/foto (minúsculo!)
+   * GET /tipoDemanda/:id/foto
    */
   async buscarFotoTipoDemanda(id: string, token: string): Promise<Blob> {
     const response = await fetch(
@@ -89,7 +89,7 @@ export const tipoDemandaService = {
 
   /**
    * Faz upload de foto do tipo de demanda
-   * POST /tipodemanda/:id/foto (minúsculo!)
+   * POST /tipoDemanda/:id/foto
    */
   async uploadFotoTipoDemanda(
     id: string,
