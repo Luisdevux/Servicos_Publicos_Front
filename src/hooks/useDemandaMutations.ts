@@ -4,9 +4,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAccessToken } from './useAuthMutations';
+import { demandaService } from '@/services';
 import type { Endereco, Demanda } from '@/types';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011';
 
 interface CreateDemandaInput {
   tipo: string;
@@ -28,54 +27,29 @@ async function createDemandaRequest(input: CreateDemandaInput): Promise<Demanda>
     descricao: input.descricao,
     endereco: input.endereco,
     status: 'Em aberto',
-  };
+  } as any;
 
-  const response = await fetch(`${API_URL}/demandas`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(demandaData),
-  });
+  const response = await demandaService.criarDemanda(demandaData, token);
+  const demandaCriada = response.data;
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Erro ao criar demanda');
+  if (!demandaCriada) {
+    throw new Error('Erro ao criar demanda - dados não retornados');
   }
-
-  const result = await response.json();
-  const demandaCriada = result.data;
 
   // Segunda requisição: upload da imagem (se houver)
   if (input.imagem && demandaCriada._id) {
-    const formData = new FormData();
-    formData.append('file', input.imagem, input.imagem.name || 'imagem.jpg');
-
     try {
-      const uploadResponse = await fetch(
-        `${API_URL}/demandas/${demandaCriada._id}/foto/demanda`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
+      const uploadResult = await demandaService.uploadFotoDemanda(
+        demandaCriada._id,
+        input.imagem,
+        token
       );
 
-      if (!uploadResponse.ok) {
-        const uploadError = await uploadResponse.json();
-        console.error('Erro ao fazer upload da imagem:', uploadError);
-        throw new Error(uploadError.message || 'Erro ao fazer upload da imagem');
-      }
-
-      const uploadResult = await uploadResponse.json();
       console.log('Upload de imagem realizado com sucesso:', uploadResult);
 
       // Atualiza o objeto demandaCriada com o link da imagem
-      if (uploadResult.dados?.link_imagem) {
-        demandaCriada.link_imagem = uploadResult.dados.link_imagem;
+      if (uploadResult.data?.link_imagem) {
+        demandaCriada.link_imagem = uploadResult.data.link_imagem;
       }
     } catch (uploadError) {
       console.error('Erro no upload da imagem:', uploadError);

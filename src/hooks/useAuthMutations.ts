@@ -5,40 +5,16 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { getUserTypeFromLevel, type UserType } from '@/lib/auth';
+import { authService } from '@/services';
 import type { LoginCredentials, LoginResponse } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
 async function loginRequest(credentials: LoginCredentials): Promise<LoginResponse> {
-  const response = await fetch(`${API_URL}/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(credentials),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Erro ao fazer login');
-  }
-
-  const data = await response.json();
-  
-  // A API retorna { data: { user: { accessToken, refreshtoken, ...userObject } } }
-  return data.data as LoginResponse;
+  return authService.login(credentials);
 }
 
 async function logoutRequest(accessToken: string): Promise<void> {
   try {
-    await fetch(`${API_URL}/logout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ access_token: accessToken }),
-    });
+    await authService.logout(accessToken);
   } catch (error) {
     console.error('Erro ao fazer logout:', error);
   }

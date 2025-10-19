@@ -12,9 +12,7 @@ import { getAccessToken } from "@/hooks/useAuthMutations";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { TipoDemandaModel, ApiResponse, PaginatedResponse } from "@/types";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011';
+import { tipoDemandaService } from "@/services";
 
 export default function DemandaPage() {
   const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
@@ -50,23 +48,7 @@ export default function DemandaPage() {
         throw new Error('Token não encontrado');
       }
 
-      const response = await fetch(`${API_URL}/tipoDemanda`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.status === 401) {
-        router.push('/login');
-        throw new Error('Não autorizado');
-      }
-
-      if (!response.ok) {
-        throw new Error(`Erro na requisição: ${response.status}`);
-      }
-
-      const result: ApiResponse<PaginatedResponse<TipoDemandaModel>> = await response.json();
+      const result = await tipoDemandaService.buscarTiposDemanda(token);
       return result.data?.docs || [];
     },
     enabled: !!tipoFiltro && !isAuthLoading && isAuthenticated,
@@ -78,7 +60,6 @@ export default function DemandaPage() {
   const cardsFiltrados = demandasData?.filter(
     (item) => item.tipo?.toLowerCase() === tipoFiltro.toLowerCase()
   ) || [];
-
   const bannerData = cardsFiltrados[0] || null;
 
   // Busca imagem de um card
@@ -87,15 +68,9 @@ export default function DemandaPage() {
     if (!token) return;
 
     try {
-      const response = await fetch(`${API_URL}/tipoDemanda/${cardId}/foto`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const imageUrl = URL.createObjectURL(blob);
-        setImageBlobs(prev => ({ ...prev, [cardId]: imageUrl }));
-      }
+      const blob = await tipoDemandaService.buscarFotoTipoDemanda(cardId, token);
+      const imageUrl = URL.createObjectURL(blob);
+      setImageBlobs(prev => ({ ...prev, [cardId]: imageUrl }));
     } catch (error) {
       console.error(`Erro ao buscar imagem do card ${cardId}:`, error);
     }
