@@ -173,7 +173,7 @@ export default function DemandaPage() {
                   descricao={card.descricao}
                   imagem={imageBlobs[card._id] || card.link_imagem || ''}
                   onCreateClick={() => {
-                    setSelectedTipo(card.titulo);
+                    setSelectedTipo(card.tipo);
                     setIsDialogOpen(true);
                   }}
                 />
