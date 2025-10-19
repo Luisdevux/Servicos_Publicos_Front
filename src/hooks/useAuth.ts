@@ -4,15 +4,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLogout, getAccessToken } from './useAuthMutations';
 import type { UserType } from '@/lib/auth';
+import type { Usuarios } from '@/types';
 
-interface User {
-  id: string;
-  nome: string;
-  email: string;
-  tipo: UserType;
-}
-
-async function fetchCurrentUser(): Promise<User | null> {
+async function fetchCurrentUser(): Promise<Usuarios | null> {
   const token = getAccessToken();
   
   if (!token) {

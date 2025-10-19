@@ -5,31 +5,41 @@ import Banner from "@/components/banner";
 import { User, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
-interface FormData {
-  nomeCivil: string;
-  nomeSocial: string;
-  email: string;
-  dataNascimento: string;
-  cpf: string;
-  celular: string;
-  
-  cep: string;
-  rua: string;
-  bairro: string;
-  numero: string;
-  complemento: string;
-  cidade: string;
-  estado: string;
-  
-  confirmarEmail: string;
-  senha: string;
-  confirmarSenha: string;
-}
+import type { CadastroFormData } from "@/types";
 
 export default function CadastroPage() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
+  
+  const [formData, setFormData] = useState<CadastroFormData>({
+    nomeCivil: "",
+    nomeSocial: "",
+    email: "",
+    dataNascimento: "",
+    cpf: "",
+    celular: "",
+    cep: "",
+    rua: "",
+    bairro: "",
+    numero: "",
+    complemento: "",
+    cidade: "",
+    estado: "",
+    confirmarEmail: "",
+    senha: "",
+    confirmarSenha: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: Implementar lógica de cadastro
+    console.log("Dados do formulário:", formData);
+  };
 
   return (
     <div className="min-h-screen bg-[var(--global-bg)]">
@@ -40,7 +50,7 @@ export default function CadastroPage() {
       />
 
       <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
-        <form className="mx-auto space-y-6 md:space-y-8 max-w-7xl" data-test="form-cadastro">
+        <form className="mx-auto space-y-6 md:space-y-8 max-w-7xl" onSubmit={handleSubmit} data-test="form-cadastro">
             <div className="space-y-4 md:space-y-6">
                 <h2 className="text-xl md:text-2xl font-semibold text-[var(--global-text-primary)] mb-4 md:mb-6">
                     Dados Pessoais
@@ -55,6 +65,8 @@ export default function CadastroPage() {
                         id="nomeCivil"
                         type="text"
                         placeholder="Lucas Silva"
+                        value={formData.nomeCivil}
+                        onChange={handleChange}
                         data-test="input-nome-civil"
                     />
                 </div>
@@ -67,6 +79,8 @@ export default function CadastroPage() {
                         id="nomeSocial"
                         type="text"
                         placeholder="Lucas Silva"
+                        value={formData.nomeSocial}
+                        onChange={handleChange}
                         data-test="input-nome-social"
                     />
                 </div>
@@ -79,6 +93,8 @@ export default function CadastroPage() {
                         id="email"
                         type="email"
                         placeholder="lucas.silva@gmail.com"
+                        value={formData.email}
+                        onChange={handleChange}
                         data-test="input-email"
                     />
                 </div>
@@ -91,6 +107,8 @@ export default function CadastroPage() {
                         id="dataNascimento"
                         type="date"
                         placeholder="12/09/1999"
+                        value={formData.dataNascimento}
+                        onChange={handleChange}
                         data-test="input-data-nascimento"
                     />
                 </div>
@@ -103,6 +121,8 @@ export default function CadastroPage() {
                         id="cpf"
                         type="text"
                         placeholder="999.999.999-99"
+                        value={formData.cpf}
+                        onChange={handleChange}
                         data-test="input-cpf"
                     />
                 </div>
@@ -115,6 +135,8 @@ export default function CadastroPage() {
                         id="celular"
                         type="tel"
                         placeholder="(69) 98125-2365"
+                        value={formData.celular}
+                        onChange={handleChange}
                         required
                         data-test="input-celular"
                     />
@@ -136,6 +158,8 @@ export default function CadastroPage() {
                             id="cep"
                             type="text"
                             placeholder="76980-632"
+                            value={formData.cep}
+                            onChange={handleChange}
                             required
                             data-test="input-cep"
                         />
@@ -149,6 +173,8 @@ export default function CadastroPage() {
                             id="rua"
                             type="text"
                             placeholder="Av. Presidente Nasser"
+                            value={formData.rua}
+                            onChange={handleChange}
                             required
                             data-test="input-rua"
                         />
@@ -162,6 +188,8 @@ export default function CadastroPage() {
                             id="bairro"
                             type="text"
                             placeholder="Jardim das Oliveira"
+                            value={formData.bairro}
+                            onChange={handleChange}
                             required
                             data-test="input-bairro"
                         />
@@ -175,6 +203,8 @@ export default function CadastroPage() {
                             id="numero"
                             type="text"
                             placeholder="1240"
+                            value={formData.numero}
+                            onChange={handleChange}
                             required
                             data-test="input-numero"
                         />
@@ -188,6 +218,8 @@ export default function CadastroPage() {
                             id="complemento"
                             type="text"
                             placeholder="Av. Presidente Nasser"
+                            value={formData.complemento}
+                            onChange={handleChange}
                             required
                             data-test="input-complemento"
                         />
@@ -201,6 +233,8 @@ export default function CadastroPage() {
                             id="cidade"
                             type="text"
                             placeholder="Vilhena"
+                            value={formData.cidade}
+                            onChange={handleChange}
                             required
                             data-test="input-cidade"
                         />
@@ -214,6 +248,8 @@ export default function CadastroPage() {
                             id="estado"
                             type="text"
                             placeholder="RO"
+                            value={formData.estado}
+                            onChange={handleChange}
                             required
                             data-test="input-estado"
                         />
@@ -234,6 +270,8 @@ export default function CadastroPage() {
                             id="confirmarEmail"
                             type="email"
                             placeholder="lucas.silva@gmail.com"
+                            value={formData.confirmarEmail}
+                            onChange={handleChange}
                             required
                             data-test="input-confirmar-email"
                         />
@@ -249,6 +287,8 @@ export default function CadastroPage() {
                                 id="senha"
                                 type={mostrarSenha ? "text" : "password"}
                                 placeholder="***********"
+                                value={formData.senha}
+                                onChange={handleChange}
                                 required
                                 data-test="input-senha"
                             />
@@ -272,6 +312,8 @@ export default function CadastroPage() {
                                 id="confirmarSenha"
                                 type={mostrarConfirmarSenha ? "text" : "password"}
                                 placeholder="***********"
+                                value={formData.confirmarSenha}
+                                onChange={handleChange}
                                 required
                                 data-test="input-confirmar-senha"
                             />
@@ -287,10 +329,18 @@ export default function CadastroPage() {
                     </div>
                 </div>
             </div>
+            
+            <div className="pt-6 pb-8 md:pt-8 md:pb-12 md:flex md:justify-center">
+                <Button 
+                    type="submit"
+                    size="lg" 
+                    colorClass="w-full md:w-auto font-medium py-2 px-8 md:px-12 bg-[var(--global-text-primary)] text-[var(--global-bg)] hover:bg-[var(--global-text-secondary)]" 
+                    data-test="button-cadastrar"
+                >
+                    Cadastrar
+                </Button>
+            </div>
         </form>
-        <div className="pt-6 pb-8 md:pt-8 md:pb-12 md:flex md:justify-center">
-            <Button size="lg" colorClass="w-full md:w-auto font-medium py-2 px-8 md:px-12 bg-[var(--global-text-primary)] text-[var(--global-bg)] hover:bg-[var(--global-text-secondary)]" data-test="button-cadastrar">Cadastrar</Button>
-        </div>
       </div>
     </div>
   );
