@@ -94,8 +94,10 @@ export default function AdminLayout({
       </Sidebar>
       
       <SidebarInset>
-        <div className="flex flex-1 flex-col p-4">
-          {children}
+        <div className="flex flex-1 flex-col">
+          <div className="p-4">
+            {children}
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
