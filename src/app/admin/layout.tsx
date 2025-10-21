@@ -69,8 +69,12 @@ export default function AdminLayout({
     <SidebarProvider>
       <Sidebar variant="inset">
         <SidebarContent>
+          <div className="p-4 border-b border-gray-200">
+            <h1 className="text-xl font-bold text-[var(--global-text-primary)]">VILHENA+PÚBLICA</h1>
+            <p className="text-sm text-[var(--global-text-secondary)]">Dashboard Administrativo</p>
+          </div>
           <SidebarGroup>
-            <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
+            <SidebarGroupLabel>Menu</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {data.navMain.map((item) => (
