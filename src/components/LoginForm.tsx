@@ -10,15 +10,9 @@ import type { UserType } from '@/lib/auth';
 
 interface LoginFormProps {
   userType: UserType;
-  theme: {
-    primary: string;
-    primaryHover: string;
-    gradientFrom: string;
-    gradientTo: string;
-  };
 }
 
-export default function LoginForm({ userType, theme }: LoginFormProps) {
+export default function LoginForm({ userType }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useQueryState('email', { defaultValue: '' });
   const [cpf, setCpf] = useState('');
@@ -129,15 +123,7 @@ export default function LoginForm({ userType, theme }: LoginFormProps) {
               required
               disabled={loginMutation.isPending}
               data-test="input-identificador"
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              onFocus={(e) => {
-                e.target.style.borderColor = theme.primary;
-                e.target.style.boxShadow = '0 0 0 3px ' + theme.primary + '20';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e5e7eb';
-                e.target.style.boxShadow = 'none';
-              }}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--global-accent)] focus:border-[var(--global-accent)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
         </div>
@@ -155,15 +141,7 @@ export default function LoginForm({ userType, theme }: LoginFormProps) {
               required
               disabled={loginMutation.isPending}
               data-test="input-senha"
-              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              onFocus={(e) => {
-                e.target.style.borderColor = theme.primary;
-                e.target.style.boxShadow = '0 0 0 3px ' + theme.primary + '20';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e5e7eb';
-                e.target.style.boxShadow = 'none';
-              }}
+              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--global-accent)] focus:border-[var(--global-accent)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               type="button"
@@ -184,8 +162,7 @@ export default function LoginForm({ userType, theme }: LoginFormProps) {
         <div className="flex justify-end">
           <a
             href="#"
-            className="text-sm hover:underline transition-colors"
-            style={{ color: theme.primary }}
+            className="text-sm text-[var(--global-accent)] hover:text-[var(--global-accent-hover)] hover:underline transition-colors"
             data-test="link-esqueceu-senha"
           >
             Esqueceu sua senha?
@@ -196,23 +173,7 @@ export default function LoginForm({ userType, theme }: LoginFormProps) {
           type="submit"
           disabled={loginMutation.isPending}
           data-test="button-acessar"
-          className="w-full text-white font-semibold py-3 rounded-lg transition-all shadow-lg uppercase text-sm tracking-wide disabled:opacity-70 disabled:cursor-not-allowed"
-          style={{
-            backgroundColor: theme.primary,
-            opacity: loginMutation.isPending ? 0.7 : 1,
-          }}
-          onMouseEnter={(e) => {
-            if (!loginMutation.isPending) {
-              e.currentTarget.style.backgroundColor = theme.primaryHover;
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.3)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = theme.primary;
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
-          }}
+          className="w-full bg-[var(--global-accent)] hover:bg-[var(--global-accent-hover)] text-white font-semibold py-3 rounded-lg transition-all shadow-lg uppercase text-sm tracking-wide disabled:opacity-70 disabled:cursor-not-allowed hover:-translate-y-0.5"
         >
           {loginMutation.isPending ? 'ENTRANDO...' : 'ACESSAR'}
         </button>
@@ -222,8 +183,7 @@ export default function LoginForm({ userType, theme }: LoginFormProps) {
         Não possui cadastro?{' '}
         <a 
           href="#" 
-          className="font-medium hover:underline transition-colors" 
-          style={{ color: theme.primary }}
+          className="font-medium text-[var(--global-accent)] hover:text-[var(--global-accent-hover)] hover:underline transition-colors"
           data-test="link-cadastro"
         >
           Clique aqui

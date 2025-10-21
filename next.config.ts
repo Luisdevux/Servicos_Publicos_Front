@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
     ],
     // Configurações para otimização de imagens
     formats: ['image/webp', 'image/avif'],
+    // Permitir blob URLs para preview de imagens
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 

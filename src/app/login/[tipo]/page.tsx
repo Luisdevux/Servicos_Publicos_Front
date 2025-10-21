@@ -10,30 +10,6 @@ interface LoginPageProps {
   }>;
 }
 
-const themes = {
-  administrador: {
-    primary: '#2C5F7F',
-    primaryHover: '#234a63',
-    gradientFrom: '#2C5F7F',
-    gradientTo: '#1a3a4d',
-    bgPattern: 'linear-gradient(135deg, #2C5F7F 0%, #1a3a4d 100%)',
-  },
-  operador: {
-    primary: '#4CAF93',
-    primaryHover: '#3d9178',
-    gradientFrom: '#7FD8BE',
-    gradientTo: '#4CAF93',
-    bgPattern: 'linear-gradient(135deg, #7FD8BE 0%, #4CAF93 100%)',
-  },
-  secretaria: {
-    primary: '#8B5BA8',
-    primaryHover: '#6f4987',
-    gradientFrom: '#A77BC0',
-    gradientTo: '#6B4080',
-    bgPattern: 'linear-gradient(135deg, #A77BC0 0%, #6B4080 100%)',
-  },
-};
-
 export default async function LoginPage({ params }: LoginPageProps) {
   const { tipo } = await params;
   
@@ -47,16 +23,18 @@ export default async function LoginPage({ params }: LoginPageProps) {
     redirect('/login/municipe');
   }
 
-  const theme = themes[tipo];
+  // Mapeia o tipo de usuário para a classe CSS de tema
+  const getThemeClass = () => {
+    if (tipo === 'operador') return 'global-theme-green';
+    if (tipo === 'secretaria') return 'global-theme-purple';
+    return ''; // Administrador e Munícipe usam o tema padrão (azul)
+  };
 
   return (
-    <div className="min-h-screen flex">
+    <div className={`min-h-screen flex ${getThemeClass()}`}>
       {/* Lado Esquerdo - Branding */}
       <div
-        className="hidden lg:flex lg:w-1/2 relative items-center justify-center p-12 overflow-hidden"
-        style={{
-          background: theme.bgPattern,
-        }}
+        className="hidden lg:flex lg:w-1/2 relative items-center justify-center p-12 overflow-hidden bg-gradient-to-br from-[var(--global-accent)] to-[var(--global-text-secondary)]"
       >
         {/* Elementos decorativos */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
@@ -81,15 +59,15 @@ export default async function LoginPage({ params }: LoginPageProps) {
         <div className="w-full max-w-md">
           {/* Logo mobile */}
           <div className="lg:hidden text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2" style={{ color: theme.primary }}>
+            <h1 className="text-4xl font-bold mb-2 text-[var(--global-accent)]">
               Vilhena+Pública
             </h1>
           </div>
 
           {/* Seletor de Tipo de Login */}
-          <LoginTypeSelector currentType={tipo} theme={theme} />
+          <LoginTypeSelector currentType={tipo} />
 
-          <LoginForm userType={tipo} theme={theme} />
+          <LoginForm userType={tipo} />
         </div>
       </div>
     </div>
