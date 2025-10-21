@@ -5,71 +5,16 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { getUserTypeFromLevel, type UserType } from '@/lib/auth';
-
-export interface LoginCredentials {
-  email: string;
-  senha: string;
-}
-
-export interface LoginResponse {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  usuario: {
-    id: string;
-    nome: string;
-    email: string;
-    nivel_acesso: {
-      municipe: boolean;
-      operador: boolean;
-      secretario: boolean;
-      administrador: boolean;
-    };
-  };
-}
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { authService } from '@/services';
+import type { LoginCredentials, LoginResponse } from '@/types';
 
 async function loginRequest(credentials: LoginCredentials): Promise<LoginResponse> {
-  const response = await fetch(`${API_URL}/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(credentials),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Erro ao fazer login');
-  }
-
-  const data = await response.json();
-  const userData = data.data.user || data.data;
-  
-  return {
-    access_token: userData.accessToken || data.data.access_token,
-    refresh_token: userData.refreshtoken || data.data.refresh_token,
-    expires_in: data.data.expires_in || 7200,
-    usuario: {
-      id: userData._id || userData.id,
-      nome: userData.nome,
-      email: userData.email,
-      nivel_acesso: userData.nivel_acesso
-    }
-  };
+  return authService.login(credentials);
 }
 
 async function logoutRequest(accessToken: string): Promise<void> {
   try {
-    await fetch(`${API_URL}/logout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ access_token: accessToken }),
-    });
+    await authService.logout(accessToken);
   } catch (error) {
     console.error('Erro ao fazer logout:', error);
   }
@@ -103,7 +48,13 @@ export function useLogin(expectedUserType?: UserType) {
     onSuccess: (data) => {
       // Verifica se o tipo de usuário logado corresponde ao esperado
       if (expectedUserType) {
-        const userType = getUserTypeFromLevel(data.usuario.nivel_acesso);
+        const nivelAcesso = {
+          municipe: data.user.nivel_acesso.municipe || false,
+          operador: data.user.nivel_acesso.operador || false,
+          secretario: data.user.nivel_acesso.secretario || false,
+          administrador: data.user.nivel_acesso.administrador || false,
+        };
+        const userType = getUserTypeFromLevel(nivelAcesso);
         
         if (userType !== expectedUserType) {
           throw new Error(
@@ -117,8 +68,8 @@ export function useLogin(expectedUserType?: UserType) {
         }
       }
       
-      saveTokens(data.access_token, data.refresh_token);
-      queryClient.setQueryData(['user'], data.usuario);
+      saveTokens(data.user.accessToken, data.user.refreshtoken);
+      queryClient.setQueryData(['user'], data.user);
       router.push('/');
     },
   });

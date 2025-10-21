@@ -3,30 +3,7 @@
 import { Check, X, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
 import ProgressoPedido from "./ProgressoPedido";
-
-export interface Pedido {
-  id: string;
-  titulo: string;
-  status: "aceito" | "recusado";
-  descricao?: string;
-  imagem?: string | string[];
-  endereco?: {
-    bairro: string;
-    tipoLogradouro: string;
-    logradouro: string;
-    numero: string;
-  };
-  progresso?: {
-    aprovado: boolean;
-    emProgresso: boolean;
-    concluido: boolean;
-  };
-  conclusao?: {
-    descricao: string;
-    imagem?: string | string[];
-    dataConclusao: string;
-  };
-}
+import type { Pedido } from "@/types";
 
 interface CardPedidoProps {
   pedido: Pedido;
