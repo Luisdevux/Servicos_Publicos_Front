@@ -1,11 +1,5 @@
  "use client";
-
-interface MetricCardProps {
-  title: string;
-  value: string | number;
-  icon?: React.ReactNode;
-  className?: string;
-}
+import type { MetricCardProps } from "@/types/admin";
 
 export function MetricCard({ title, value, icon }: MetricCardProps) {
   return (
