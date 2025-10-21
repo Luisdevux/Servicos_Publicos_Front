@@ -70,6 +70,20 @@ export function useLogin(expectedUserType?: UserType) {
       
       saveTokens(data.user.accessToken, data.user.refreshtoken);
       queryClient.setQueryData(['user'], data.user);
+
+      // Redireciona para a tela /admin se for administrador
+      try {
+        const nivelAcesso = data.user.nivel_acesso || {};
+        const isAdmin = !!nivelAcesso.administrador;
+
+        if (isAdmin) {
+          router.push('/admin/dashboard');
+          return;
+        }
+      } catch (err) {
+        console.error('Erro ao verificar nível de acesso:', err);
+      }
+
       router.push('/');
     },
   });

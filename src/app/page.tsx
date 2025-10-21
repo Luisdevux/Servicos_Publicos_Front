@@ -361,7 +361,7 @@ export default function Home() {
                     </svg>
                   ),
                   title: "Rápido",
-                  description: "Sistema otimizado para garantir resolução ágil e eficiente de todas as suas demandas e solicitações"
+                  description: "Sistema otimizado para resolução ágil e eficiente de todas as suas demandas e solicitações"
                 },
                 {
                   icon: (
@@ -380,7 +380,7 @@ export default function Home() {
                     </svg>
                   ),
                   title: "Seguro",
-                  description: "Plataforma oficial com criptografia avançada mantendo seus dados sempre protegidos e seguros"
+                  description: "Plataforma oficial mantendo seus dados sempre protegidos e seguros"
                 },
                 {
                   icon: (
@@ -539,11 +539,13 @@ export default function Home() {
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6" data-test="botoes-cta">
                 <Link 
-                  href="/login"
+                  href="/cadastro"
                   className="group relative px-10 py-5 bg-white text-[var(--global-accent)] font-bold text-lg rounded-lg shadow-2xl hover:shadow-3xl transition-all duration-300 overflow-hidden"
                   data-test="botao-criar-conta"
                 >
-                  <span className="relative z-10">Criar Conta Agora</span>
+                  <span className="relative z-10">
+                    Criar Conta Agora
+                  </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-white to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Link>
                 <Link 

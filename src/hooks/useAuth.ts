@@ -3,7 +3,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useLogout, getAccessToken } from './useAuthMutations';
-import type { UserType } from '@/lib/auth';
 import type { Usuarios } from '@/types';
 
 async function fetchCurrentUser(): Promise<Usuarios | null> {
