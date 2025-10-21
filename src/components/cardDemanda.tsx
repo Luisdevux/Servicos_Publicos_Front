@@ -1,15 +1,18 @@
+// src/components/cardDemanda.tsx
+
 import { Plus, ImageOff } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 
 export interface CardDemandaProps {
-    titulo: string;
-    descricao: string;
-    imagem: string;
-    theme?: 'default' | 'green' | 'purple';
+  titulo: string;
+  descricao: string;
+  imagem: string;
+  theme?: 'default' | 'green' | 'purple';
+  onCreateClick?: () => void;
 }
 
-export default function CardDemanda({ titulo, descricao, imagem, theme = 'default' }: CardDemandaProps) {
+export default function CardDemanda({ titulo, descricao, imagem, theme = 'default', onCreateClick }: CardDemandaProps) {
   const themeClass = theme === 'green' ? 'global-theme-green' : theme === 'purple' ? 'global-theme-purple' : '';
   const [imageError, setImageError] = useState(false);
 
@@ -46,7 +49,12 @@ export default function CardDemanda({ titulo, descricao, imagem, theme = 'defaul
             {descricao}
           </p>
         </div>
-        <Button size="lg" colorClass="w-full font-medium py-2 px-3 bg-[var(--global-text-primary)] text-[var(--global-bg)] hover:bg-[var(--global-text-secondary)]" data-test="card-demanda-botao-criar">
+        <Button
+          size="lg"
+          colorClass="w-full font-medium py-2 px-3 bg-[var(--global-text-primary)] text-[var(--global-bg)] hover:bg-[var(--global-text-secondary)]"
+          onClick={onCreateClick}
+          data-test="card-demanda-botao-criar"
+        >
           <Plus className="w-4 h-4" />
           Criar demanda
         </Button>

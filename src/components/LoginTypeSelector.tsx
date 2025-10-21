@@ -7,12 +7,9 @@ import { UserType } from '@/lib/auth';
 
 interface LoginTypeSelectorProps {
   currentType: UserType;
-  theme: {
-    primary: string;
-  };
 }
 
-export default function LoginTypeSelector({ currentType, theme }: LoginTypeSelectorProps) {
+export default function LoginTypeSelector({ currentType }: LoginTypeSelectorProps) {
   const types: { value: UserType; label: string }[] = [
     { value: 'municipe', label: 'Munícipe' },
     { value: 'administrador', label: 'Administrador' },
@@ -28,14 +25,9 @@ export default function LoginTypeSelector({ currentType, theme }: LoginTypeSelec
           href={`/login/${type.value}`}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             currentType === type.value
-              ? 'text-white shadow-lg'
+              ? 'bg-[var(--global-accent)] hover:bg-[var(--global-accent-hover)] text-white shadow-lg'
               : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
           }`}
-          style={
-            currentType === type.value
-              ? { backgroundColor: theme.primary }
-              : undefined
-          }
           data-test={`link-tipo-${type.value}`}
           aria-current={currentType === type.value ? 'page' : undefined}
         >

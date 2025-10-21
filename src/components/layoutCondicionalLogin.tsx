@@ -34,10 +34,12 @@ export default function ConditionalLayout({ children, dadosFooter }: Conditional
   }
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <Header />
-      {children}
+      <main className="flex-1">
+        {children}
+      </main>
       <Footer endereco={dadosFooter.endereco} contato={dadosFooter.contato} />
-    </>
+    </div>
   );
 }
