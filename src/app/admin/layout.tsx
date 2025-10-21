@@ -2,18 +2,15 @@
 
 import { 
   Home as HomeIcon, 
-  Users, 
   Building2,
   FolderKanban,
   IdCardLanyard,
   Handshake,
   Briefcase,
-  User,
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -22,6 +19,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarInset,
+  SidebarTrigger,
 } from "../../components/ui/sidebar";
 
 const data = {
@@ -69,9 +67,9 @@ export default function AdminLayout({
     <SidebarProvider>
       <Sidebar variant="inset">
         <SidebarContent>
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4">
             <h1 className="text-xl font-bold text-[var(--global-text-primary)]">VILHENA+PÚBLICA</h1>
-            <p className="text-sm text-[var(--global-text-secondary)]">Dashboard Administrativo</p>
+            <p className="text-xs text-[var(--global-text-secondary)]">Dashboard Administrativo</p>
           </div>
           <SidebarGroup>
             <SidebarGroupLabel>Menu</SidebarGroupLabel>
@@ -98,11 +96,18 @@ export default function AdminLayout({
       </Sidebar>
       
       <SidebarInset>
-        <div className="flex flex-1 flex-col">
-          <div className="p-4">
-            {children}
+          <div className="flex flex-1 flex-col">
+            <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+              <SidebarTrigger className="-ml-1" />
+              <div className="flex-1">
+                <h1 className="text-lg text-[var(--global-text-secondary)] font-semibold">Dados</h1>
+              </div>
+            </header>
+            
+            <div className="flex-1 p-4">
+              {children}
+            </div>
           </div>
-        </div>
       </SidebarInset>
     </SidebarProvider>
   );
