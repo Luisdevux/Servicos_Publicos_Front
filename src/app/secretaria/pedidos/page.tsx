@@ -1,61 +1,54 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Banner from "@/components/banner";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { demandaService } from "@/services/demandaService";
+import { getAccessToken } from "@/hooks/useAuthMutations";
+import type { Demanda as DemandaAPI } from "@/types";
 
-interface Demanda {
+interface DemandaCard {
   id: string;
   titulo: string;
   descricao: string;
-  status: "solicitação" | "sugestão" | "reclamação" | "elogio";
+  tipo: string;
 }
-
-const demandasMock: Demanda[] = [
-  {
-    id: "1",
-    titulo: "Demanda sobre Iluminação",
-    descricao: "O poste da rua está apagado, essa já é a segunda vez em 5 semanas seguidas. Então, eu acho que seria interessante um jeito de diminuir isso, tenha um medo de sair.",
-    status: "solicitação",
-  },
-  {
-    id: "2",
-    titulo: "Demanda sobre Iluminação",
-    descricao: "O poste da rua está apagado, essa já é a segunda vez em 5 semanas seguidas.",
-    status: "reclamação",
-  },
-  {
-    id: "3",
-    titulo: "Demanda sobre Iluminação",
-    descricao: "O poste da rua está apagado, essa já é a segunda vez em 5 semanas seguidas.",
-    status: "sugestão",
-  },
-  {
-    id: "4",
-    titulo: "Demanda sobre Iluminação",
-    descricao: "O poste da rua está apagado, essa já é a segunda vez em 5 semanas seguidas.",
-    status: "solicitação",
-  },
-  {
-    id: "5",
-    titulo: "Demanda sobre Iluminação",
-    descricao: "O poste da rua está apagado, essa já é a segunda vez em 5 semanas seguidas.",
-    status: "elogio",
-  },
-  {
-    id: "6",
-    titulo: "Demanda sobre Iluminação",
-    descricao: "O poste da rua está apagado, essa já é a segunda vez em 5 semanas seguidas.",
-    status: "solicitação",
-  },
-];
 
 export default function PedidosSecretariaPage() {
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
-  const [demandas, setDemandas] = useState(demandasMock);
   const [paginaAtual, setPaginaAtual] = useState(1);
+
+  // Buscar demandas da API
+  const { data: response, isLoading, error } = useQuery({
+    queryKey: ['demandas-secretaria'],
+    queryFn: async () => {
+      const token = getAccessToken();
+      if (!token) {
+        console.warn("Token não encontrado. Usuário não autenticado.");
+        throw new Error("Você precisa estar logado para acessar esta página.");
+      }
+      try {
+        const result = await demandaService.buscarDemandas(token);
+        console.log("Demandas carregadas:", result);
+        return result;
+      } catch (err) {
+        console.error("Erro ao buscar demandas:", err);
+        throw err;
+      }
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => ({
+    id: demanda._id,
+    titulo: `Demanda sobre ${demanda.tipo}`,
+    descricao: demanda.descricao,
+    tipo: demanda.tipo.toLowerCase(),
+  })) || [];
 
   const handleFiltroChange = (value: string) => {
     setFiltroSelecionado(value);
@@ -75,16 +68,21 @@ export default function PedidosSecretariaPage() {
     console.log("Analisar demanda:", id);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "solicitação":
+  const getStatusColor = (tipo: string) => {
+    const tipoLower = tipo.toLowerCase();
+    switch (tipoLower) {
+      case "iluminação":
         return "bg-purple-100 text-purple-800";
-      case "sugestão":
+      case "coleta":
         return "bg-blue-100 text-blue-800";
-      case "reclamação":
-        return "bg-red-100 text-red-800";
-      case "elogio":
+      case "saneamento":
+        return "bg-cyan-100 text-cyan-800";
+      case "árvores":
         return "bg-green-100 text-green-800";
+      case "animais":
+        return "bg-orange-100 text-orange-800";
+      case "pavimentação":
+        return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -94,8 +92,55 @@ export default function PedidosSecretariaPage() {
     if (filtroSelecionado === "todos") {
       return true;
     }
-    return demanda.status === filtroSelecionado;
+    return demanda.tipo === filtroSelecionado.toLowerCase();
   });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--global-bg)]">
+        <Banner
+          icone={ClipboardList}
+          titulo="Pedidos recebidos"
+          className="mb-6 md:mb-8"
+          backgroundColor="linear-gradient(135deg, purple 0%, #5b21b6 80%)"
+        />
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando demandas...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[var(--global-bg)]">
+        <Banner
+          icone={ClipboardList}
+          titulo="Pedidos recebidos"
+          className="mb-6 md:mb-8"
+          backgroundColor="linear-gradient(135deg, purple 0%, #5b21b6 80%)"
+        />
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center max-w-md mx-auto px-4">
+            <ClipboardList className="h-16 w-16 text-red-400 mx-auto mb-4" />
+            <p className="text-red-600 font-semibold mb-2">Erro ao carregar demandas</p>
+            <p className="text-gray-600 text-sm mb-4">
+              {error instanceof Error ? error.message : "Erro desconhecido. Tente novamente."}
+            </p>
+            <Button 
+              onClick={() => window.location.reload()}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              Recarregar página
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--global-bg)]">
@@ -113,17 +158,19 @@ export default function PedidosSecretariaPage() {
 
             <div className="flex items-center gap-4">
               <Filter className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-700">Filtrar por:</span>
+              <span className="text-sm text-gray-700">Filtrar por tipo:</span>
               <Select value={filtroSelecionado} onValueChange={handleFiltroChange}>
                 <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Todos os pedidos" />
+                  <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos os pedidos</SelectItem>
-                  <SelectItem value="solicitação">Solicitações</SelectItem>
-                  <SelectItem value="sugestão">Sugestões</SelectItem>
-                  <SelectItem value="reclamação">Reclamações</SelectItem>
-                  <SelectItem value="elogio">Elogios</SelectItem>
+                  <SelectItem value="todos">Todos os tipos</SelectItem>
+                  <SelectItem value="iluminação">Iluminação</SelectItem>
+                  <SelectItem value="coleta">Coleta</SelectItem>
+                  <SelectItem value="saneamento">Saneamento</SelectItem>
+                  <SelectItem value="árvores">Árvores</SelectItem>
+                  <SelectItem value="animais">Animais</SelectItem>
+                  <SelectItem value="pavimentação">Pavimentação</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -141,8 +188,8 @@ export default function PedidosSecretariaPage() {
                     <h3 className="text-lg font-semibold text-gray-700 flex-1">
                       {demanda.titulo}
                     </h3>
-                    <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium capitalize whitespace-nowrap ${getStatusColor(demanda.status)}`}>
-                      {demanda.status}
+                    <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium capitalize whitespace-nowrap ${getStatusColor(demanda.tipo)}`}>
+                      {demanda.tipo}
                     </span>
                   </div>
                   
