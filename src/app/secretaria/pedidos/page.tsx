@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import Banner from "@/components/banner";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { demandaService } from "@/services/demandaService";
 import { getAccessToken } from "@/hooks/useAuthMutations";
+import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI } from "@/types";
 
 interface DemandaCard {
@@ -20,6 +22,7 @@ interface DemandaCard {
 export default function PedidosSecretariaPage() {
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const router = useRouter();
 
   // Buscar demandas da API
   const { data: response, isLoading, error } = useQuery({
@@ -42,6 +45,19 @@ export default function PedidosSecretariaPage() {
     retry: false,
     refetchOnWindowFocus: false,
   });
+
+  // Detectar token expirado e redirecionar para login
+  useEffect(() => {
+    if (error) {
+      if (error instanceof ApiError && error.status === 498) {
+        // Token expirado - limpar storage e redirecionar
+        console.warn("Token expirado. Redirecionando para login...");
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        router.push('/login/secretaria?expired=true');
+      }
+    }
+  }, [error, router]);
 
   const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => ({
     id: demanda._id,
@@ -115,6 +131,8 @@ export default function PedidosSecretariaPage() {
   }
 
   if (error) {
+    const isTokenExpired = error instanceof ApiError && error.status === 498;
+    
     return (
       <div className="min-h-screen bg-[var(--global-bg)]">
         <Banner
@@ -126,16 +144,23 @@ export default function PedidosSecretariaPage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center max-w-md mx-auto px-4">
             <ClipboardList className="h-16 w-16 text-red-400 mx-auto mb-4" />
-            <p className="text-red-600 font-semibold mb-2">Erro ao carregar demandas</p>
-            <p className="text-gray-600 text-sm mb-4">
-              {error instanceof Error ? error.message : "Erro desconhecido. Tente novamente."}
+            <p className="text-red-600 font-semibold mb-2">
+              {isTokenExpired ? "Sessão expirada" : "Erro ao carregar demandas"}
             </p>
-            <Button 
-              onClick={() => window.location.reload()}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              Recarregar página
-            </Button>
+            <p className="text-gray-600 text-sm mb-4">
+              {isTokenExpired 
+                ? "Sua sessão expirou. Você será redirecionado para fazer login novamente..." 
+                : (error instanceof Error ? error.message : "Erro desconhecido. Tente novamente.")
+              }
+            </p>
+            {!isTokenExpired && (
+              <Button 
+                onClick={() => window.location.reload()}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Recarregar página
+              </Button>
+            )}
           </div>
         </div>
       </div>
