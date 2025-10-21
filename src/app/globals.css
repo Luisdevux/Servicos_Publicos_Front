@@ -228,3 +228,9 @@ html {
   --global-bg: transparent;
   --global-border: transparent;
 }
+
+.recharts-wrapper *, 
+.recharts-wrapper g, 
+.recharts-wrapper svg {
+  outline: none !important;
+}

@@ -1,5 +1,6 @@
 "use client";
 import { MetricCard } from "@/components/MetricCard";
+import { ChartCard } from "@/components/ChartCard";
 import { 
   FolderKanban, 
   Users, 
@@ -34,6 +35,15 @@ const metricas = [
   }
 ]
 
+const dadosDemandas = [
+  { categoria: "Coleta", quantidade: 18, cor: "#8b5cf6" },
+  { categoria: "Iluminação", quantidade: 29, cor: "#94E9B8" },
+  { categoria: "Animais", quantidade: 22, cor: "#000000" },
+  { categoria: "Árvores", quantidade: 31, cor: "#3b82f6" },
+  { categoria: "Pavimentação", quantidade: 14, cor: "#9F9FF8" },
+  { categoria: "Saneamento", quantidade: 26, cor: "#10b981" }
+]
+
 export default function DashboardPage() {
   return (
     <div className="space-y-6 pt-3">
@@ -48,7 +58,14 @@ export default function DashboardPage() {
         ))}
       </div>
 
-</div>
+      <div className="grid lg:grid-cols-2 gap-6">
+        <ChartCard 
+          title="Quantidade de demandas solicitadas"
+          data={dadosDemandas}
+          colors={dadosDemandas.map((item) => item.cor)}
+        />
+      </div>
+    </div>
   );
 }
 
