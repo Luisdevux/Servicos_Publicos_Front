@@ -35,13 +35,13 @@ const metricas = [
   }
 ]
 
-const dadosDemandas = [
-  { categoria: "Coleta", quantidade: 18, cor: "#8b5cf6" },
-  { categoria: "Iluminação", quantidade: 29, cor: "#94E9B8" },
-  { categoria: "Animais", quantidade: 22, cor: "#000000" },
-  { categoria: "Árvores", quantidade: 31, cor: "#3b82f6" },
-  { categoria: "Pavimentação", quantidade: 14, cor: "#9F9FF8" },
-  { categoria: "Saneamento", quantidade: 26, cor: "#10b981" }
+const dadosDemandasPorBairro = [
+  { bairro: "Centro", quantidade: 18, cor: "#8b5cf6" },
+  { bairro: "Jardim América", quantidade: 29, cor: "#94E9B8" },
+  { bairro: "Jardim das Oliveiras", quantidade: 22, cor: "#000000" },
+  { bairro: "Jardim das Flores", quantidade: 31, cor: "#3b82f6" },
+  { bairro: "Vila São José", quantidade: 14, cor: "#9F9FF8" },
+  { bairro: "Orleans", quantidade: 26, cor: "#10b981" }
 ]
 
 export default function DashboardPage() {
@@ -60,9 +60,9 @@ export default function DashboardPage() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         <ChartCard 
-          title="Quantidade de demandas solicitadas"
-          data={dadosDemandas}
-          colors={dadosDemandas.map((item) => item.cor)}
+          title="Quantidade de demandas solicitadas por bairro"
+          data={dadosDemandasPorBairro}
+          colors={dadosDemandasPorBairro.map((item) => item.cor)}
         />
       </div>
     </div>

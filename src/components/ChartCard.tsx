@@ -10,7 +10,7 @@ import {
 } from "recharts";
 
 interface ChartData {
-  categoria: string;
+  bairro: string;
   quantidade: number;
   cor: string;
 }
@@ -37,7 +37,7 @@ export function ChartCard({ title, data }: ChartCardProps) {
             onMouseLeave={() => {}}
           >
             <XAxis
-              dataKey="categoria"
+              dataKey="bairro"
               stroke="#9ca3af"
               tick={{ fill: "#6b7280", fontSize: 12 }}
               interval={0}
