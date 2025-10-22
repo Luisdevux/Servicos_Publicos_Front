@@ -1,6 +1,7 @@
 "use client";
 import { MetricCard } from "@/components/MetricCard";
 import { ChartCard } from "@/components/ChartCard";
+import { DonutChartCard } from "@/components/DonutChartCard";
 import { 
   FolderKanban, 
   Users, 
@@ -44,6 +45,15 @@ const dadosDemandasPorBairro = [
   { bairro: "Orleans", quantidade: 26, cor: "#10b981" }
 ]
 
+const dadosDemandasPorCategoria = [
+  { categoria: "Iluminação", quantidade: 45, cor: "#f59e0b" },
+  { categoria: "Pavimentação", quantidade: 38, cor: "#ef4444" },
+  { categoria: "Saneamento", quantidade: 32, cor: "#10b981" },
+  { categoria: "Coleta de Lixo", quantidade: 28, cor: "#8b5cf6" },
+  { categoria: "Arborização", quantidade: 22, cor: "#06b6d4" },
+  { categoria: "Outros", quantidade: 15, cor: "#6b7280" }
+]
+
 export default function DashboardPage() {
   return (
     <div className="space-y-6 pt-3">
@@ -63,6 +73,10 @@ export default function DashboardPage() {
           title="Quantidade de demandas solicitadas por bairro"
           data={dadosDemandasPorBairro}
           colors={dadosDemandasPorBairro.map((item) => item.cor)}
+        />
+        <DonutChartCard 
+          title="Demandas por categoria"
+          data={dadosDemandasPorCategoria}
         />
       </div>
     </div>
