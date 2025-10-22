@@ -4,7 +4,8 @@ import { useState } from "react";
 import Banner from "@/components/banner";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
-import CardPedido, { Pedido } from "@/components/cardPedido";
+import CardPedido from "@/components/cardPedido";
+import type { Pedido } from "@/types";
 import DetalhesDemandaModal from "@/components/detalheDemandaModal";
 
 const pedidosMock: Pedido[] = [

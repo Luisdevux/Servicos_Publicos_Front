@@ -8,13 +8,15 @@ export interface BannerProps {
   descricao?: string;
   icone?: string | LucideIcon;
   className?: string;
+  backgroundColor?: string;
 }
 
 export default function Banner({
   titulo,
   descricao,
   icone,
-  className
+  className,
+  backgroundColor
 }: BannerProps) {
   return (
     <div className="w-full">
@@ -25,7 +27,7 @@ export default function Banner({
           className
         )}
         style={{
-          background: 'linear-gradient(135deg, var(--global-accent) 0%, var(--global-text-primary) 100%)',
+          background: backgroundColor || 'linear-gradient(135deg, var(--global-accent) 0%, var(--global-text-primary) 100%)',
           minHeight: 220,
         }}
       >
