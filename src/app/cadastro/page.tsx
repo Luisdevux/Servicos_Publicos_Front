@@ -50,7 +50,7 @@ export default function CadastroPage() {
       />
 
       <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
-        <form className="mx-auto space-y-6 md:space-y-8 max-w-7xl" onSubmit={handleSubmit} data-test="form-cadastro">
+        <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit} data-test="form-cadastro">
             <div className="space-y-4 md:space-y-6">
                 <h2 className="text-xl md:text-2xl font-semibold text-[var(--global-text-primary)] mb-4 md:mb-6">
                     Dados Pessoais
