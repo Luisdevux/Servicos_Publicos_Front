@@ -1,11 +1,11 @@
 // src/types/auth.ts
 
-import type { Usuarios } from './usuarios';
 import type { Endereco } from './endereco';
 
 export interface LoginCredentials {
-  email: string;
+  identificador: string;
   senha: string;
+  lembrarDeMim?: boolean;
 }
 
 /**
@@ -29,7 +29,7 @@ export interface LoginResponse {
     ativo?: boolean;
     createdAt?: string;
     updatedAt?: string;
-    [key: string]: any; // Outros campos opcionais do usuário
+    [key: string]: unknown; // Outros campos opcionais do usuário
   };
 }
 
