@@ -3,7 +3,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/providers/queryProvider";
+import { AuthProvider } from "@/providers/authProvider";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import { Toaster } from 'sonner';
 import "./globals.css";
 import ConditionalLayout from "@/components/layoutCondicionalLogin";
 
@@ -50,9 +52,12 @@ export default function RootLayout({
       >
         <NuqsAdapter>
           <QueryProvider>
-            <ConditionalLayout dadosFooter={dadosFooter}>
-              {children}
-            </ConditionalLayout>
+            <AuthProvider>
+              <Toaster position="top-right" richColors closeButton />
+              <ConditionalLayout dadosFooter={dadosFooter}>
+                {children}
+              </ConditionalLayout>
+            </AuthProvider>
           </QueryProvider>
         </NuqsAdapter>
       </body>
