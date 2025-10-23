@@ -1,4 +1,7 @@
 "use client";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { MetricCard } from "@/components/MetricCard";
 import { ChartCard } from "@/components/ChartCard";
 import { DonutChartCard } from "@/components/DonutChartCard";
@@ -8,57 +11,120 @@ import {
   IdCardLanyard, 
   Building2 
 } from "lucide-react";
-
-const metricas = [
-  {
-    id: 1,
-    title: "Demandas",
-    value: "7,265",
-    icon: <FolderKanban className="h-6 w-6" />
-  },
-  {
-    id: 2,
-    title: "Novos Colaboradores",
-    value: "3,671",
-    icon: <Users className="h-6 w-6" />
-  },
-  {
-    id: 3,
-    title: "Novos Operadores",
-    value: "156",
-    icon: <IdCardLanyard className="h-6 w-6" />
-  },
-  {
-    id: 4,
-    title: "Novas Empresas Terceirizadas",
-    value: "28",
-    icon: <Building2 className="h-6 w-6" />
-  }
-]
-
-const dadosDemandasPorBairro = [
-  { bairro: "Centro", quantidade: 18, cor: "#8b5cf6" },
-  { bairro: "Jardim América", quantidade: 29, cor: "#94E9B8" },
-  { bairro: "Jardim das Oliveiras", quantidade: 22, cor: "#000000" },
-  { bairro: "Jardim das Flores", quantidade: 31, cor: "#3b82f6" },
-  { bairro: "Vila São José", quantidade: 14, cor: "#9F9FF8" },
-  { bairro: "Orleans", quantidade: 26, cor: "#10b981" }
-]
-
-const dadosDemandasPorCategoria = [
-  { categoria: "Iluminação", quantidade: 45, cor: "#f59e0b" },
-  { categoria: "Pavimentação", quantidade: 38, cor: "#ef4444" },
-  { categoria: "Saneamento", quantidade: 32, cor: "#10b981" },
-  { categoria: "Coleta de Lixo", quantidade: 28, cor: "#8b5cf6" },
-  { categoria: "Arborização", quantidade: 22, cor: "#06b6d4" },
-  { categoria: "Outros", quantidade: 15, cor: "#6b7280" }
-]
+import { adminService } from "@/services/adminService";
+import { getAccessToken } from "@/hooks/useAuthMutations";
+import { ApiError } from "@/services/api";
+import type { DashboardMetrics, DemandaPorBairro, DemandaPorCategoria } from "@/types/admin";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthLoading, isAuthenticated, router]);
+
+  const { data: response, isLoading, error } = useQuery({
+    queryKey: ['dashboard-metrics'],
+    queryFn: async () => {
+      const token = getAccessToken();
+      if (!token) {
+        router.push('/login');
+        throw new Error("Token não encontrado");
+      }
+      try {
+        const result = await adminService.buscarMetricas(token);
+        return result;
+      } catch (err) {
+        console.error("Erro ao buscar métricas:", err);
+        throw err;
+      }
+    },
+    enabled: !isAuthLoading && isAuthenticated,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+
+  const metricas: DashboardMetrics = response?.data?.metricas || {
+    totalDemandas: 0,
+    novosColaboradores: 0,
+    novosOperadores: 0,
+    novasEmpresasTerceirizadas: 0
+  };
+
+  const dadosDemandasPorBairro: DemandaPorBairro[] = response?.data?.demandasPorBairro || [];
+  const dadosDemandasPorCategoria: DemandaPorCategoria[] = response?.data?.demandasPorCategoria || [];
+
+  const metricasCards = [
+    {
+      id: 1,
+      title: "Demandas",
+      value: metricas.totalDemandas.toLocaleString(),
+      icon: <FolderKanban className="h-6 w-6" />
+    },
+    {
+      id: 2,
+      title: "Novos Colaboradores",
+      value: metricas.novosColaboradores.toLocaleString(),
+      icon: <Users className="h-6 w-6" />
+    },
+    {
+      id: 3,
+      title: "Novos Operadores",
+      value: metricas.novosOperadores.toLocaleString(),
+      icon: <IdCardLanyard className="h-6 w-6" />
+    },
+    {
+      id: 4,
+      title: "Novas Empresas Terceirizadas",
+      value: metricas.novasEmpresasTerceirizadas.toLocaleString(),
+      icon: <Building2 className="h-6 w-6" />
+    }
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 pt-3">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando métricas...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // if (error) {
+  //   const isTokenExpired = error instanceof ApiError && error.status === 498;
+    
+  //   return (
+  //     <div className="space-y-6 pt-3">
+  //       <div className="flex items-center justify-center py-12">
+  //         <div className="text-center max-w-md mx-auto px-4">
+  //           <FolderKanban className="h-16 w-16 text-red-400 mx-auto mb-4" />
+  //           <p className="text-red-600 font-semibold mb-2">
+  //             {isTokenExpired ? "Sessão expirada" : "Erro ao carregar métricas"}
+  //           </p>
+  //           <p className="text-gray-600 text-sm mb-4">
+  //             {isTokenExpired 
+  //               ? "Sua sessão expirou. Você será redirecionado para fazer login novamente..." 
+  //               : (error instanceof Error ? error.message : "Erro desconhecido. Tente novamente.")
+  //             }
+  //           </p>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
   return (
     <div className="space-y-6 pt-3">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ">
-        {metricas.map((metrica) => (
+        {metricasCards.map((metrica) => (
           <MetricCard 
             key={metrica.id} 
             title={metrica.title} 
@@ -70,12 +136,12 @@ export default function DashboardPage() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         <ChartCard 
-          title="Quantidade de demandas solicitadas por bairro"
+          title="Os 5 Bairros com Maior Quantidade de Demandas Solicitadas"
           data={dadosDemandasPorBairro}
           colors={dadosDemandasPorBairro.map((item) => item.cor)}
         />
         <DonutChartCard 
-          title="Demandas por categoria"
+          title="Demandas Por Categoria"
           data={dadosDemandasPorCategoria}
         />
       </div>

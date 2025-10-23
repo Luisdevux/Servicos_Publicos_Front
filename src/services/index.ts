@@ -8,3 +8,4 @@ export * from './authService';
 export * from './demandaService';
 export * from './tipoDemandaService';
 export * from './usuarioService';
+export * from './adminService';
