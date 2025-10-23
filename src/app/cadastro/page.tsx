@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import Banner from "@/components/banner";
-import { User, Eye, EyeOff } from "lucide-react";
+import { User, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { CadastroFormData } from "@/types";
+import { useRouter } from "next/navigation";
 
 export default function CadastroPage() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
+  const router = useRouter();
   
   const [formData, setFormData] = useState<CadastroFormData>({
     nomeCivil: "",
@@ -50,13 +52,23 @@ export default function CadastroPage() {
       />
 
       <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
+
+      <div className="mb-6">
+          <Button
+            size="lg"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">Voltar</span>
+          </Button>
+        </div>
         <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit} data-test="form-cadastro">
             <div className="space-y-4 md:space-y-6">
                 <h2 className="text-xl md:text-2xl font-semibold text-[var(--global-text-primary)] mb-4 md:mb-6">
                     Dados Pessoais
                 </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
                     <label htmlFor="nomeCivil" className="block text-sm font-medium text-[var(--global-text-primary)]">
                         Nome civil completo
@@ -70,18 +82,18 @@ export default function CadastroPage() {
                         data-test="input-nome-civil"
                     />
                 </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
-                    <label htmlFor="nomeSocial" className="block text-sm font-medium text-[var(--global-text-primary)]">
-                        Nome social
+                    <label htmlFor="cpf" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                        CPF
                     </label>
                     <Input
-                        id="nomeSocial"
+                        id="cpf"
                         type="text"
-                        placeholder="Lucas Silva"
-                        value={formData.nomeSocial}
+                        placeholder="999.999.999-99"
+                        value={formData.cpf}
                         onChange={handleChange}
-                        data-test="input-nome-social"
+                        data-test="input-cpf"
                     />
                 </div>
 
@@ -112,21 +124,7 @@ export default function CadastroPage() {
                         data-test="input-data-nascimento"
                     />
                 </div>
-
-                <div className="space-y-2">
-                    <label htmlFor="cpf" className="block text-sm font-medium text-[var(--global-text-primary)]">
-                        CPF
-                    </label>
-                    <Input
-                        id="cpf"
-                        type="text"
-                        placeholder="999.999.999-99"
-                        value={formData.cpf}
-                        onChange={handleChange}
-                        data-test="input-cpf"
-                    />
-                </div>
-
+                
                 <div className="space-y-2">
                     <label htmlFor="celular" className="block text-sm font-medium text-[var(--global-text-primary)]">
                         Celular
@@ -210,7 +208,10 @@ export default function CadastroPage() {
                         />
                     </div>
 
-                    <div className="space-y-2">
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+                    <div className="space-y-2 md:col-span-2">
                         <label htmlFor="complemento" className="block text-sm font-medium text-[var(--global-text-primary)]">
                             Complemento
                         </label>
@@ -233,9 +234,8 @@ export default function CadastroPage() {
                             id="cidade"
                             type="text"
                             placeholder="Vilhena"
-                            value={formData.cidade}
-                            onChange={handleChange}
-                            required
+                            value={'Vilhena'}
+                            readOnly
                             data-test="input-cidade"
                         />
                     </div>
@@ -248,9 +248,8 @@ export default function CadastroPage() {
                             id="estado"
                             type="text"
                             placeholder="RO"
-                            value={formData.estado}
-                            onChange={handleChange}
-                            required
+                            value={'RO'}
+                            readOnly
                             data-test="input-estado"
                         />
                     </div>
