@@ -20,18 +20,29 @@ async function logoutRequest(accessToken: string): Promise<void> {
   }
 }
 
-function saveTokens(accessToken: string, refreshToken: string) {
+function saveTokens(accessToken: string, refreshToken: string, rememberMe: boolean = false) {
   const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Se "lembrar de mim" está marcado, usa tempos maiores, senão usa sessão
+  const cookieOptions = {
+    secure: isProduction,
+    sameSite: 'strict' as const,
+    ...(rememberMe ? { expires: 30 } : {}), // 30 dias se lembrar, senão sessão (sem expires)
+  };
+  
   Cookies.set('access_token', accessToken, { 
-    expires: 7, 
-    secure: isProduction, 
-    sameSite: 'strict' 
+    ...cookieOptions,
+    expires: rememberMe ? 7 : undefined, // 7 dias para access token
   });
-  Cookies.set('refresh_token', refreshToken, { 
-    expires: 30, 
-    secure: isProduction, 
-    sameSite: 'strict' 
-  });
+  
+  Cookies.set('refresh_token', refreshToken, cookieOptions);
+  
+  // Salva a preferência de "lembrar de mim"
+  if (rememberMe) {
+    localStorage.setItem('remember_me', 'true');
+  } else {
+    localStorage.removeItem('remember_me');
+  }
 }
 
 function clearTokens() {
@@ -39,45 +50,76 @@ function clearTokens() {
   Cookies.remove('refresh_token');
 }
 
-export function useLogin(expectedUserType?: UserType) {
+export function useLogin(expectedUserType?: UserType | UserType[]) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: loginRequest,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       // Verifica se o tipo de usuário logado corresponde ao esperado
       if (expectedUserType) {
         const nivelAcesso = {
-          municipe: data.user.nivel_acesso.municipe || false,
-          operador: data.user.nivel_acesso.operador || false,
-          secretario: data.user.nivel_acesso.secretario || false,
-          administrador: data.user.nivel_acesso.administrador || false,
+          municipe: data.user.nivel_acesso?.municipe || false,
+          operador: data.user.nivel_acesso?.operador || false,
+          secretario: data.user.nivel_acesso?.secretario || false,
+          administrador: data.user.nivel_acesso?.administrador || false,
         };
         const userType = getUserTypeFromLevel(nivelAcesso);
         
-        if (userType !== expectedUserType) {
+        // Se expectedUserType for um array, verifica se o userType está nele
+        const allowedTypes = Array.isArray(expectedUserType) ? expectedUserType : [expectedUserType];
+        
+        if (!allowedTypes.includes(userType)) {
+          const allowedNames = allowedTypes.map(type => {
+            switch(type) {
+              case 'municipe': return 'munícipes';
+              case 'administrador': return 'administradores';
+              case 'operador': return 'operadores';
+              case 'secretaria': return 'secretários';
+              default: return type;
+            }
+          }).join(', ');
+          
           throw new Error(
-            `Acesso negado. Esta tela é exclusiva para ${
-              expectedUserType === 'municipe' ? 'munícipes' :
-              expectedUserType === 'administrador' ? 'administradores' :
-              expectedUserType === 'operador' ? 'operadores' :
-              'secretarias'
-            }.`
+            `Acesso negado. Esta tela é exclusiva para ${allowedNames}.`
           );
         }
       }
       
-      saveTokens(data.user.accessToken, data.user.refreshtoken);
-      queryClient.setQueryData(['user'], data.user);
+      // Salva tokens com opção de "lembrar de mim"
+      const rememberMe = variables.lembrarDeMim ?? false;
+      saveTokens(data.user.accessToken, data.user.refreshtoken, rememberMe);
+      
+      // Salva dados do usuário no localStorage para persistência
+      const userData = {
+        _id: data.user._id,
+        nome: data.user.nome,
+        email: data.user.email,
+        cpf: data.user.cpf,
+        cnpj: data.user.cnpj,
+        nivel_acesso: data.user.nivel_acesso,
+      };
+      localStorage.setItem('user_data', JSON.stringify(userData));
+      queryClient.setQueryData(['currentUser'], userData);
 
-      // Redireciona para a tela /admin se for administrador
+      // Redireciona baseado no nível de acesso
       try {
         const nivelAcesso = data.user.nivel_acesso || {};
-        const isAdmin = !!nivelAcesso.administrador;
-
-        if (isAdmin) {
+        
+        // Prioridade: administrador > secretário > operador > munícipe
+        if (nivelAcesso.administrador) {
           router.push('/admin/dashboard');
+          return;
+        }
+        
+        if (nivelAcesso.secretario) {
+          router.push('/secretaria/dashboard');
+          return;
+        }
+        
+        if (nivelAcesso.operador) {
+          router.push('/operador/dashboard');
           return;
         }
       } catch (err) {
@@ -102,6 +144,8 @@ export function useLogout() {
     },
     onSuccess: () => {
       clearTokens();
+      localStorage.removeItem('user_data');
+      localStorage.removeItem('remember_me');
       queryClient.clear();
       router.push('/');
     },

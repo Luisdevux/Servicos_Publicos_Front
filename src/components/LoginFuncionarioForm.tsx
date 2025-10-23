@@ -1,9 +1,8 @@
-// src/components/LoginMunicipeForm.tsx
-
+// src/components/LoginFuncionarioForm.tsx
 'use client';
 
 import { useState } from 'react';
-import { Eye, EyeOff, Users, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { useLogin } from '@/hooks/useAuthMutations';
@@ -14,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { loginSchema, type LoginFormValues } from '@/lib/validations/auth';
 import { cn } from '@/lib/utils';
 
-export default function LoginMunicipeForm() {
+export default function LoginFuncionarioForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<LoginFormValues>({
     identificador: '',
@@ -23,7 +22,8 @@ export default function LoginMunicipeForm() {
   });
   const [errors, setErrors] = useState<Partial<Record<keyof LoginFormValues, string>>>({});
 
-  const loginMutation = useLogin('municipe');
+  // Login para funcionários - aceita administrador, operador ou secretário
+  const loginMutation = useLogin(['administrador', 'operador', 'secretaria']);
 
   const validateField = (name: keyof LoginFormValues, value: string) => {
     try {
@@ -101,13 +101,13 @@ export default function LoginMunicipeForm() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md" data-test="form-login-municipe">
+    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md" data-test="form-login-funcionario">
       <div className="text-center mb-6">
         <h2 className="text-3xl font-bold text-gray-800 mb-2" data-test="titulo-login">
-          Acesso Munícipe
+          Acesso Funcionário
         </h2>
         <p className="text-gray-600 text-sm" data-test="subtitulo-login">
-          Entre com suas credenciais
+          Entre com suas credenciais de funcionário
         </p>
       </div>
 
@@ -115,10 +115,10 @@ export default function LoginMunicipeForm() {
         {/* Campo Identificador */}
         <div className="space-y-2" data-test="campo-identificador-wrapper">
           <Label htmlFor="identificador" className="text-sm font-medium text-gray-700">
-            E-mail, CPF ou CNPJ
+            E-mail ou CPF
           </Label>
           <div className="relative">
-            <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <Input
               id="identificador"
               name="identificador"
@@ -126,7 +126,7 @@ export default function LoginMunicipeForm() {
               value={formData.identificador}
               onChange={handleChange}
               onBlur={handleBlur}
-              placeholder="Digite seu e-mail, CPF ou CNPJ"
+              placeholder="Digite seu e-mail ou CPF"
               disabled={loginMutation.isPending}
               data-test="input-identificador"
               className={cn(
@@ -241,18 +241,6 @@ export default function LoginMunicipeForm() {
           )}
         </Button>
       </form>
-
-      {/* Link de Cadastro */}
-      <div className="mt-6 text-center text-sm text-gray-600" data-test="link-cadastro-wrapper">
-        Não possui cadastro?{' '}
-        <Link 
-          href="/cadastro" 
-          className="text-[#337695] font-medium hover:underline transition-colors"
-          data-test="link-cadastro"
-        >
-          Cadastre-se aqui
-        </Link>
-      </div>
     </div>
   );
 }
