@@ -36,9 +36,9 @@ export default function ProgressoPedido({ progresso, size = "md", variant = "def
       };
     }
     return {
-      active: "bg-[var(--global-accent)] text-white",
+      active: "bg-green-500 text-white",
       inactive: "bg-gray-200",
-      progress: "bg-[var(--global-accent)]"
+      progress: "bg-green-500"
     };
   };
 
