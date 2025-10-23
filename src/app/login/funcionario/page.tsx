@@ -1,15 +1,16 @@
-// src/app/login/municipe/page.tsx
+// src/app/login/funcionario/page.tsx
+
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
-import LoginMunicipeForm from '@/components/LoginMunicipeForm';
+import LoginFuncionarioForm from '@/components/LoginFuncionarioForm';
 
 export const metadata: Metadata = {
-  title: 'Login - Munícipe | Vilhena+Pública',
-  description: 'Acesse sua conta como munícipe',
+  title: 'Login - Funcionário | Vilhena+Pública',
+  description: 'Acesse sua conta como funcionário da prefeitura',
 };
 
-function LoginMunicipeContent() {
+function LoginFuncionarioContent() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row relative overflow-hidden bg-gray-50">
       <div className="hidden lg:flex relative w-[54%] items-center justify-center p-12 overflow-hidden min-h-screen" style={{ backgroundColor: 'var(--global-accent)' }}>
@@ -44,7 +45,7 @@ function LoginMunicipeContent() {
             Sistema de Gestão de Serviços Públicos
           </p>
           <p className="text-lg text-white/90">
-            Acesso para Munícipes
+            Acesso para Funcionários
           </p>
         </div>
       </div>
@@ -59,19 +60,19 @@ function LoginMunicipeContent() {
             Sistema de Gestão de Serviços Públicos
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            Acesso para Munícipes
+            Acesso para Funcionários
           </p>
         </div>
 
         <div className="w-full max-w-md px-8">
-          <LoginMunicipeForm />
+          <LoginFuncionarioForm />
           
-          {/* Link para login de funcionário */}
+          {/* Link para login de munícipe */}
           <div className="mt-6 text-center">
             <p className="text-gray-600 text-sm">
-              É funcionário da prefeitura?{' '}
+              É munícipe?{' '}
               <Link 
-                href="/login/funcionario" 
+                href="/login/municipe" 
                 className="font-semibold hover:underline transition-colors"
                 style={{ color: 'var(--global-accent)' }}
               >
@@ -85,7 +86,7 @@ function LoginMunicipeContent() {
   );
 }
 
-export default function LoginMunicipePage() {
+export default function LoginFuncionarioPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
@@ -95,7 +96,7 @@ export default function LoginMunicipePage() {
         </div>
       </div>
     }>
-      <LoginMunicipeContent />
+      <LoginFuncionarioContent />
     </Suspense>
   );
 }
