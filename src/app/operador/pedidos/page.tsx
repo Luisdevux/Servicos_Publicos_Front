@@ -54,7 +54,7 @@ export default function PedidosOperadorPage() {
         console.warn("Token expirado. Redirecionando para login...");
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        router.push('/login/operador?expired=true');
+        router.push('/login/funcionario?expired=true');
       }
     }
   }, [error, router]);

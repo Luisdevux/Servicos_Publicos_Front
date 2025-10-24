@@ -54,7 +54,7 @@ export default function PedidosSecretariaPage() {
         console.warn("Token expirado. Redirecionando para login...");
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        router.push('/login/secretaria?expired=true');
+        router.push('/login/funcionario?expired=true');
       }
     }
   }, [error, router]);
@@ -123,7 +123,7 @@ export default function PedidosSecretariaPage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando demandas...</p>
+            <div className="text-gray-600">Carregando demandas...</div>
           </div>
         </div>
       </div>
@@ -144,15 +144,15 @@ export default function PedidosSecretariaPage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center max-w-md mx-auto px-4">
             <ClipboardList className="h-16 w-16 text-red-400 mx-auto mb-4" />
-            <p className="text-red-600 font-semibold mb-2">
+            <div className="text-red-600 font-semibold mb-2">
               {isTokenExpired ? "Sessão expirada" : "Erro ao carregar demandas"}
-            </p>
-            <p className="text-gray-600 text-sm mb-4">
+            </div>
+            <div className="text-gray-600 text-sm mb-4">
               {isTokenExpired 
                 ? "Sua sessão expirou. Você será redirecionado para fazer login novamente..." 
                 : (error instanceof Error ? error.message : "Erro desconhecido. Tente novamente.")
               }
-            </p>
+            </div>
             {!isTokenExpired && (
               <Button 
                 onClick={() => window.location.reload()}
@@ -218,9 +218,9 @@ export default function PedidosSecretariaPage() {
                     </span>
                   </div>
                   
-                  <p className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3">
+                  <div className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3">
                     {demanda.descricao}
-                  </p>
+                  </div>
                   
                   <Button 
                     onClick={() => handleAnalisarDemanda(demanda.id)}
@@ -237,12 +237,12 @@ export default function PedidosSecretariaPage() {
             <h3 className="text-lg font-medium text-[var(--global-text-primary)] mb-2">
               Nenhum pedido encontrado
             </h3>
-            <p className="text-sm text-gray-500 text-center">
+            <div className="text-sm text-gray-500 text-center">
               {filtroSelecionado === "todos" 
                 ? "Não há pedidos registrados no momento."
                 : `Não há pedidos com status "${filtroSelecionado}".`
               }
-            </p>
+            </div>
           </div>
         )}
 
