@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Pedido } from "./cardPedido";
+import { Pedido } from "@/types";
 import ProgressoPedido from "./ProgressoPedido";
 import Image from "next/image";
 import { StarRating } from "./ui/star-rating";
@@ -90,16 +90,16 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                 Endereço do ocorrido
               </h3>
               <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                  <label className="text-sm text-gray-600">CEP</label>
+                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-tipo-logradouro">
+                    {pedido.endereco.cep}
+                  </div>
+                </div>
                 <div className="space-y-1">
                   <label className="text-sm text-gray-600">Bairro</label>
                   <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-bairro">
                     {pedido.endereco.bairro}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm text-gray-600">Tipo de logradouro</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-tipo-logradouro">
-                    {pedido.endereco.tipoLogradouro}
                   </div>
                 </div>
                 <div className="space-y-1">
@@ -115,6 +115,13 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                   </div>
                 </div>
               </div>
+              {pedido.endereco.complemento && (
+              <div className="space-y-1">
+                  <label className="text-sm text-gray-600">Complemento</label>
+                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-complemento">
+                    {pedido.endereco.complemento}
+                  </div>
+              </div>)}
             </div>
           )}
 

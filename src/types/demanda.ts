@@ -85,10 +85,12 @@ export interface Pedido {
   descricao?: string;
   imagem?: string | string[];
   endereco?: {
+    cep: string;
     bairro: string;
     tipoLogradouro?: string;
     logradouro: string;
     numero: string;
+    complemento: string;
   };
   progresso?: {
     aprovado: boolean;

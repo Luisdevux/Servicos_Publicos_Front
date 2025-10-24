@@ -63,7 +63,9 @@ export default function MeusPedidosPage() {
       endereco: demanda.endereco ? {
         bairro: demanda.endereco.bairro || "",
         logradouro: demanda.endereco.logradouro || "",
-        numero: demanda.endereco.numero || ""
+        numero: demanda.endereco.numero || "",
+        cep: demanda.endereco.cep || "",
+        complemento: demanda.endereco.complemento || "",
       } : undefined,
       progresso: {
         aprovado: true,
@@ -180,27 +182,29 @@ export default function MeusPedidosPage() {
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-4">
-            <button
-              onClick={handlePaginaAnterior}
-              disabled={!response?.data?.hasPrevPage}
-              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            
-            <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
-              <span>Página {paginaAtual} de {totalPaginas}</span>
+        {pedidosFiltrados.length > 0 && (
+          <div className="flex items-center justify-center gap-4">
+              <button
+                onClick={handlePaginaAnterior}
+                disabled={!response?.data?.hasPrevPage}
+                className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              
+              <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
+                <span>Página {paginaAtual} de {totalPaginas}</span>
+              </div>
+              
+              <button
+                onClick={handleProximaPagina}
+                disabled={!response?.data?.hasNextPage}
+                className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight size={20} />
+              </button>
             </div>
-            
-            <button
-              onClick={handleProximaPagina}
-              disabled={!response?.data?.hasNextPage}
-              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
+        )}
 
       </div>
 
