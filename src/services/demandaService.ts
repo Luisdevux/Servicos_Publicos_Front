@@ -11,6 +11,7 @@ import type {
   AtribuirDemandaData,
   DevolverDemandaData,
   ResolverDemandaData,
+  PaginationParams,
 } from '@/types';
 
 /**
@@ -21,8 +22,24 @@ export const demandaService = {
   /**
    * Busca todas as demandas
    */
-  async buscarDemandas(token: string): Promise<ApiResponse<PaginatedResponse<Demanda>>> {
-    return get<ApiResponse<PaginatedResponse<Demanda>>>('/demandas', token);
+  async buscarDemandas(token: string, params?: PaginationParams): Promise<ApiResponse<PaginatedResponse<Demanda>>> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.page) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params?.limit) {
+      queryParams.append('limit', params.limit.toString());
+    }
+    if (params?.sort) {
+      queryParams.append('sort', params.sort);
+    }
+    if (params?.select) {
+      queryParams.append('select', params.select);
+    }
+    
+    const url = queryParams.toString() ? `/demandas?${queryParams.toString()}` : '/demandas';
+    return get<ApiResponse<PaginatedResponse<Demanda>>>(url, token);
   },
 
   /**

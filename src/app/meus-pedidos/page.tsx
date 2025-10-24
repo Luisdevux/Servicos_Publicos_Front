@@ -1,125 +1,84 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Banner from "@/components/banner";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import CardPedido from "@/components/cardPedido";
 import type { Pedido } from "@/types";
 import DetalhesDemandaModal from "@/components/detalheDemandaModal";
+import { useQuery } from "@tanstack/react-query";
+import { getAccessToken } from "@/hooks/useAuthMutations";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { demandaService } from "@/services";
 
-const pedidosMock: Pedido[] = [
-  {
-    id: "1",
-    titulo: "Demanda sobre Limpeza Urbana",
-    status: "aceito",
-    descricao: "Tem restos de construção em frente a minha casa, preciso que coletem pois está atrapalhando a passagem.",
-    imagem: ["/banner.png", "/banner.png"],
-    endereco: {
-      bairro: "Bela Vista",
-      tipoLogradouro: "Avenida",
-      logradouro: "Bela Vista",
-      numero: "9999"
-    },
-    progresso: {
-      aprovado: true,
-      emProgresso: true,
-      concluido: false,
-    },
-  },
-  {
-    id: "2",
-    titulo: "Demanda sobre Coleta de Lixo",
-    status: "aceito",
-    descricao: "Lixeira da rua está quebrada há uma semana, precisamos de uma nova.",
-    imagem: "/banner.png",
-    endereco: {
-      bairro: "Centro",
-      tipoLogradouro: "Rua",
-      logradouro: "São João",
-      numero: "123"
-    },
-    progresso: {
-      aprovado: true,
-      emProgresso: true,
-      concluido: false,
-    },
-  },
-  {
-    id: "3",
-    titulo: "Demanda sobre Asfaltamento",
-    status: "aceito",
-    descricao: "A rua está com muitas crateras, dificultando a passagem de veículos. Várias fotos mostram o estado crítico da pavimentação.",
-    imagem: ["/banner.png", "/banner.png", "/banner.png", "/banner.png"],
-    endereco: {
-      bairro: "Jardim América",
-      tipoLogradouro: "Rua",
-      logradouro: "das Flores",
-      numero: "456"
-    },
-    progresso: {
-      aprovado: true,
-      emProgresso: true,
-      concluido: false,
-    },
-  },
-  {
-    id: "4",
-    titulo: "Demanda sobre Iluminação Pública",
-    status: "aceito",
-    descricao: "Lâmpada da rua queimou e está escuro à noite, causando insegurança.",
-    imagem: ["/banner.png", "/banner.png", "/banner.png"],
-    endereco: {
-      bairro: "Bela Vista",
-      tipoLogradouro: "Avenida",
-      logradouro: "Bela Vista",
-      numero: "9999"
-    },
-    progresso: {
-      aprovado: true,
-      emProgresso: true,
-      concluido: true,
-    },
-    conclusao: {
-      descricao: "No dia 17/10/2024 a troca de lâmpada foi feita pela empresa Energisa. O problema foi resolvido completamente.",
-      imagem: ["/banner.png", "/banner.png", "/banner.png"],
-      dataConclusao: "17/10/2024"
-    }
-  },
-  {
-    id: "5",
-    titulo: "Demanda sobre Limpeza Urbana",
-    status: "recusado",
-    descricao: "Solicitação de limpeza em área particular não contemplada pelo serviço público.",
-    endereco: {
-      bairro: "Vila Nova",
-      tipoLogradouro: "Rua",
-      logradouro: "Particular",
-      numero: "S/N"
-    }
-  },
-  {
-    id: "6",
-    titulo: "Demanda sobre Pavimentação",
-    status: "recusado",
-    descricao: "Solicitação fora do cronograma de obras da prefeitura para este ano.",
-    endereco: {
-      bairro: "Zona Rural",
-      tipoLogradouro: "Estrada",
-      logradouro: "Rural",
-      numero: "KM 5"
-    }
-  },
-];
 
 export default function MeusPedidosPage() {
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
-  const [pedidos, setPedidos] = useState(pedidosMock);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
 
-  const ITENS_POR_PAGINA = 6;
+  const {data: response, isLoading, error } = useQuery ({
+    queryKey: ['demandas', paginaAtual],
+    queryFn: async () => {
+      const token = getAccessToken();
+      
+      if (!token) {
+        router.push('/login');
+        throw new Error('Token não encontrado');
+      }
+
+      const result = await demandaService.buscarDemandas(token, { page: paginaAtual });
+      console.log(result);
+      return result;
+    },
+    enabled: !isAuthLoading && isAuthenticated,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (response?.data?.page && response.data.page !== paginaAtual) {
+      setPaginaAtual(response.data.page);
+    }
+  }, [response?.data?.page, paginaAtual]);
+
+  const transformDemandaToPedido = (demanda: any): Pedido => {
+    const statusMapping: Record<string, "aceito" | "recusado"> = {
+      "Em aberto": "aceito",
+      "Em andamento": "aceito", 
+      "Concluída": "aceito"
+    };
+
+    return {
+      id: demanda._id,
+      titulo: `Demanda sobre ${demanda.tipo}`,
+      status: statusMapping[demanda.status] || "aceito",
+      descricao: demanda.descricao,
+      imagem: demanda.link_imagem ? [demanda.link_imagem] : undefined,
+      endereco: demanda.endereco ? {
+        bairro: demanda.endereco.bairro || "",
+        logradouro: demanda.endereco.logradouro || "",
+        numero: demanda.endereco.numero || ""
+      } : undefined,
+      progresso: {
+        aprovado: true,
+        emProgresso: demanda.status === "Em andamento",
+        concluido: demanda.status === "Concluída",
+      },
+      conclusao: demanda.status === "Concluída" && demanda.resolucao ? {
+        descricao: demanda.resolucao,
+        imagem: demanda.link_imagem_resolucao ? [demanda.link_imagem_resolucao] : undefined,
+        dataConclusao: demanda.updatedAt ? new Date(demanda.updatedAt).toLocaleDateString('pt-BR') : ""
+      } : undefined
+    };
+  };
+
+  const pedidos = response?.data?.docs ? response.data.docs.map(transformDemandaToPedido) : [];
 
   const handleFiltroChange = (value: string) => {
     setFiltroSelecionado(value);
@@ -127,11 +86,15 @@ export default function MeusPedidosPage() {
   };
 
   const handlePaginaAnterior = () => {
-    setPaginaAtual(paginaAtual - 1);
+    if (response?.data?.hasPrevPage) {
+      setPaginaAtual(paginaAtual - 1);
+    }
   };
 
   const handleProximaPagina = () => {
-    setPaginaAtual(paginaAtual + 1);
+    if (response?.data?.hasNextPage) {
+      setPaginaAtual(paginaAtual + 1);
+    }
   };
 
   const handleVerMais = (id: string) => {
@@ -154,10 +117,10 @@ export default function MeusPedidosPage() {
     return pedido.status === filtroSelecionado;
   });
 
-  const totalPaginas = Math.ceil(pedidosFiltrados.length / ITENS_POR_PAGINA);
-  const indiceInicial = (paginaAtual - 1) * ITENS_POR_PAGINA;
-  const indiceFinal = indiceInicial + ITENS_POR_PAGINA;
-  const pedidosPaginados = pedidosFiltrados.slice(indiceInicial, indiceFinal);
+  // Use API pagination data
+  const totalPaginas = response?.data?.totalPages || 1;
+  const totalDocs = response?.data?.totalDocs || 0;
+  const pedidosPaginados = pedidosFiltrados;
 
   return (
     <div className="min-h-screen bg-[var(--global-bg)]">
@@ -187,7 +150,12 @@ export default function MeusPedidosPage() {
           </div>
         </div>
 
-        {pedidosFiltrados.length > 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-sm text-gray-500">Carregando seus pedidos...</p>
+          </div>
+        ) : pedidosFiltrados.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16 mb-8">
               {pedidosPaginados.map((pedido) => (
                 <CardPedido
@@ -215,7 +183,7 @@ export default function MeusPedidosPage() {
         <div className="flex items-center justify-center gap-4">
             <button
               onClick={handlePaginaAnterior}
-              disabled={paginaAtual === 1}
+              disabled={!response?.data?.hasPrevPage}
               className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft size={20} />
@@ -227,7 +195,7 @@ export default function MeusPedidosPage() {
             
             <button
               onClick={handleProximaPagina}
-              disabled={paginaAtual === totalPaginas}
+              disabled={!response?.data?.hasNextPage}
               className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight size={20} />

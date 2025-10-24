@@ -86,7 +86,7 @@ export interface Pedido {
   imagem?: string | string[];
   endereco?: {
     bairro: string;
-    tipoLogradouro: string;
+    tipoLogradouro?: string;
     logradouro: string;
     numero: string;
   };
