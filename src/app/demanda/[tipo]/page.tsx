@@ -48,7 +48,7 @@ export default function DemandaPage() {
         throw new Error('Token não encontrado');
       }
 
-      const result = await tipoDemandaService.buscarTiposDemanda(token);
+      const result = await tipoDemandaService.buscarTiposDemandaPorTipo(token, tipoFiltro, 100);
       return result.data?.docs || [];
     },
     enabled: !!tipoFiltro && !isAuthLoading && isAuthenticated,
@@ -56,10 +56,8 @@ export default function DemandaPage() {
     retry: 1,
   });
 
-  // Filtra cards por tipo
-  const cardsFiltrados = demandasData?.filter(
-    (item) => item.tipo?.toLowerCase() === tipoFiltro.toLowerCase()
-  ) || [];
+  // Os dados já vêm filtrados do backend
+  const cardsFiltrados = demandasData || [];
   const bannerData = cardsFiltrados[0] || null;
 
   // Busca imagem de um card

@@ -26,6 +26,20 @@ export const tipoDemandaService = {
   },
 
   /**
+   * Busca tipos de demanda filtrados por tipo com limite customizado
+   */
+  async buscarTiposDemandaPorTipo(
+    token: string,
+    tipo: string,
+    limite: number = 100
+  ): Promise<ApiResponse<PaginatedResponse<TipoDemandaModel>>> {
+    return get<ApiResponse<PaginatedResponse<TipoDemandaModel>>>(
+      `/tipoDemanda?tipo=${encodeURIComponent(tipo)}&limite=${limite}`,
+      token
+    );
+  },
+
+  /**
    * Busca um tipo de demanda por ID
    */
   async buscarTipoDemandaPorId(
