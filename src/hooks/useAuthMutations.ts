@@ -114,12 +114,12 @@ export function useLogin(expectedUserType?: UserType | UserType[]) {
         }
         
         if (nivelAcesso.secretario) {
-          router.push('/secretaria/dashboard');
+          router.push('/secretaria/pedidos');
           return;
         }
         
         if (nivelAcesso.operador) {
-          router.push('/operador/dashboard');
+          router.push('/operador/pedidos');
           return;
         }
       } catch (err) {
