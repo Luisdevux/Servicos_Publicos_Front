@@ -118,7 +118,7 @@ export default function PedidosSecretariaPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="linear-gradient(135deg, purple 0%, #5b21b6 80%)"
+          backgroundColor="#5b21b6"
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
@@ -139,7 +139,7 @@ export default function PedidosSecretariaPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="linear-gradient(135deg, purple 0%, #5b21b6 80%)"
+          backgroundColor="#5b21b6"
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-center max-w-md mx-auto px-4">
@@ -173,7 +173,7 @@ export default function PedidosSecretariaPage() {
         icone={ClipboardList}
         titulo="Pedidos recebidos"
         className="mb-6 md:mb-8"
-        backgroundColor="linear-gradient(135deg, purple 0%, #5b21b6 80%)"
+        backgroundColor="#5b21b6"
       />
 
       <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
