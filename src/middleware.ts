@@ -1,9 +1,14 @@
 // middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-export function middleware(request: NextRequest) {
-  const accessToken = request.cookies.get('access_token')?.value;
+export async function middleware(request: NextRequest) {
+  // Pega o token do NextAuth
+  const token = await getToken({ 
+    req: request, 
+    secret: process.env.NEXTAUTH_SECRET 
+  });
   
   // Rotas públicas que não precisam de autenticação
   const publicPaths = ['/', '/login', '/signup', '/recover-password', '/cadastro'];
@@ -12,7 +17,7 @@ export function middleware(request: NextRequest) {
   );
 
   // Se não estiver autenticado e tentar acessar rota protegida
-  if (!accessToken && !isPublicPath) {
+  if (!token && !isPublicPath) {
     return NextResponse.redirect(new URL('/login/municipe', request.url));
   }
 
@@ -22,7 +27,7 @@ export function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(path)
   );
   
-  if (accessToken && isAuthOnlyPath) {
+  if (token && isAuthOnlyPath) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
@@ -31,14 +36,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
-     */
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|public).*)',
   ],
 };
