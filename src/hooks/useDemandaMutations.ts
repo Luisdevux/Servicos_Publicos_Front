@@ -3,9 +3,17 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
-import { demandaService } from '@/services';
+import { demandaServiceSecure } from '@/services';
 import type { Endereco, Demanda } from '@/types';
+
+/*
+  �� SEGURANÇA: Hook refatorado para usar demandaServiceSecure
+  
+  - NÃO acessa tokens da sessão
+  - Usa demandaServiceSecure que internamente usa secureFetch()
+  - secureFetch() faz proxy via /api/auth/secure-fetch
+  - Tokens são pegos do JWT no servidor de forma segura
+*/
 
 interface CreateDemandaInput {
   tipo: string;
@@ -16,16 +24,9 @@ interface CreateDemandaInput {
 
 export function useCreateDemanda() {
   const queryClient = useQueryClient();
-  const { data: session } = useSession();
 
   return useMutation({
     mutationFn: async (input: CreateDemandaInput): Promise<Demanda> => {
-      const token = session?.user?.accesstoken;
-
-      if (!token) {
-        throw new Error('Token de autenticação não encontrado');
-      }
-
       // Primeira requisição: criar a demanda
       const demandaData = {
         tipo: input.tipo,
@@ -34,7 +35,7 @@ export function useCreateDemanda() {
         status: 'Em aberto',
       };
 
-      const response = await demandaService.criarDemanda(demandaData, token);
+      const response = await demandaServiceSecure.criarDemanda(demandaData);
       const demandaCriada = response.data;
 
       if (!demandaCriada) {
@@ -44,10 +45,9 @@ export function useCreateDemanda() {
       // Segunda requisição: upload da imagem (se houver)
       if (input.imagem && demandaCriada._id) {
         try {
-          const uploadResult = await demandaService.uploadFotoDemanda(
+          const uploadResult = await demandaServiceSecure.uploadFotoDemanda(
             demandaCriada._id,
-            input.imagem,
-            token
+            input.imagem
           );
 
           console.log('Upload de imagem realizado com sucesso:', uploadResult);

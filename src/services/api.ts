@@ -1,5 +1,7 @@
 // src/services/api.ts
 
+import { secureFetch } from '@/lib/secureFetch';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011';
 
 export class ApiError extends Error {
@@ -138,4 +140,32 @@ export async function del<T>(
   token?: string | null
 ): Promise<T> {
   return fetchData<T>(url, { method: 'DELETE', token });
+}
+
+/**
+ * Helper SEGURO para requisições GET autenticadas (client-side)
+ */
+export async function getSecure<T>(url: string): Promise<T> {
+  return secureFetch<T>({ endpoint: url, method: 'GET' });
+}
+
+/**
+ * Helper SEGURO para requisições POST autenticadas (client-side)
+ */
+export async function postSecure<T>(url: string, body?: unknown): Promise<T> {
+  return secureFetch<T>({ endpoint: url, method: 'POST', body });
+}
+
+/**
+ * Helper SEGURO para requisições PATCH autenticadas (client-side)
+ */
+export async function patchSecure<T>(url: string, body?: unknown): Promise<T> {
+  return secureFetch<T>({ endpoint: url, method: 'PATCH', body });
+}
+
+/**
+ * Helper SEGURO para requisições DELETE autenticadas (client-side)
+ */
+export async function delSecure<T>(url: string): Promise<T> {
+  return secureFetch<T>({ endpoint: url, method: 'DELETE' });
 }
