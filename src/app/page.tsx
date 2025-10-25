@@ -22,7 +22,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white" data-test="pagina-inicial">
-      <section className="relative w-full overflow-hidden" data-test="secao-hero">
+      <section className="relative w-full overflow-hidden min-h-[50vh]" data-test="secao-hero">
         <div className="absolute inset-0 bg-gradient-to-br from-[#2d6c85] via-[var(--global-accent)] to-[#4a9bb8]">
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -110,13 +110,13 @@ export default function Home() {
         </div>
 
         <div className="absolute bottom-0 left-0 w-full">
-          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto relative z-10">
+          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto relative z-10" style={{ transform: 'translateY(1px)' }}>
             <path d="M0 80L60 73.3C120 67 240 53 360 46.7C480 40 600 40 720 43.3C840 47 960 53 1080 46.7C1200 40 1320 20 1380 10L1440 0V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0V80Z" fill="white"/>
           </svg>
         </div>
       </section>
 
-      <section id="servicos" className="pt-8 pb-16 px-6 sm:px-6 lg:px-40 bg-white relative" data-test="secao-servicos">
+      <section id="servicos" className="pt-4 pb-16 px-6 sm:px-6 lg:px-40 bg-white relative" data-test="secao-servicos">
         <div className="text-center mb-12">
           <div className="inline-block px-4 py-2 bg-[var(--global-accent)]/10 rounded-full mb-4">
             <span className="text-sm font-semibold text-[var(--global-accent)] uppercase tracking-wider">Serviços Disponíveis</span>
@@ -129,7 +129,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5" data-test="grid-servicos">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-5" data-test="grid-servicos">
           {[
             {
               icon: "/homeIconeColeta.svg",
@@ -170,41 +170,41 @@ export default function Home() {
           ].map((service) => (
             <div
               key={service.label}
-              className="group relative bg-white rounded-2xl p-4 sm:p-5 lg:p-5 border border-gray-200 hover:border-[var(--global-accent)] transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+              className="group relative bg-white rounded-2xl p-3 sm:p-4 md:p-5 border border-gray-200 hover:border-[var(--global-accent)] transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
               data-test={`card-servico-${service.label.toLowerCase()}`}
+              onClick={() => {
+                if (isAuthenticated) {
+                  router.push(service.href);
+                } else {
+                  router.push('/login');
+                }
+              }}
             >
-              <div className="flex flex-col items-center text-center space-y-3 w-full h-full">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-20 lg:h-20 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg flex-shrink-0">
+              <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3 w-full h-full">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg flex-shrink-0">
                   <Image
                     src={service.icon}
                     alt={service.label}
-                    width={40}
-                    height={40}
-                    style={{ width: '40px', height: '40px' }}
+                    width={32}
+                    height={32}
+                    style={{ width: '32px', height: '32px' }}
                     className="filter brightness-0 invert"
                   />
                 </div>
                 <div className="w-full flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-base sm:text-lg lg:text-xl font-bold text-[var(--global-text-secondary)] mb-1.5 group-hover:text-[var(--global-accent)] transition-colors leading-tight" data-test={`titulo-servico-${service.label.toLowerCase()}`}>
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-[var(--global-text-secondary)] mb-1.5 group-hover:text-[var(--global-accent)] transition-colors leading-tight" data-test={`titulo-servico-${service.label.toLowerCase()}`}>
                       {service.label}
                     </h3>
-                    <p className="text-xs sm:text-sm lg:text-base text-[var(--global-text-primary)]/70 hidden lg:block leading-snug" data-test={`descricao-servico-${service.label.toLowerCase()}`}>
+                    <p className="text-xs sm:text-sm md:text-base text-[var(--global-text-primary)]/70 hidden md:block leading-snug" data-test={`descricao-servico-${service.label.toLowerCase()}`}>
                       {service.description}
                     </p>
                   </div>
                   <button 
-                    className="hidden lg:inline-flex items-center justify-center gap-2 px-4 py-2 bg-[var(--global-accent)]/10 hover:bg-[var(--global-accent)] text-[var(--global-accent)] hover:text-white rounded-xl font-semibold text-sm transition-all duration-300 group-hover:shadow-md mt-3"
-                    onClick={() => {
-                      if (isAuthenticated) {
-                        router.push(service.href);
-                      } else {
-                        router.push('/login');
-                      }
-                    }}
+                    className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-[var(--global-accent)]/10 hover:bg-[var(--global-accent)] text-[var(--global-accent)] hover:text-white rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 group-hover:shadow-md mt-2 sm:mt-3"
                   >
                     Solicitar
-                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -270,7 +270,7 @@ export default function Home() {
                 <div className="hidden md:block absolute top-16 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-[var(--global-accent)]/30 to-transparent z-0"></div>
               )}
               
-              <div className="relative bg-white rounded-2xl p-10 hover:shadow-xl transition-all duration-300 border-2 border-gray-100 group-hover:border-[var(--global-accent)]/30 min-h-[320px] flex items-center">
+              <div className="relative bg-white rounded-2xl p-10 hover:shadow-xl transition-all duration-300 border-2 border-gray-100 group-hover:border-[var(--global-accent)]/30 h-[340px] flex flex-col justify-center">
                 <div className="flex flex-col items-center text-center space-y-5 w-full">
                   <div className="relative">
                     <div className="w-24 h-24 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
