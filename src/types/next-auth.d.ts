@@ -1,7 +1,9 @@
+// src/types/next-auth.d.ts
+
 import "next-auth";
 
 declare module "next-auth" {
-  
+
   interface Session {
     user: {
       id: string;
@@ -18,9 +20,8 @@ declare module "next-auth" {
         administrador?: boolean;
       };
       ativo: boolean;
-      accesstoken: string;
-      refreshtoken: string;
     };
+    error?: string;
   }
 
   interface User {
@@ -40,6 +41,7 @@ declare module "next-auth" {
     ativo: boolean;
     accesstoken: string;
     refreshtoken: string;
+    lembrarDeMim?: boolean;
   }
 
 }
@@ -62,7 +64,10 @@ declare module "next-auth/jwt" {
     ativo: boolean;
     accesstoken: string;
     refreshtoken: string;
+    lembrarDeMim?: boolean;
     accessTokenExpires?: number;
     error?: string;
+    errorDetails?: string;
   }
 }
+
