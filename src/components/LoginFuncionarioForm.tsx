@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Eye, EyeOff, User, Lock, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { useLogin } from '@/hooks/useAuthMutations';
+import useLogin from '@/hooks/useLogin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,7 +23,7 @@ export default function LoginFuncionarioForm() {
   const [errors, setErrors] = useState<Partial<Record<keyof LoginFormValues, string>>>({});
 
   // Login para funcionários - aceita administrador, operador ou secretário
-  const loginMutation = useLogin(['administrador', 'operador', 'secretaria']);
+  const { login, isLoading } = useLogin();
 
   const validateField = (name: keyof LoginFormValues, value: string) => {
     try {
@@ -46,7 +46,7 @@ export default function LoginFuncionarioForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     // Limpa erro ao digitar
     if (errors[name as keyof LoginFormValues]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
@@ -55,7 +55,7 @@ export default function LoginFuncionarioForm() {
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     // Valida apenas se tiver conteúdo
     if (value.trim()) {
       validateField(name as keyof LoginFormValues, value);
@@ -67,7 +67,7 @@ export default function LoginFuncionarioForm() {
 
     // Valida todo o formulário
     const result = loginSchema.safeParse(formData);
-    
+
     if (!result.success) {
       const fieldErrors: Partial<Record<keyof LoginFormValues, string>> = {};
       result.error.issues.forEach((issue) => {
@@ -75,7 +75,7 @@ export default function LoginFuncionarioForm() {
         fieldErrors[path] = issue.message;
       });
       setErrors(fieldErrors);
-      
+
       // Mostra toast com o primeiro erro
       const firstError = Object.values(fieldErrors)[0];
       if (firstError) {
@@ -86,17 +86,12 @@ export default function LoginFuncionarioForm() {
       return;
     }
 
-    loginMutation.mutate(formData, {
-      onError: (error) => {
-        toast.error('Erro ao fazer login', {
-          description: error.message || 'Verifique suas credenciais e tente novamente.',
-        });
-      },
-      onSuccess: () => {
-        toast.success('Login realizado com sucesso!', {
-          description: 'Redirecionando...',
-        });
-      },
+    await login({
+      identificador: formData.identificador,
+      senha: formData.senha,
+      lembrarDeMim: formData.lembrarDeMim,
+      tipoUsuario: 'funcionario',
+      callbackUrl: '/admin',
     });
   };
 
@@ -127,7 +122,7 @@ export default function LoginFuncionarioForm() {
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder="Digite seu e-mail ou CPF"
-              disabled={loginMutation.isPending}
+              disabled={isLoading}
               data-test="input-identificador"
               className={cn(
                 'pl-10 focus-visible:ring-[#337695] focus-visible:border-[#337695]',
@@ -162,7 +157,7 @@ export default function LoginFuncionarioForm() {
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder="Digite sua senha"
-              disabled={loginMutation.isPending}
+              disabled={isLoading}
               data-test="input-senha"
               className={cn(
                 'pl-10 pr-10 focus-visible:ring-[#337695] focus-visible:border-[#337695]',
@@ -202,7 +197,7 @@ export default function LoginFuncionarioForm() {
             <Checkbox
               id="lembrar-de-mim"
               checked={formData.lembrarDeMim}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setFormData((prev) => ({ ...prev, lembrarDeMim: checked as boolean }))
               }
               data-test="checkbox-lembrar-de-mim"
@@ -226,12 +221,12 @@ export default function LoginFuncionarioForm() {
         {/* Botão de Login */}
         <Button
           type="submit"
-          disabled={loginMutation.isPending}
+          disabled={isLoading}
           data-test="button-acessar"
           className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white font-semibold py-6 rounded-lg transition-all shadow-lg uppercase text-sm tracking-wide disabled:opacity-70"
           colorClass="bg-[#337695] hover:bg-[#2c5f7a]"
         >
-          {loginMutation.isPending ? (
+          {isLoading ? (
             <>
               <span className="animate-spin mr-2">⏳</span>
               ENTRANDO...

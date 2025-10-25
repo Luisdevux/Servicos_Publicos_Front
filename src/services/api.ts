@@ -1,5 +1,6 @@
 // src/services/api.ts
-import Cookies from 'js-cookie';
+
+import { secureFetch } from '@/lib/secureFetch';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011';
 
@@ -11,73 +12,6 @@ export class ApiError extends Error {
   ) {
     super(message);
     this.name = 'ApiError';
-  }
-}
-
-// Variável para controlar tentativa de refresh
-let isRefreshing = false;
-let refreshSubscribers: Array<(token: string) => void> = [];
-
-function subscribeTokenRefresh(callback: (token: string) => void) {
-  refreshSubscribers.push(callback);
-}
-
-function onTokenRefreshed(newToken: string) {
-  refreshSubscribers.forEach(callback => callback(newToken));
-  refreshSubscribers = [];
-}
-
-async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = Cookies.get('refresh_token');
-  
-  if (!refreshToken) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(`${API_URL}/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Falha ao renovar token');
-    }
-
-    const data = await response.json();
-    const newAccessToken = data.data?.user?.accessToken;
-    const newRefreshToken = data.data?.user?.refreshtoken;
-
-    if (newAccessToken && newRefreshToken) {
-      // Configurações de cookie
-      const rememberMe = localStorage.getItem('remember_me') === 'true';
-      const isProduction = process.env.NODE_ENV === 'production';
-      
-      const cookieOptions = {
-        secure: isProduction,
-        sameSite: 'strict' as const,
-        ...(rememberMe ? { expires: 30 } : {}),
-      };
-      
-      Cookies.set('access_token', newAccessToken, { 
-        ...cookieOptions,
-        expires: rememberMe ? 7 : undefined,
-      });
-      
-      Cookies.set('refresh_token', newRefreshToken, cookieOptions);
-      
-      return newAccessToken;
-    }
-
-    return null;
-  } catch (error) {
-    console.error('Erro ao renovar token:', error);
-    // Remove tokens inválidos
-    Cookies.remove('access_token');
-    Cookies.remove('refresh_token');
-    localStorage.removeItem('user_data');
-    return null;
   }
 }
 
@@ -135,34 +69,9 @@ export async function fetchData<T>(
       );
     }
 
-    // Se token expirou (401), tenta renovar
-    if (response.status === 401 && token && !url.includes('/refresh') && !url.includes('/login')) {
-      if (!isRefreshing) {
-        isRefreshing = true;
-        const newToken = await refreshAccessToken();
-        isRefreshing = false;
-
-        if (newToken) {
-          onTokenRefreshed(newToken);
-          // Refaz a requisição com o novo token
-          return fetchData<T>(url, { ...options, token: newToken });
-        } else {
-          // Se falhou o refresh, redireciona para login
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login/municipe';
-          }
-          throw new ApiError('Sessão expirada. Faça login novamente.', 401);
-        }
-      } else {
-        // Se já está renovando, aguarda
-        return new Promise((resolve, reject) => {
-          subscribeTokenRefresh((newToken: string) => {
-            fetchData<T>(url, { ...options, token: newToken })
-              .then(resolve)
-              .catch(reject);
-          });
-        });
-      }
+    // Se token expirou (401), lança erro - NextAuth vai cuidar do refresh
+    if (response.status === 401 && token && !url.includes('/login')) {
+      throw new ApiError('Sessão expirada. Faça login novamente.', 401);
     }
 
     // Se a resposta não for OK, lança erro
@@ -231,4 +140,32 @@ export async function del<T>(
   token?: string | null
 ): Promise<T> {
   return fetchData<T>(url, { method: 'DELETE', token });
+}
+
+/**
+ * Helper SEGURO para requisições GET autenticadas (client-side)
+ */
+export async function getSecure<T>(url: string): Promise<T> {
+  return secureFetch<T>({ endpoint: url, method: 'GET' });
+}
+
+/**
+ * Helper SEGURO para requisições POST autenticadas (client-side)
+ */
+export async function postSecure<T>(url: string, body?: unknown): Promise<T> {
+  return secureFetch<T>({ endpoint: url, method: 'POST', body });
+}
+
+/**
+ * Helper SEGURO para requisições PATCH autenticadas (client-side)
+ */
+export async function patchSecure<T>(url: string, body?: unknown): Promise<T> {
+  return secureFetch<T>({ endpoint: url, method: 'PATCH', body });
+}
+
+/**
+ * Helper SEGURO para requisições DELETE autenticadas (client-side)
+ */
+export async function delSecure<T>(url: string): Promise<T> {
+  return secureFetch<T>({ endpoint: url, method: 'DELETE' });
 }

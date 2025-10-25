@@ -7,13 +7,13 @@ import { z } from 'zod';
 function isValidCPF(cpf: string): boolean {
   // Remove caracteres não numéricos
   const cleanCPF = cpf.replace(/\D/g, '');
-  
+
   // CPF deve ter 11 dígitos
   if (cleanCPF.length !== 11) return false;
-  
+
   // Verifica se todos os dígitos são iguais (ex: 111.111.111-11)
   if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
-  
+
   // Valida primeiro dígito verificador
   let sum = 0;
   for (let i = 0; i < 9; i++) {
@@ -22,7 +22,7 @@ function isValidCPF(cpf: string): boolean {
   let digit = 11 - (sum % 11);
   if (digit >= 10) digit = 0;
   if (digit !== parseInt(cleanCPF.charAt(9))) return false;
-  
+
   // Valida segundo dígito verificador
   sum = 0;
   for (let i = 0; i < 10; i++) {
@@ -31,7 +31,7 @@ function isValidCPF(cpf: string): boolean {
   digit = 11 - (sum % 11);
   if (digit >= 10) digit = 0;
   if (digit !== parseInt(cleanCPF.charAt(10))) return false;
-  
+
   return true;
 }
 
@@ -41,13 +41,13 @@ function isValidCPF(cpf: string): boolean {
 function isValidCNPJ(cnpj: string): boolean {
   // Remove caracteres não numéricos
   const cleanCNPJ = cnpj.replace(/\D/g, '');
-  
+
   // CNPJ deve ter 14 dígitos
   if (cleanCNPJ.length !== 14) return false;
-  
+
   // Verifica se todos os dígitos são iguais
   if (/^(\d)\1{13}$/.test(cleanCNPJ)) return false;
-  
+
   // Valida primeiro dígito verificador
   let sum = 0;
   let weight = 5;
@@ -57,7 +57,7 @@ function isValidCNPJ(cnpj: string): boolean {
   }
   let digit = sum % 11 < 2 ? 0 : 11 - (sum % 11);
   if (digit !== parseInt(cleanCNPJ.charAt(12))) return false;
-  
+
   // Valida segundo dígito verificador
   sum = 0;
   weight = 6;
@@ -67,7 +67,7 @@ function isValidCNPJ(cnpj: string): boolean {
   }
   digit = sum % 11 < 2 ? 0 : 11 - (sum % 11);
   if (digit !== parseInt(cleanCNPJ.charAt(13))) return false;
-  
+
   return true;
 }
 
@@ -88,10 +88,10 @@ export function validateIdentificador(value: string): { isValid: boolean; messag
   }
 
   const trimmedValue = value.trim();
-  
+
   // Remove pontos, traços e barras para análise
   const cleanValue = trimmedValue.replace(/[.\-/]/g, '');
-  
+
   // Se contém @ ou letras, valida como e-mail
   if (trimmedValue.includes('@') || /[a-zA-Z]/.test(trimmedValue)) {
     if (isValidEmail(trimmedValue)) {
@@ -116,7 +116,7 @@ export function validateIdentificador(value: string): { isValid: boolean; messag
     }
     return { isValid: false, message: 'Insira um e-mail válido (ex: seunome@email.com)' };
   }
-  
+
   // Se tem apenas números (após limpeza)
   if (/^\d+$/.test(cleanValue)) {
     // CPF: 11 dígitos
@@ -129,7 +129,7 @@ export function validateIdentificador(value: string): { isValid: boolean; messag
       }
       return { isValid: false, message: 'CPF inválido. Verifique os números digitados' };
     }
-    
+
     // CNPJ: 14 dígitos
     if (cleanValue.length === 14) {
       if (/^(\d)\1{13}$/.test(cleanValue)) {
@@ -140,28 +140,28 @@ export function validateIdentificador(value: string): { isValid: boolean; messag
       }
       return { isValid: false, message: 'CNPJ inválido. Verifique os números digitados' };
     }
-    
+
     // Número de dígitos incorreto - mensagens específicas
     if (cleanValue.length < 11) {
-      return { 
-        isValid: false, 
-        message: `Digite ${11 - cleanValue.length} número(s) a mais para completar o CPF` 
+      return {
+        isValid: false,
+        message: `Digite ${11 - cleanValue.length} número(s) a mais para completar o CPF`
       };
     }
     if (cleanValue.length > 11 && cleanValue.length < 14) {
-      return { 
-        isValid: false, 
-        message: `Digite ${14 - cleanValue.length} número(s) a mais para completar o CNPJ` 
+      return {
+        isValid: false,
+        message: `Digite ${14 - cleanValue.length} número(s) a mais para completar o CNPJ`
       };
     }
     if (cleanValue.length > 14) {
-      return { 
-        isValid: false, 
-        message: `Você digitou ${cleanValue.length - 14} número(s) a mais. CPF tem 11 dígitos e CNPJ tem 14` 
+      return {
+        isValid: false,
+        message: `Você digitou ${cleanValue.length - 14} número(s) a mais. CPF tem 11 dígitos e CNPJ tem 14`
       };
     }
   }
-  
+
   return { isValid: false, message: 'Digite um e-mail, CPF (11 dígitos) ou CNPJ (14 dígitos)' };
 }
 
@@ -181,10 +181,7 @@ export const loginSchema = z.object({
   senha: z
     .string()
     .min(1, 'Por favor, digite sua senha')
-    .min(8, 'A senha precisa ter pelo menos 8 caracteres')
-    .regex(/[A-Z]/, 'A senha precisa ter pelo menos uma letra MAIÚSCULA')
-    .regex(/[a-z]/, 'A senha precisa ter pelo menos uma letra minúscula')
-    .regex(/[0-9]/, 'A senha precisa ter pelo menos um número'),
+    .min(1, 'A senha não pode estar vazia'),
   lembrarDeMim: z.boolean().optional().default(false),
 });
 

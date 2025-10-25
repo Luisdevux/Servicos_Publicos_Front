@@ -4,7 +4,7 @@
  * Exporta todos os services da aplicação
  */
 export * from './api';
-export * from './authService';
 export * from './demandaService';
+export * from './demandaServiceSecure';
 export * from './tipoDemandaService';
 export * from './usuarioService';
