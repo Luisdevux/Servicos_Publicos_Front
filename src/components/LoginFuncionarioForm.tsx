@@ -46,7 +46,7 @@ export default function LoginFuncionarioForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     // Limpa erro ao digitar
     if (errors[name as keyof LoginFormValues]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
@@ -55,7 +55,7 @@ export default function LoginFuncionarioForm() {
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     // Valida apenas se tiver conteúdo
     if (value.trim()) {
       validateField(name as keyof LoginFormValues, value);
@@ -67,7 +67,7 @@ export default function LoginFuncionarioForm() {
 
     // Valida todo o formulário
     const result = loginSchema.safeParse(formData);
-    
+
     if (!result.success) {
       const fieldErrors: Partial<Record<keyof LoginFormValues, string>> = {};
       result.error.issues.forEach((issue) => {
@@ -75,7 +75,7 @@ export default function LoginFuncionarioForm() {
         fieldErrors[path] = issue.message;
       });
       setErrors(fieldErrors);
-      
+
       // Mostra toast com o primeiro erro
       const firstError = Object.values(fieldErrors)[0];
       if (firstError) {
@@ -89,7 +89,9 @@ export default function LoginFuncionarioForm() {
     await login({
       identificador: formData.identificador,
       senha: formData.senha,
-      callbackUrl: '/dashboard',
+      lembrarDeMim: formData.lembrarDeMim,
+      tipoUsuario: 'funcionario',
+      callbackUrl: '/admin',
     });
   };
 
@@ -195,7 +197,7 @@ export default function LoginFuncionarioForm() {
             <Checkbox
               id="lembrar-de-mim"
               checked={formData.lembrarDeMim}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setFormData((prev) => ({ ...prev, lembrarDeMim: checked as boolean }))
               }
               data-test="checkbox-lembrar-de-mim"

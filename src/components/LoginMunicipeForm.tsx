@@ -1,5 +1,4 @@
 // src/components/LoginMunicipeForm.tsx
-
 'use client';
 
 import { useState } from 'react';
@@ -46,7 +45,7 @@ export default function LoginMunicipeForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     // Limpa erro ao digitar
     if (errors[name as keyof LoginFormValues]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
@@ -55,7 +54,7 @@ export default function LoginMunicipeForm() {
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     // Valida apenas se tiver conteúdo
     if (value.trim()) {
       validateField(name as keyof LoginFormValues, value);
@@ -67,7 +66,7 @@ export default function LoginMunicipeForm() {
 
     // Valida todo o formulário
     const result = loginSchema.safeParse(formData);
-    
+
     if (!result.success) {
       const fieldErrors: Partial<Record<keyof LoginFormValues, string>> = {};
       result.error.issues.forEach((issue) => {
@@ -75,7 +74,7 @@ export default function LoginMunicipeForm() {
         fieldErrors[path] = issue.message;
       });
       setErrors(fieldErrors);
-      
+
       // Mostra toast com o primeiro erro
       const firstError = Object.values(fieldErrors)[0];
       if (firstError) {
@@ -89,6 +88,8 @@ export default function LoginMunicipeForm() {
     await login({
       identificador: formData.identificador,
       senha: formData.senha,
+      lembrarDeMim: formData.lembrarDeMim,
+      tipoUsuario: 'municipe',
       callbackUrl: '/',
     });
   };
@@ -195,7 +196,7 @@ export default function LoginMunicipeForm() {
             <Checkbox
               id="lembrar-de-mim"
               checked={formData.lembrarDeMim}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setFormData((prev) => ({ ...prev, lembrarDeMim: checked as boolean }))
               }
               data-test="checkbox-lembrar-de-mim"
@@ -238,8 +239,8 @@ export default function LoginMunicipeForm() {
       {/* Link de Cadastro */}
       <div className="mt-6 text-center text-sm text-gray-600" data-test="link-cadastro-wrapper">
         Não possui cadastro?{' '}
-        <Link 
-          href="/cadastro" 
+        <Link
+          href="/cadastro"
           className="text-[#337695] font-medium hover:underline transition-colors"
           data-test="link-cadastro"
         >
