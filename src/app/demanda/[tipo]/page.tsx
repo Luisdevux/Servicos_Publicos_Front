@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { getAccessToken } from "@/hooks/useAuthMutations";
+import { useSession } from "next-auth/react";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { tipoDemandaService } from "@/services";
 
 export default function DemandaPage() {
   const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
+  const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
   
@@ -41,7 +42,7 @@ export default function DemandaPage() {
   } = useQuery({
     queryKey: ['tipoDemanda', tipoFiltro],
     queryFn: async () => {
-      const token = getAccessToken();
+      const token = session?.user?.accesstoken;
       
       if (!token) {
         router.push('/login');
@@ -62,7 +63,7 @@ export default function DemandaPage() {
 
   // Busca imagem de um card
   const fetchCardImage = async (cardId: string) => {
-    const token = getAccessToken();
+    const token = session?.user?.accesstoken;
     if (!token) return;
 
     try {
