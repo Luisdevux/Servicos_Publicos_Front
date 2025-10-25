@@ -48,10 +48,10 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
 
         <div className="flex-1 overflow-y-auto px-6 pt-4 pb-6 min-h-0 scrollbar-hide">
           <div className="mb-4" data-test="progresso-section">
-            {pedido.status === "aceito" && pedido.progresso && (
+            {pedido.status !== "Recusada" && pedido.progresso && (
               <ProgressoPedido progresso={pedido.progresso} />
             )}
-            {pedido.status === "recusado" && (
+            {pedido.status === "Recusada" && (
               <ProgressoPedido 
                 progresso={{ aprovado: true, emProgresso: true, concluido: true }} 
                 variant="error" 

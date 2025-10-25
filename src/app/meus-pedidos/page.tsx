@@ -48,16 +48,17 @@ export default function MeusPedidosPage() {
   }, [response?.data?.page, paginaAtual]);
 
   const transformDemandaToPedido = (demanda: any): Pedido => {
-    const statusMapping: Record<string, "aceito" | "recusado"> = {
-      "Em aberto": "aceito",
-      "Em andamento": "aceito", 
-      "Concluída": "aceito"
+    const statusMapping: Record<string, "Em aberto" | "Em andamento" | "Concluída" | "Recusada"> = {
+      "Em aberto": "Em aberto",
+      "Em andamento": "Em andamento", 
+      "Concluída": "Concluída",
+      "Recusada": "Recusada"
     };
 
     return {
       id: demanda._id,
       titulo: `Demanda sobre ${demanda.tipo}`,
-      status: statusMapping[demanda.status] || "aceito",
+      status: statusMapping[demanda.status] || "Em aberto",
       descricao: demanda.descricao,
       imagem: demanda.link_imagem ? [demanda.link_imagem] : undefined,
       endereco: demanda.endereco ? {
@@ -68,9 +69,9 @@ export default function MeusPedidosPage() {
         complemento: demanda.endereco.complemento || "",
       } : undefined,
       progresso: {
-        aprovado: true,
-        emProgresso: demanda.status === "Em andamento",
-        concluido: demanda.status === "Concluída",
+        aprovado: true, // Sempre true pois todos os pedidos estão aguardando aprovação ou já foram aprovados
+        emProgresso: demanda.status === "Em andamento" || demanda.status === "Concluída",
+        concluido: demanda.status === "Concluída" 
       },
       conclusao: demanda.status === "Concluída" && demanda.resolucao ? {
         descricao: demanda.resolucao,

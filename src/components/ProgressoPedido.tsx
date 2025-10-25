@@ -48,7 +48,7 @@ export default function ProgressoPedido({ progresso, size = "md", variant = "def
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-1">
           <div className={`${getCircleSize()} rounded-full flex items-center justify-center transition-all duration-500 ease-in-out ${
             progresso.aprovado ? colors.active : colors.inactive
           }`}>
@@ -59,9 +59,9 @@ export default function ProgressoPedido({ progresso, size = "md", variant = "def
               }`}
             />
           </div>
-          <span className="text-sm text-[var(--global-text-primary)]">Aprovado</span>
+          <span className="text-sm text-[var(--global-text-primary)]">Aguardando aprovação</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-1">
           <div className={`${getCircleSize()} rounded-full flex items-center justify-center transition-all duration-500 ease-in-out ${
             progresso.emProgresso ? colors.active : colors.inactive
           }`}>
@@ -74,7 +74,7 @@ export default function ProgressoPedido({ progresso, size = "md", variant = "def
           </div>
           <span className="text-sm text-[var(--global-text-primary)]">Em progresso</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-1">
           <div className={`${getCircleSize()} rounded-full flex items-center justify-center transition-all duration-500 ease-in-out ${
             progresso.concluido ? colors.active : colors.inactive
           }`}>

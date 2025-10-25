@@ -30,7 +30,7 @@ export default function CardPedido({ pedido, onVerMais }: CardPedidoProps) {
           {pedido.titulo}
         </h3>
         
-        {pedido.status === "aceito" ? (
+        {pedido.status !== "Recusada" ? (
           <div 
             className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-md text-sm font-medium"
             data-test="card-pedido-status-aceito"
@@ -50,13 +50,13 @@ export default function CardPedido({ pedido, onVerMais }: CardPedidoProps) {
       </div>
 
       <div className="flex-1 flex flex-col justify-center" data-test="card-pedido-progresso-section">
-        {pedido.status === "aceito" && pedido.progresso && (
+        {pedido.status !== "Recusada" && pedido.progresso && (
           <div className="mb-10 mt-10"> 
             <ProgressoPedido progresso={pedido.progresso} size="sm" />
           </div>
         )}
 
-        {pedido.status === "recusado" && (
+        {pedido.status === "Recusada" && (
           <div className="mb-10 mt-10">
             <ProgressoPedido 
               progresso={{ aprovado: true, emProgresso: true, concluido: true }} 
