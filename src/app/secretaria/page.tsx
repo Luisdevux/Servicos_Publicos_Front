@@ -25,6 +25,8 @@ export default function PedidosSecretariaPage() {
   const { data: session } = useSession();
   const router = useRouter();
 
+  const ITENS_POR_PAGINA = 6;
+
   // Buscar demandas da API
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['demandas-secretaria'],
@@ -55,7 +57,7 @@ export default function PedidosSecretariaPage() {
         console.warn("Token expirado. Redirecionando para login...");
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        router.push('/login/secretaria?expired=true');
+        router.push('/login/funcionario?expired=true');
       }
     }
   }, [error, router]);
@@ -112,6 +114,11 @@ export default function PedidosSecretariaPage() {
     return demanda.tipo === filtroSelecionado.toLowerCase();
   });
 
+  const totalPaginas = Math.ceil(demandasFiltradas.length / ITENS_POR_PAGINA);
+  const indiceInicial = (paginaAtual - 1) * ITENS_POR_PAGINA;
+  const indiceFinal = indiceInicial + ITENS_POR_PAGINA;
+  const demandasPaginadas = demandasFiltradas.slice(indiceInicial, indiceFinal);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--global-bg)]">
@@ -119,12 +126,12 @@ export default function PedidosSecretariaPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="linear-gradient(135deg, purple 0%, #5b21b6 80%)"
+          backgroundColor="#5b21b6"
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando demandas...</p>
+            <div className="text-gray-600">Carregando demandas...</div>
           </div>
         </div>
       </div>
@@ -140,20 +147,20 @@ export default function PedidosSecretariaPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="linear-gradient(135deg, purple 0%, #5b21b6 80%)"
+          backgroundColor="#5b21b6"
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-center max-w-md mx-auto px-4">
             <ClipboardList className="h-16 w-16 text-red-400 mx-auto mb-4" />
-            <p className="text-red-600 font-semibold mb-2">
+            <div className="text-red-600 font-semibold mb-2">
               {isTokenExpired ? "Sessão expirada" : "Erro ao carregar demandas"}
-            </p>
-            <p className="text-gray-600 text-sm mb-4">
+            </div>
+            <div className="text-gray-600 text-sm mb-4">
               {isTokenExpired 
                 ? "Sua sessão expirou. Você será redirecionado para fazer login novamente..." 
                 : (error instanceof Error ? error.message : "Erro desconhecido. Tente novamente.")
               }
-            </p>
+            </div>
             {!isTokenExpired && (
               <Button 
                 onClick={() => window.location.reload()}
@@ -174,7 +181,7 @@ export default function PedidosSecretariaPage() {
         icone={ClipboardList}
         titulo="Pedidos recebidos"
         className="mb-6 md:mb-8"
-        backgroundColor="linear-gradient(135deg, purple 0%, #5b21b6 80%)"
+        backgroundColor="#5b21b6"
       />
 
       <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
@@ -205,7 +212,7 @@ export default function PedidosSecretariaPage() {
 
         {demandasFiltradas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16 mb-8">
-              {demandasFiltradas.map((demanda) => (
+              {demandasPaginadas.map((demanda) => (
                 <div 
                   key={demanda.id}
                   className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col"
@@ -219,9 +226,9 @@ export default function PedidosSecretariaPage() {
                     </span>
                   </div>
                   
-                  <p className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3">
+                  <div className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3">
                     {demanda.descricao}
-                  </p>
+                  </div>
                   
                   <Button 
                     onClick={() => handleAnalisarDemanda(demanda.id)}
@@ -238,12 +245,12 @@ export default function PedidosSecretariaPage() {
             <h3 className="text-lg font-medium text-[var(--global-text-primary)] mb-2">
               Nenhum pedido encontrado
             </h3>
-            <p className="text-sm text-gray-500 text-center">
+            <div className="text-sm text-gray-500 text-center">
               {filtroSelecionado === "todos" 
                 ? "Não há pedidos registrados no momento."
                 : `Não há pedidos com status "${filtroSelecionado}".`
               }
-            </p>
+            </div>
           </div>
         )}
 
@@ -257,11 +264,12 @@ export default function PedidosSecretariaPage() {
             </button>
             
             <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
-              <span>Página atual: {paginaAtual}</span>
+              <span>Página {paginaAtual} de {totalPaginas}</span>
             </div>
             
             <button
               onClick={handleProximaPagina}
+              disabled={paginaAtual === totalPaginas}
               className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight size={20} />
