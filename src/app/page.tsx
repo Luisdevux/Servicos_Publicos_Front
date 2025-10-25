@@ -270,7 +270,7 @@ export default function Home() {
                 <div className="hidden md:block absolute top-16 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-[var(--global-accent)]/30 to-transparent z-0"></div>
               )}
               
-              <div className="relative bg-white rounded-2xl p-10 hover:shadow-xl transition-all duration-300 border-2 border-gray-100 group-hover:border-[var(--global-accent)]/30 min-h-[320px] flex items-center">
+              <div className="relative bg-white rounded-2xl p-10 hover:shadow-xl transition-all duration-300 border-2 border-gray-100 group-hover:border-[var(--global-accent)]/30 h-[340px] flex flex-col justify-center">
                 <div className="flex flex-col items-center text-center space-y-5 w-full">
                   <div className="relative">
                     <div className="w-24 h-24 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
