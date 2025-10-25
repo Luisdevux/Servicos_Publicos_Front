@@ -69,14 +69,18 @@ export default function MeusPedidosPage() {
         complemento: demanda.endereco.complemento || "",
       } : undefined,
       progresso: {
-        aprovado: true, // Sempre true pois todos os pedidos estão aguardando aprovação ou já foram aprovados
-        emProgresso: demanda.status === "Em andamento" || demanda.status === "Concluída",
+        aprovado: true,
+        emProgresso: demanda.status === "Em andamento" || demanda.status === "Concluída" ,
         concluido: demanda.status === "Concluída" 
       },
       conclusao: demanda.status === "Concluída" && demanda.resolucao ? {
         descricao: demanda.resolucao,
         imagem: demanda.link_imagem_resolucao ? [demanda.link_imagem_resolucao] : undefined,
         dataConclusao: demanda.updatedAt ? new Date(demanda.updatedAt).toLocaleDateString('pt-BR') : ""
+      } : undefined,
+      avaliacao: demanda.status === "Concluída" && demanda.feedback && demanda.avaliacao_resolucao ? {
+        feedback: demanda.feedback,
+        avaliacao_resolucao: demanda.avaliacao_resolucao
       } : undefined
     };
   };

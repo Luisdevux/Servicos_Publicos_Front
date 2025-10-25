@@ -27,7 +27,7 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
 
   const links: HeaderLink[] = [
     { href: "/", label: "Home" },
-    { href: "/meus-pedidos", label: "Meus Pedidos", requiresAuth: true },
+    { href: "/pedidosMunicipe", label: "Meus Pedidos", requiresAuth: true },
     { href: "/perfil", label: "Perfil", requiresAuth: true },
     { href: "/login", label: "Login", hideWhenAuth: true },
   ];

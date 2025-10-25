@@ -103,4 +103,8 @@ export interface Pedido {
     imagem?: string | string[];
     dataConclusao: string;
   };
+  avaliacao?: {
+    feedback: number;
+    avaliacao_resolucao: string;
+  };
 }
