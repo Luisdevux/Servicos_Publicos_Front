@@ -1,16 +1,15 @@
 // src/hooks/useAuth.ts
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useLogout } from './useLogout';
 
 export function useAuth() {
   const { data: session, status } = useSession();
-  const router = useRouter();
+  const { logout: performLogout } = useLogout();
 
   const logout = async () => {
-    await signOut({ redirect: false });
-    router.push('/login');
+    await performLogout({ silent: false });
   };
 
   return {
