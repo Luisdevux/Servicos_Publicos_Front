@@ -24,6 +24,8 @@ export default function PedidosSecretariaPage() {
   const [paginaAtual, setPaginaAtual] = useState(1);
   const router = useRouter();
 
+  const ITENS_POR_PAGINA = 6;
+
   // Buscar demandas da API
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['demandas-secretaria'],
@@ -110,6 +112,11 @@ export default function PedidosSecretariaPage() {
     }
     return demanda.tipo === filtroSelecionado.toLowerCase();
   });
+
+  const totalPaginas = Math.ceil(demandasFiltradas.length / ITENS_POR_PAGINA);
+  const indiceInicial = (paginaAtual - 1) * ITENS_POR_PAGINA;
+  const indiceFinal = indiceInicial + ITENS_POR_PAGINA;
+  const demandasPaginadas = demandasFiltradas.slice(indiceInicial, indiceFinal);
 
   if (isLoading) {
     return (
@@ -204,7 +211,7 @@ export default function PedidosSecretariaPage() {
 
         {demandasFiltradas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16 mb-8">
-              {demandasFiltradas.map((demanda) => (
+              {demandasPaginadas.map((demanda) => (
                 <div 
                   key={demanda.id}
                   className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col"
@@ -256,11 +263,12 @@ export default function PedidosSecretariaPage() {
             </button>
             
             <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
-              <span>Página atual: {paginaAtual}</span>
+              <span>Página {paginaAtual} de {totalPaginas}</span>
             </div>
             
             <button
               onClick={handleProximaPagina}
+              disabled={paginaAtual === totalPaginas}
               className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight size={20} />
