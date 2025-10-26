@@ -8,7 +8,6 @@ import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { demandaService } from "@/services/demandaService";
-import { getAccessToken } from "@/hooks/useAuthMutations";
 import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI } from "@/types";
 
@@ -30,13 +29,8 @@ export default function PedidosOperadorPage() {
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['demandas-operador'],
     queryFn: async () => {
-      const token = getAccessToken();
-      if (!token) {
-        console.warn("Token não encontrado. Usuário não autenticado.");
-        throw new Error("Você precisa estar logado para acessar esta página.");
-      }
       try {
-        const result = await demandaService.buscarDemandas(token);
+        const result = await demandaService.buscarDemandas();
         console.log("Demandas carregadas:", result);
         return result;
       } catch (err) {

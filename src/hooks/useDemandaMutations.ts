@@ -3,8 +3,8 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { demandaServiceSecure } from '@/services';
-import type { Endereco, Demanda } from '@/types';
+import { demandaService } from '@/services';
+import type { Endereco, Demanda, TipoDemanda } from '@/types';
 
 /*
   �� SEGURANÇA: Hook refatorado para usar demandaServiceSecure
@@ -16,7 +16,7 @@ import type { Endereco, Demanda } from '@/types';
 */
 
 interface CreateDemandaInput {
-  tipo: string;
+  tipo: TipoDemanda;
   descricao: string;
   endereco: Endereco;
   imagem?: File;
@@ -35,7 +35,7 @@ export function useCreateDemanda() {
         status: 'Em aberto',
       };
 
-      const response = await demandaServiceSecure.criarDemanda(demandaData);
+      const response = await demandaService.criarDemanda(demandaData);
       const demandaCriada = response.data;
 
       if (!demandaCriada) {
@@ -45,7 +45,7 @@ export function useCreateDemanda() {
       // Segunda requisição: upload da imagem (se houver)
       if (input.imagem && demandaCriada._id) {
         try {
-          const uploadResult = await demandaServiceSecure.uploadFotoDemanda(
+          const uploadResult = await demandaService.uploadFotoDemanda(
             demandaCriada._id,
             input.imagem
           );

@@ -1,4 +1,4 @@
-// /app/demanda/[tipo]/page.tsx
+// /app/(auth)/demanda/[tipo]/page.tsx
 
 "use client";
 
@@ -7,7 +7,6 @@ import Banner from "@/components/banner";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
 import { useSession } from "next-auth/react";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
 import { ArrowLeft } from "lucide-react";
@@ -15,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { tipoDemandaService } from "@/services";
 
 export default function DemandaPage() {
-  const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
   const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
@@ -25,13 +23,6 @@ export default function DemandaPage() {
   const [selectedTipo, setSelectedTipo] = useState<string>('');
   
   const tipoFiltro = decodeURIComponent(params.tipo as string);
-  
-  // Redireciona para login se não autenticado
-  useEffect(() => {
-    if (!isAuthLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isAuthLoading, isAuthenticated, router]);
 
   const {
     data: demandasData,
@@ -42,17 +33,11 @@ export default function DemandaPage() {
   } = useQuery({
     queryKey: ['tipoDemanda', tipoFiltro],
     queryFn: async () => {
-      const token = session?.user?.accesstoken;
-      
-      if (!token) {
-        router.push('/login');
-        throw new Error('Token não encontrado');
-      }
-
-      const result = await tipoDemandaService.buscarTiposDemandaPorTipo(token, tipoFiltro, 100);
+      const result = await tipoDemandaService.buscarTiposDemandaPorTipo(tipoFiltro, 100);
+      console.log('Resultado da API:', result);
       return result.data?.docs || [];
     },
-    enabled: !!tipoFiltro && !isAuthLoading && isAuthenticated,
+    enabled: !!tipoFiltro,
     staleTime: 5 * 60 * 1000, // Cache por 5 minutos
     retry: 1,
   });
@@ -61,48 +46,67 @@ export default function DemandaPage() {
   const cardsFiltrados = demandasData || [];
   const bannerData = cardsFiltrados[0] || null;
 
-  // Busca imagem de um card
-  const fetchCardImage = async (cardId: string) => {
-    const token = session?.user?.accesstoken;
-    if (!token) return;
-
-    try {
-      const blob = await tipoDemandaService.buscarFotoTipoDemanda(cardId, token);
-      const imageUrl = URL.createObjectURL(blob);
-      setImageBlobs(prev => ({ ...prev, [cardId]: imageUrl }));
-    } catch (error) {
-      console.error(`Erro ao buscar imagem do card ${cardId}:`, error);
-    }
-  };
-
-  // Carrega imagens dos cards quando dados mudam
+  // Carregar imagens quando os dados das demandas são carregados
   useEffect(() => {
-    if (cardsFiltrados.length > 0) {
-      cardsFiltrados.forEach((card) => {
-        fetchCardImage(card._id);
-      });
-    }
-  }, [cardsFiltrados.length]);
+    const loadImages = async () => {
+      if (!demandasData) return;
 
-  // Limpa URLs de imagem ao desmontar
-  useEffect(() => {
-    return () => {
-      Object.values(imageBlobs).forEach((url) => {
-        URL.revokeObjectURL(url);
-      });
+      const newImageBlobs: Record<string, string> = {};
+
+      for (const demanda of demandasData) {
+        // Se já tem link_imagem, testa se está acessível
+        if (demanda.link_imagem) {
+          console.log(`Testando link_imagem para ${demanda._id}:`, demanda.link_imagem);
+
+          try {
+            // Testa se conseguimos carregar a imagem completamente
+            console.log(`Testando carregamento completo de link_imagem para ${demanda._id}...`);
+            const imageResponse = await fetch(demanda.link_imagem);
+            const contentType = imageResponse.headers.get('content-type');
+
+            if (imageResponse.ok && contentType?.startsWith('image/')) {
+              const imageBlob = await imageResponse.blob();
+              if (imageBlob.size > 0) {
+                console.log(`✅ link_imagem carregada com sucesso para ${demanda._id}:`, {
+                  size: imageBlob.size,
+                  type: contentType
+                });
+                continue;
+              }
+            }
+
+            console.warn(`❌ link_imagem não pôde ser carregada para ${demanda._id}:`, {
+              status: imageResponse.status,
+              contentType,
+              url: demanda.link_imagem,
+              responseText: contentType?.includes('text/html') ? await imageResponse.text().then(text => text.substring(0, 200) + '...') : 'Não é HTML'
+            });
+          } catch (error) {
+            console.warn(`❌ Erro ao carregar link_imagem para ${demanda._id}:`, error);
+          }
+        }
+
+        // Se não tem link_imagem ou não está acessível, busca blob
+        try {
+          console.log(`Buscando blob para demanda ${demanda._id}...`);
+          const blob = await tipoDemandaService.buscarFotoTipoDemanda(demanda._id);
+          const imageUrl = URL.createObjectURL(blob);
+          newImageBlobs[demanda._id] = imageUrl;
+          console.log(`✅ Blob carregado para ${demanda._id}:`, {
+            size: blob.size,
+            type: blob.type,
+            url: imageUrl.substring(0, 50) + '...'
+          });
+        } catch (error) {
+          console.warn(`❌ Erro ao carregar blob para demanda ${demanda._id}:`, error);
+        }
+      }
+
+      setImageBlobs(newImageBlobs);
     };
-  }, [imageBlobs]);
 
-  // Loading state da autenticação
-  if (isAuthLoading) {
-    return (
-      <div className="flex justify-center items-center py-40 bg-gray-50" data-test="demanda-loading-container">
-        <div className="text-lg text-gray-600" data-test="demanda-loading-message">
-          Verificando autenticação...
-        </div>
-      </div>
-    );
-  }
+    loadImages();
+  }, [demandasData]);
 
   return (
     <div data-test="demanda-page">
@@ -165,19 +169,29 @@ export default function DemandaPage() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-stretch" 
             data-test="demanda-cards-grid"
           >
-            {cardsFiltrados.map((card) => (
-              <div key={card._id} data-test={`demanda-card-${card._id}`}>
-                <CardDemanda 
-                  titulo={card.titulo}
-                  descricao={card.descricao}
-                  imagem={imageBlobs[card._id] || card.link_imagem || ''}
-                  onCreateClick={() => {
-                    setSelectedTipo(card.tipo);
-                    setIsDialogOpen(true);
-                  }}
-                />
-              </div>
-            ))}
+            {cardsFiltrados.map((card) => {
+              const imagemFinal = card.link_imagem || imageBlobs[card._id] || '';
+              console.log(`Renderizando card ${card._id}:`, {
+                titulo: card.titulo,
+                link_imagem: card.link_imagem,
+                blob_imagem: imageBlobs[card._id] ? 'blob disponível' : 'sem blob',
+                imagem_final: imagemFinal ? 'imagem definida' : 'sem imagem'
+              });
+
+              return (
+                <div key={card._id} data-test={`demanda-card-${card._id}`}>
+                  <CardDemanda
+                    titulo={card.titulo}
+                    descricao={card.descricao}
+                    imagem={imagemFinal}
+                    onCreateClick={() => {
+                      setSelectedTipo(card.tipo);
+                      setIsDialogOpen(true);
+                    }}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

@@ -31,13 +31,8 @@ export default function PedidosSecretariaPage() {
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['demandas-secretaria'],
     queryFn: async () => {
-      const token = session?.user?.accesstoken;
-      if (!token) {
-        console.warn("Token não encontrado. Usuário não autenticado.");
-        throw new Error("Você precisa estar logado para acessar esta página.");
-      }
       try {
-        const result = await demandaService.buscarDemandas(token);
+        const result = await demandaService.buscarDemandas();
         console.log("Demandas carregadas:", result);
         return result;
       } catch (err) {

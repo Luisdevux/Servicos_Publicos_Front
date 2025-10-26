@@ -67,7 +67,10 @@ export default function PerfilPage() {
                 </label>
                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                   <p className="text-gray-900 capitalize">
-                    {user?.tipo || 'Não informado'}
+                    {user?.nivel_acesso?.administrador ? 'Administrador' :
+                     user?.nivel_acesso?.secretario ? 'Secretário' :
+                     user?.nivel_acesso?.operador ? 'Operador' :
+                     user?.nivel_acesso?.municipe ? 'Munícipe' : 'Não informado'}
                   </p>
                 </div>
               </div>
