@@ -7,23 +7,21 @@ import Banner from "@/components/banner";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { tipoDemandaService } from "@/services";
 
 export default function DemandaPage() {
-  const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
   
-  const [imageBlobs, setImageBlobs] = useState<Record<string, string>>({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTipo, setSelectedTipo] = useState<string>('');
   
   const tipoFiltro = decodeURIComponent(params.tipo as string);
 
+  // Use query para buscar as imagens dos tipoDemandas
   const {
     data: demandasData,
     isLoading: demandasIsLoading,
@@ -34,7 +32,6 @@ export default function DemandaPage() {
     queryKey: ['tipoDemanda', tipoFiltro],
     queryFn: async () => {
       const result = await tipoDemandaService.buscarTiposDemandaPorTipo(tipoFiltro, 100);
-      console.log('Resultado da API:', result);
       return result.data?.docs || [];
     },
     enabled: !!tipoFiltro,
@@ -46,67 +43,58 @@ export default function DemandaPage() {
   const cardsFiltrados = demandasData || [];
   const bannerData = cardsFiltrados[0] || null;
 
-  // Carregar imagens quando os dados das demandas são carregados
-  useEffect(() => {
-    const loadImages = async () => {
-      if (!demandasData) return;
+  // Use query para buscar as imagens dos tipoDemandas, separando as responsabilidades
+  const {
+    data: imageUrls,
+    isLoading: imagesIsLoading,
+    isError: imagesIsError,
+    error: imagesError,
+    refetch: imagesRefetch,
+  } = useQuery({
+    queryKey: ['tipoDemandaImages', tipoFiltro, cardsFiltrados.map(c => c._id)],
+    queryFn: async () => {
+      if (!cardsFiltrados.length) return {};
 
-      const newImageBlobs: Record<string, string> = {};
-
-      for (const demanda of demandasData) {
-        // Se já tem link_imagem, testa se está acessível
-        if (demanda.link_imagem) {
-          console.log(`Testando link_imagem para ${demanda._id}:`, demanda.link_imagem);
-
-          try {
-            // Testa se conseguimos carregar a imagem completamente
-            console.log(`Testando carregamento completo de link_imagem para ${demanda._id}...`);
-            const imageResponse = await fetch(demanda.link_imagem);
-            const contentType = imageResponse.headers.get('content-type');
-
-            if (imageResponse.ok && contentType?.startsWith('image/')) {
-              const imageBlob = await imageResponse.blob();
-              if (imageBlob.size > 0) {
-                console.log(`✅ link_imagem carregada com sucesso para ${demanda._id}:`, {
-                  size: imageBlob.size,
-                  type: contentType
-                });
-                continue;
-              }
-            }
-
-            console.warn(`❌ link_imagem não pôde ser carregada para ${demanda._id}:`, {
-              status: imageResponse.status,
-              contentType,
-              url: demanda.link_imagem,
-              responseText: contentType?.includes('text/html') ? await imageResponse.text().then(text => text.substring(0, 200) + '...') : 'Não é HTML'
-            });
-          } catch (error) {
-            console.warn(`❌ Erro ao carregar link_imagem para ${demanda._id}:`, error);
-          }
-        }
-
-        // Se não tem link_imagem ou não está acessível, busca blob
+      const imagePromises = cardsFiltrados.map(async (card) => {
         try {
-          console.log(`Buscando blob para demanda ${demanda._id}...`);
-          const blob = await tipoDemandaService.buscarFotoTipoDemanda(demanda._id);
-          const imageUrl = URL.createObjectURL(blob);
-          newImageBlobs[demanda._id] = imageUrl;
-          console.log(`✅ Blob carregado para ${demanda._id}:`, {
-            size: blob.size,
-            type: blob.type,
-            url: imageUrl.substring(0, 50) + '...'
-          });
+          const blob = await tipoDemandaService.buscarFotoTipoDemanda(card._id);
+          if (blob.size > 0) {
+            const imageUrl = URL.createObjectURL(blob);
+            return { id: card._id, url: imageUrl };
+          }
+          return { id: card._id, url: '' };
         } catch (error) {
-          console.warn(`❌ Erro ao carregar blob para demanda ${demanda._id}:`, error);
+          console.warn(`Erro ao buscar imagem para demanda ${card._id}: ${error}`);
+          return { id: card._id, url: '' };
         }
+      });
+
+      const results = await Promise.all(imagePromises);
+      const imageMap: Record<string, string> = {};
+      
+      results.forEach(({ id, url }) => {
+        imageMap[id] = url;
+      });
+
+      return imageMap;
+    },
+    enabled: !!cardsFiltrados.length,
+    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
+    gcTime: 10 * 60 * 1000,
+  });
+
+  // Limpar URLs das imagens ao desmontar para evitar ocupar memória desnecessariamente
+  useEffect(() => {
+    return () => {
+      if (imageUrls) {
+        Object.values(imageUrls).forEach((url) => {
+          if (url.startsWith('blob:')) {
+            URL.revokeObjectURL(url);
+          }
+        });
       }
-
-      setImageBlobs(newImageBlobs);
     };
-
-    loadImages();
-  }, [demandasData]);
+  }, [imageUrls]);
 
   return (
     <div data-test="demanda-page">
@@ -170,14 +158,7 @@ export default function DemandaPage() {
             data-test="demanda-cards-grid"
           >
             {cardsFiltrados.map((card) => {
-              const imagemFinal = card.link_imagem || imageBlobs[card._id] || '';
-              console.log(`Renderizando card ${card._id}:`, {
-                titulo: card.titulo,
-                link_imagem: card.link_imagem,
-                blob_imagem: imageBlobs[card._id] ? 'blob disponível' : 'sem blob',
-                imagem_final: imagemFinal ? 'imagem definida' : 'sem imagem'
-              });
-
+              const imagemFinal = imageUrls?.[card._id] || '';
               return (
                 <div key={card._id} data-test={`demanda-card-${card._id}`}>
                   <CardDemanda
