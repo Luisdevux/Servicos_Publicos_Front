@@ -21,6 +21,7 @@ interface DemandaCard {
   titulo: string;
   descricao: string;
   tipo: string;
+  status: string;
   imagem?: string | string[];
   endereco?: {
     bairro: string;
@@ -28,9 +29,14 @@ interface DemandaCard {
     logradouro: string;
     numero: string;
   };
+  usuarios?: (string | { _id: string; nome: string })[];
+  resolucao?: string;
+  motivo_devolucao?: string;
+  link_imagem_resolucao?: string | string[];
 }
 
 export default function PedidosOperadorPage() {
+  const [abaAtiva, setAbaAtiva] = useState<"aguardando-resolucao" | "concluidas">("aguardando-resolucao");
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [demandaSelecionada, setDemandaSelecionada] = useState<DemandaCard | null>(null);
@@ -78,6 +84,7 @@ export default function PedidosOperadorPage() {
     titulo: `Demanda sobre ${demanda.tipo}`,
     descricao: demanda.descricao,
     tipo: demanda.tipo.toLowerCase(),
+    status: demanda.status || 'Em aberto',
     imagem: demanda.link_imagem,
     endereco: demanda.endereco ? {
       bairro: demanda.endereco.bairro,
@@ -85,6 +92,10 @@ export default function PedidosOperadorPage() {
       logradouro: demanda.endereco.logradouro,
       numero: demanda.endereco.numero,
     } : undefined,
+    usuarios: demanda.usuarios,
+    resolucao: demanda.resolucao,
+    motivo_devolucao: demanda.motivo_devolucao,
+    link_imagem_resolucao: demanda.link_imagem_resolucao,
   })) || [];
 
   const devolverMutation = useMutation({
@@ -183,12 +194,34 @@ export default function PedidosOperadorPage() {
     }
   };
 
-  const demandasFiltradas = demandas.filter(demanda => {
+  // Filtrar demandas por status baseado na aba ativa
+  const demandasPorStatus = demandas.filter(demanda => {
+    const statusNormalizado = demanda.status.toLowerCase();
+    
+    if (abaAtiva === "aguardando-resolucao") {
+      return statusNormalizado === "em andamento";
+    } else if (abaAtiva === "concluidas") {
+      return statusNormalizado === "concluída" || statusNormalizado === "concluida";
+    }
+    
+    return false;
+  });
+
+  const demandasFiltradas = demandasPorStatus.filter(demanda => {
     if (filtroSelecionado === "todos") {
       return true;
     }
     return demanda.tipo === filtroSelecionado.toLowerCase();
   });
+
+  // Contador de demandas por aba
+  const contadorAguardandoResolucao = demandas.filter(d => 
+    d.status.toLowerCase() === "em andamento"
+  ).length;
+
+  const contadorConcluidas = demandas.filter(d => 
+    d.status.toLowerCase() === "concluída" || d.status.toLowerCase() === "concluida"
+  ).length;
 
   const totalPaginas = Math.ceil(demandasFiltradas.length / ITENS_POR_PAGINA);
   const indiceInicial = (paginaAtual - 1) * ITENS_POR_PAGINA;
@@ -262,6 +295,53 @@ export default function PedidosOperadorPage() {
 
       <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
         <div className="mx-auto">
+          {/* Abas de Status */}
+          <div className="mb-6 border-b border-gray-200">
+            <div className="flex gap-8">
+              <button
+                onClick={() => {
+                  setAbaAtiva("aguardando-resolucao");
+                  setPaginaAtual(1);
+                }}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  abaAtiva === "aguardando-resolucao"
+                    ? "border-green-600 text-green-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Aguardando Resolução
+                {contadorAguardandoResolucao > 0 && (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    abaAtiva === "aguardando-resolucao" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600"
+                  }`}>
+                    {contadorAguardandoResolucao}
+                  </span>
+                )}
+              </button>
+              
+              <button
+                onClick={() => {
+                  setAbaAtiva("concluidas");
+                  setPaginaAtual(1);
+                }}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  abaAtiva === "concluidas"
+                    ? "border-green-600 text-green-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Concluídas
+                {contadorConcluidas > 0 && (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    abaAtiva === "concluidas" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600"
+                  }`}>
+                    {contadorConcluidas}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
           <div className="mb-6">
 
 
@@ -322,8 +402,14 @@ export default function PedidosOperadorPage() {
             </h3>
             <p className="text-sm text-gray-500 text-center">
               {filtroSelecionado === "todos" 
-                ? "Não há pedidos registrados no momento."
-                : `Não há pedidos com tipo "${filtroSelecionado}".`
+                ? (abaAtiva === "aguardando-resolucao" 
+                    ? "Não há pedidos aguardando resolução no momento."
+                    : "Não há pedidos concluídos no momento."
+                  )
+                : (abaAtiva === "aguardando-resolucao"
+                    ? `Não há pedidos aguardando resolução com tipo "${filtroSelecionado}".`
+                    : `Não há pedidos concluídos com tipo "${filtroSelecionado}".`
+                  )
               }
             </p>
           </div>
