@@ -1,4 +1,4 @@
-// /app/(auth)/demanda/[tipo]/page.tsx
+// src/app/(auth)/demanda/[tipo]/page.tsx
 
 "use client";
 
@@ -15,10 +15,10 @@ import { tipoDemandaService } from "@/services";
 export default function DemandaPage() {
   const router = useRouter();
   const params = useParams();
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTipo, setSelectedTipo] = useState<string>('');
-  
+
   const tipoFiltro = decodeURIComponent(params.tipo as string);
 
   // Use query para buscar as imagens dos tipoDemandas
@@ -43,7 +43,7 @@ export default function DemandaPage() {
   const cardsFiltrados = demandasData || [];
   const bannerData = cardsFiltrados[0] || null;
 
-  // Use query para buscar as imagens dos tipoDemandas, separando as responsabilidades
+  // Use query para buscar as imagens dos tipoDemandas
   const {
     data: imageUrls,
     isLoading: imagesIsLoading,
@@ -71,7 +71,7 @@ export default function DemandaPage() {
 
       const results = await Promise.all(imagePromises);
       const imageMap: Record<string, string> = {};
-      
+
       results.forEach(({ id, url }) => {
         imageMap[id] = url;
       });
@@ -83,7 +83,6 @@ export default function DemandaPage() {
     gcTime: 10 * 60 * 1000,
   });
 
-  // Limpar URLs das imagens ao desmontar para evitar ocupar memória desnecessariamente
   useEffect(() => {
     return () => {
       if (imageUrls) {
@@ -101,10 +100,9 @@ export default function DemandaPage() {
       <Banner
         titulo={bannerData?.tipo || tipoFiltro}
         descricao={`Conheça a gama completa de serviços públicos municipais voltados para ${tipoFiltro.toLowerCase()}. Navegue pelas opções, encontre informações detalhadas e acesse o atendimento especializado`}
-        icone="/trash-icon.svg"
         className="mb-4"
       />
-      
+
       <div className="px-6 sm:px-6 lg:px-40 py-4" data-test="demanda-page-container">
         <div className="mb-6">
           <Button
@@ -153,8 +151,8 @@ export default function DemandaPage() {
         )}
 
         {!demandasIsLoading && !demandasIsError && cardsFiltrados.length > 0 && (
-          <div 
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-stretch" 
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-stretch"
             data-test="demanda-cards-grid"
           >
             {cardsFiltrados.map((card) => {
