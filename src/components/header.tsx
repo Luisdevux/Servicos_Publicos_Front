@@ -135,7 +135,7 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
               {mounted && (isAuthenticated || isSecretariaArea || isOperadorArea) && (
                 <button
                   onClick={logout}
-                  className="ml-2 px-4 py-2 bg-[var(--global-text-primary)]/90 text-white text-sm font-medium rounded-lg hover:bg-[var(--global-text-secondary)] transition-colors"
+                  className="ml-2 px-4 py-2 bg-[var(--global-text-primary)]/90 text-white text-sm font-medium rounded-lg hover:bg-[var(--global-text-secondary)] transition-colors cursor-pointer"
                   data-test="header-logout-button"
                 >
                   Sair
@@ -191,7 +191,7 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
             {mounted && (isAuthenticated || isSecretariaArea || isOperadorArea) && (
               <button
                 onClick={logout}
-                className="mt-3 w-full px-4 py-2 bg-[var(--global-text-primary)]/90 text-white text-sm font-medium rounded-lg hover:bg-[var(--global-text-secondary)] transition-colors"
+                className="mt-3 w-full px-4 py-2 bg-[var(--global-text-primary)]/90 text-white text-sm font-medium rounded-lg hover:bg-[var(--global-text-secondary)] transition-colors cursor-pointer"
                 data-test="header-mobile-logout-button"
               >
                 Sair

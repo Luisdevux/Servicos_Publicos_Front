@@ -1,0 +1,88 @@
+services:
+  # MongoDB - Banco de dados
+  mongodb:
+    container_name: mongodb-servicos
+    image: mongo:8
+    volumes:
+      - vol-mongodb-servicos:/data/db
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - servicos-network
+
+  # API Backend - Node.js Express
+  api:
+    container_name: api-servicos
+    build:
+      context: ../servicos-publicos-api
+      dockerfile: Dockerfile
+    environment:
+      DB_URL: "mongodb://mongodb-servicos:27017/exemplo"
+      NODE_ENV: "development"
+      TERM: "xterm"
+    ports:
+      - 5011:5011
+    volumes:
+      - ../servicos-publicos-api:/app:cached
+      - api-node-modules:/app/node_modules
+    command: ["run", "dev"]
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - servicos-network
+
+  # Frontend - Next.js
+  frontend:
+    container_name: frontend-servicos
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      # Server-side: Container → Container (usa nome do serviço)
+      API_URL_SERVER_SIDED: "http://api-servicos:5011"
+      
+      # Client-side: Navegador → Host (usa localhost)
+      NEXT_PUBLIC_API_URL: "http://localhost:5011"
+      
+      # NextAuth
+      NEXTAUTH_SECRET: "your-secret-key-change-this-in-production-min-32-characters-long"
+      NEXTAUTH_URL: "http://localhost:3000"
+      
+      # Outros
+      PROXY_OAUTH_CALLBACK: "true"
+      NODE_ENV: "development"
+      TERM: "xterm"
+      
+      # Hot reload
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - 3000:3000
+    volumes:
+      # Bind mount para hot reload
+      - .:/app
+      # Named volume para node_modules
+      - frontend-node-modules:/app/node_modules
+    depends_on:
+      - api
+    networks:
+      - servicos-network
+
+# Volumes - Persistência de dados
+volumes:
+  vol-mongodb-servicos:
+  api-node-modules:
+  frontend-node-modules:
+
+# Networks - Rede compartilhada
+networks:
+  servicos-network:
+    name: servicos-network
+    driver: bridge

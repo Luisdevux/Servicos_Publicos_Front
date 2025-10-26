@@ -32,12 +32,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiUrl = process.env.API_URL_SERVER_SIDED || process.env.NEXT_PUBLIC_API_URL;
+    const apiUrl = process.env.API_URL_SERVER_SIDED;
+    if (!apiUrl) {
+      console.error('[SecureFetch] API_URL_SERVER_SIDED não configurada!');
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+    
     const fullUrl = `${apiUrl}${endpoint}`;
 
     console.log('[SecureFetch] Fazendo requisição autenticada:', {
       endpoint,
       method,
+      url: fullUrl,
       hasBody: !!requestBody || !!formData,
       bodyType
     });
@@ -113,8 +122,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data);
 
   } catch (error) {
+    console.error('[SecureFetch] Erro na requisição:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
