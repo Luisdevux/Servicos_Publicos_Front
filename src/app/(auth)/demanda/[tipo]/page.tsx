@@ -8,8 +8,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { tipoDemandaService } from "@/services";
 
 export default function DemandaPage() {
@@ -18,10 +19,23 @@ export default function DemandaPage() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTipo, setSelectedTipo] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
 
   const tipoFiltro = decodeURIComponent(params.tipo as string);
 
-  // Use query para buscar as imagens dos tipoDemandas
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setPage(1); // Reseta para a primeira página em nova busca
+    }, 500); // 500ms debounce delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
+
   const {
     data: demandasData,
     isLoading: demandasIsLoading,
@@ -29,18 +43,23 @@ export default function DemandaPage() {
     error: demandasError,
     refetch: demandasRefetch,
   } = useQuery({
-    queryKey: ['tipoDemanda', tipoFiltro],
+    queryKey: ['tipoDemanda', tipoFiltro, debouncedSearchTerm, page],
     queryFn: async () => {
-      const result = await tipoDemandaService.buscarTiposDemandaPorTipo(tipoFiltro, 100);
-      return result.data?.docs || [];
+      const filters = {
+        tipo: tipoFiltro,
+        titulo: debouncedSearchTerm,
+      };
+      // A função de serviço agora recebe o número da página
+      const result = await tipoDemandaService.buscarTiposDemandaPorTipo(filters, 10, page);
+      return result.data; // Retorna o objeto de paginação completo
     },
     enabled: !!tipoFiltro,
     staleTime: 5 * 60 * 1000, // Cache por 5 minutos
     retry: 1,
   });
 
-  // Os dados já vêm filtrados do backend
-  const cardsFiltrados = demandasData || [];
+  // Os dados agora estão em demandasData.docs
+  const cardsFiltrados = demandasData?.docs || [];
   const bannerData = cardsFiltrados[0] || null;
 
   // Use query para buscar as imagens dos tipoDemandas
@@ -51,7 +70,7 @@ export default function DemandaPage() {
     error: imagesError,
     refetch: imagesRefetch,
   } = useQuery({
-    queryKey: ['tipoDemandaImages', tipoFiltro],
+    queryKey: ['tipoDemandaImages', tipoFiltro, debouncedSearchTerm, page],
     queryFn: async () => {
       if (!cardsFiltrados.length) return {};
 
@@ -101,13 +120,11 @@ export default function DemandaPage() {
   // Limpar URLs das imagens ao desmontar ou quando as imagens mudam
   useEffect(() => {
     return () => {
-      if (imageUrls) {
-        Object.values(imageUrls).forEach((url) => {
-          if (url.startsWith('blob:')) {
-            URL.revokeObjectURL(url);
-          }
-        });
-      }
+      Object.values(imageUrls).forEach((url) => {
+        if (url && url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
     };
   }, [imageUrls]);
 
@@ -134,7 +151,7 @@ export default function DemandaPage() {
       />
 
       <div className="px-6 sm:px-6 lg:px-40 py-4" data-test="demanda-page-container">
-        <div className="mb-6">
+        <div className="flex justify-between items-center mb-6">
           <Button
             size="lg"
             onClick={() => router.back()}
@@ -143,9 +160,19 @@ export default function DemandaPage() {
             <ArrowLeft className="w-5 h-5" />
             <span className="font-medium">Voltar</span>
           </Button>
+          <div className="relative w-full max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Buscar por título do serviço..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
 
-        {demandasIsLoading && (
+        {(demandasIsLoading || imagesIsLoading) && (
           <div className="flex justify-center items-center py-20">
             <div className="text-lg text-gray-600">Carregando serviços...</div>
           </div>
@@ -171,10 +198,11 @@ export default function DemandaPage() {
           <div className="flex justify-center items-center py-20">
             <div className="text-center">
               <p className="text-lg text-gray-600 mb-2">
-                Nenhum serviço encontrado para {tipoFiltro}
+                Nenhum serviço encontrado para "{tipoFiltro}"
+                {debouncedSearchTerm && ` com o termo "${debouncedSearchTerm}"`}
               </p>
               <p className="text-sm text-gray-500">
-                Tente explorar outras categorias
+                Tente um termo diferente ou explore outras categorias.
               </p>
             </div>
           </div>
@@ -201,6 +229,31 @@ export default function DemandaPage() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Controles de Paginação */}
+        {!demandasIsLoading && !demandasIsError && cardsFiltrados.length > 0 && (
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={!demandasData?.hasPrevPage}
+              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            
+            <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
+              <span>Página {demandasData?.page} de {demandasData?.totalPages}</span>
+            </div>
+            
+            <button
+              onClick={() => setPage((prev) => prev + 1)}
+              disabled={!demandasData?.hasNextPage}
+              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight size={20} />
+            </button>
           </div>
         )}
       </div>

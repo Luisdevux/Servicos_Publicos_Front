@@ -24,11 +24,23 @@ export const tipoDemandaService = {
    * Busca tipos de demanda filtrados por tipo com limite customizado
    */
   async buscarTiposDemandaPorTipo(
-    tipo: string,
-    limite: number = 100
+    filters: Record<string, any> = {},
+    limite: number = 10,
+    page: number = 1
   ): Promise<ApiResponse<PaginatedResponse<TipoDemandaModel>>> {
+    const params = new URLSearchParams();
+
+    for (const key in filters) {
+      const value = filters[key];
+      if (value) {
+        params.append(key, value);
+      }
+    }
+    params.append('limite', String(limite));
+    params.append('page', String(page));
+
     return getSecure<ApiResponse<PaginatedResponse<TipoDemandaModel>>>(
-      `/tipoDemanda?tipo=${encodeURIComponent(tipo)}&limite=${limite}`
+      `/tipoDemanda?${params.toString()}`
     );
   },
 
