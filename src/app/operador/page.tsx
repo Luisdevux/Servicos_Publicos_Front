@@ -10,17 +10,27 @@ import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI } from "@/types";
+import DetalhesDemandaOperadorModal from "@/components/detalheDemandaOperadorModal";
 
 interface DemandaCard {
   id: string;
   titulo: string;
   descricao: string;
   tipo: string;
+  imagem?: string | string[];
+  endereco?: {
+    bairro: string;
+    tipoLogradouro: string;
+    logradouro: string;
+    numero: string;
+  };
 }
 
 export default function PedidosOperadorPage() {
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [demandaSelecionada, setDemandaSelecionada] = useState<DemandaCard | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const { data: session, status } = useSession();
 
@@ -95,7 +105,26 @@ export default function PedidosOperadorPage() {
   };
 
   const handleAnalisarDemanda = (id: string) => {
-    console.log("Analisar demanda:", id);
+    const demanda = demandas?.find((d) => d.id === id);
+    if (demanda) {
+      setDemandaSelecionada(demanda);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setDemandaSelecionada(null);
+  };
+
+  const handleDevolver = async (demandaId: string, motivo: string) => {
+    console.log("Devolver demanda:", demandaId, "Motivo:", motivo);
+    handleCloseModal();
+  };
+
+  const handleResolver = async (demandaId: string, descricao: string, imagens: File[]) => {
+    console.log("Resolver demanda:", demandaId, "Descrição:", descricao, "Imagens:", imagens.length);
+    handleCloseModal();
   };
 
   const getStatusColor = (tipo: string) => {
@@ -219,9 +248,8 @@ export default function PedidosOperadorPage() {
               </Select>
             </div>
           </div>
-        </div>
 
-        {demandasFiltradas.length > 0 ? (
+          {demandasFiltradas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16 mb-8">
               {demandasPaginadas.map((demanda) => (
                 <div 
@@ -286,8 +314,18 @@ export default function PedidosOperadorPage() {
               <ChevronRight size={20} />
             </button>
           </div>
-
+        </div>
       </div>
+
+      {demandaSelecionada && (
+        <DetalhesDemandaOperadorModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          demanda={demandaSelecionada}
+          onDevolver={handleDevolver}
+          onResolver={handleResolver}
+        />
+      )}
     </div>
   );
 }
