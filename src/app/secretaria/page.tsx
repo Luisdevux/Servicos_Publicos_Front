@@ -8,7 +8,6 @@ import Banner from "@/components/banner";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { demandaService } from "@/services/demandaService";
 import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI } from "@/types";
 
@@ -22,24 +21,43 @@ interface DemandaCard {
 export default function PedidosSecretariaPage() {
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   const ITENS_POR_PAGINA = 6;
+
+  // Redireciona se não estiver autenticado
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login/funcionario');
+    }
+  }, [status, router]);
 
   // Buscar demandas da API
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['demandas-secretaria'],
     queryFn: async () => {
-      const token = session?.user?.accesstoken;
-      if (!token) {
-        console.warn("Token não encontrado. Usuário não autenticado.");
-        throw new Error("Você precisa estar logado para acessar esta página.");
-      }
       try {
-        const result = await demandaService.buscarDemandas(token);
-        console.log("Demandas carregadas:", result);
-        return result;
+        // Usa a rota segura que busca o token do servidor
+        const result = await fetch('/api/auth/secure-fetch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            endpoint: '/demandas',
+            method: 'GET'
+          })
+        });
+
+        if (!result.ok) {
+          if (result.status === 401) {
+            throw new ApiError('Sessão expirada', 498);
+          }
+          throw new Error('Erro ao buscar demandas');
+        }
+
+        const data = await result.json();
+        console.log("Demandas carregadas:", data);
+        return data;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
         throw err;
@@ -47,16 +65,15 @@ export default function PedidosSecretariaPage() {
     },
     retry: false,
     refetchOnWindowFocus: false,
+    enabled: status === 'authenticated', // Só executa se estiver autenticado
   });
 
   // Detectar token expirado e redirecionar para login
   useEffect(() => {
     if (error) {
       if (error instanceof ApiError && error.status === 498) {
-        // Token expirado - limpar storage e redirecionar
+        // Token expirado - redirecionar para login
         console.warn("Token expirado. Redirecionando para login...");
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
         router.push('/login/funcionario?expired=true');
       }
     }
