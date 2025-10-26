@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Banner from "@/components/banner";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { demandaService } from "@/services/demandaService";
-import { getAccessToken } from "@/hooks/useAuthMutations";
 import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI } from "@/types";
 
@@ -22,6 +22,7 @@ interface DemandaCard {
 export default function PedidosSecretariaPage() {
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const { data: session } = useSession();
   const router = useRouter();
 
   const ITENS_POR_PAGINA = 6;
@@ -30,7 +31,7 @@ export default function PedidosSecretariaPage() {
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['demandas-secretaria'],
     queryFn: async () => {
-      const token = getAccessToken();
+      const token = session?.user?.accesstoken;
       if (!token) {
         console.warn("Token não encontrado. Usuário não autenticado.");
         throw new Error("Você precisa estar logado para acessar esta página.");

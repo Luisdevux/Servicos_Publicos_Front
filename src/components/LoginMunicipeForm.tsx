@@ -1,12 +1,11 @@
 // src/components/LoginMunicipeForm.tsx
-
 'use client';
 
 import { useState } from 'react';
 import { Eye, EyeOff, Users, Lock, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { useLogin } from '@/hooks/useAuthMutations';
+import useLogin from '@/hooks/useLogin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,7 +22,7 @@ export default function LoginMunicipeForm() {
   });
   const [errors, setErrors] = useState<Partial<Record<keyof LoginFormValues, string>>>({});
 
-  const loginMutation = useLogin('municipe');
+  const { login, isLoading } = useLogin();
 
   const validateField = (name: keyof LoginFormValues, value: string) => {
     try {
@@ -46,7 +45,7 @@ export default function LoginMunicipeForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     // Limpa erro ao digitar
     if (errors[name as keyof LoginFormValues]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
@@ -55,7 +54,7 @@ export default function LoginMunicipeForm() {
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     // Valida apenas se tiver conteúdo
     if (value.trim()) {
       validateField(name as keyof LoginFormValues, value);
@@ -67,7 +66,7 @@ export default function LoginMunicipeForm() {
 
     // Valida todo o formulário
     const result = loginSchema.safeParse(formData);
-    
+
     if (!result.success) {
       const fieldErrors: Partial<Record<keyof LoginFormValues, string>> = {};
       result.error.issues.forEach((issue) => {
@@ -75,7 +74,7 @@ export default function LoginMunicipeForm() {
         fieldErrors[path] = issue.message;
       });
       setErrors(fieldErrors);
-      
+
       // Mostra toast com o primeiro erro
       const firstError = Object.values(fieldErrors)[0];
       if (firstError) {
@@ -86,17 +85,12 @@ export default function LoginMunicipeForm() {
       return;
     }
 
-    loginMutation.mutate(formData, {
-      onError: (error) => {
-        toast.error('Erro ao fazer login', {
-          description: error.message || 'Verifique suas credenciais e tente novamente.',
-        });
-      },
-      onSuccess: () => {
-        toast.success('Login realizado com sucesso!', {
-          description: 'Redirecionando...',
-        });
-      },
+    await login({
+      identificador: formData.identificador,
+      senha: formData.senha,
+      lembrarDeMim: formData.lembrarDeMim,
+      tipoUsuario: 'municipe',
+      callbackUrl: '/',
     });
   };
 
@@ -127,7 +121,7 @@ export default function LoginMunicipeForm() {
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder="Digite seu e-mail, CPF ou CNPJ"
-              disabled={loginMutation.isPending}
+              disabled={isLoading}
               data-test="input-identificador"
               className={cn(
                 'pl-10 focus-visible:ring-[#337695] focus-visible:border-[#337695]',
@@ -162,7 +156,7 @@ export default function LoginMunicipeForm() {
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder="Digite sua senha"
-              disabled={loginMutation.isPending}
+              disabled={isLoading}
               data-test="input-senha"
               className={cn(
                 'pl-10 pr-10 focus-visible:ring-[#337695] focus-visible:border-[#337695]',
@@ -202,7 +196,7 @@ export default function LoginMunicipeForm() {
             <Checkbox
               id="lembrar-de-mim"
               checked={formData.lembrarDeMim}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setFormData((prev) => ({ ...prev, lembrarDeMim: checked as boolean }))
               }
               data-test="checkbox-lembrar-de-mim"
@@ -226,12 +220,12 @@ export default function LoginMunicipeForm() {
         {/* Botão de Login */}
         <Button
           type="submit"
-          disabled={loginMutation.isPending}
+          disabled={isLoading}
           data-test="button-acessar"
           className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white font-semibold py-6 rounded-lg transition-all shadow-lg uppercase text-sm tracking-wide disabled:opacity-70"
           colorClass="bg-[#337695] hover:bg-[#2c5f7a]"
         >
-          {loginMutation.isPending ? (
+          {isLoading ? (
             <>
               <span className="animate-spin mr-2">⏳</span>
               ENTRANDO...
@@ -245,8 +239,8 @@ export default function LoginMunicipeForm() {
       {/* Link de Cadastro */}
       <div className="mt-6 text-center text-sm text-gray-600" data-test="link-cadastro-wrapper">
         Não possui cadastro?{' '}
-        <Link 
-          href="/cadastro" 
+        <Link
+          href="/cadastro"
           className="text-[#337695] font-medium hover:underline transition-colors"
           data-test="link-cadastro"
         >

@@ -1,0 +1,30 @@
+// src/lib/secureFetch.ts
+
+type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+
+interface SecureFetchOptions {
+  endpoint: string;
+  method?: FetchMethod;
+  body?: unknown;
+}
+
+export async function secureFetch<T>(options: SecureFetchOptions): Promise<T> {
+  const { endpoint, method = 'GET', body } = options;
+
+  const response = await fetch('/api/auth/secure-fetch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      endpoint,
+      method,
+      body
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Request failed' }));
+    throw new Error(error.message || 'Request failed');
+  }
+
+  return response.json();
+}
