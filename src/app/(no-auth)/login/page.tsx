@@ -1,4 +1,4 @@
-// src/app/login/page.tsx
+// src/app/(no-auth)/login/page.tsx
 
 import { redirect } from 'next/navigation';
 

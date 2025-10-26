@@ -15,7 +15,7 @@ export interface CardDemandaProps {
 export default function CardDemanda({ titulo, descricao, imagem, theme = 'default', onCreateClick }: CardDemandaProps) {
   const themeClass = theme === 'green' ? 'global-theme-green' : theme === 'purple' ? 'global-theme-purple' : '';
   const [imageError, setImageError] = useState(false);
-
+  
   const handleImageError = () => {
     setImageError(true);
   };

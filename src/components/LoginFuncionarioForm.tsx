@@ -1,4 +1,5 @@
 // src/components/LoginFuncionarioForm.tsx
+
 'use client';
 
 import { useState } from 'react';
@@ -91,7 +92,6 @@ export default function LoginFuncionarioForm() {
       senha: formData.senha,
       lembrarDeMim: formData.lembrarDeMim,
       tipoUsuario: 'funcionario',
-      callbackUrl: '/admin',
     });
   };
 
@@ -228,7 +228,7 @@ export default function LoginFuncionarioForm() {
         >
           {isLoading ? (
             <>
-              <span className="animate-spin mr-2">⏳</span>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
               ENTRANDO...
             </>
           ) : (

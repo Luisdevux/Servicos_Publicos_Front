@@ -1,4 +1,7 @@
+// src/app/(auth)/admin/dashboard/page.tsx
+
 "use client";
+
 import { MetricCard } from "@/components/MetricCard";
 import { 
   FolderKanban, 

@@ -1,4 +1,5 @@
 // src/components/SessionWrapper.tsx
+
 "use client";
 
 import { SessionProvider } from "next-auth/react";
@@ -17,8 +18,9 @@ import { SessionErrorHandler } from "./SessionErrorHandler";
 export function SessionWrapper({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider
-      refetchInterval={0}
+      refetchInterval={5 * 60}
       refetchOnWindowFocus={true}
+      refetchWhenOffline={false}
     >
       <SessionErrorHandler />
       {children}

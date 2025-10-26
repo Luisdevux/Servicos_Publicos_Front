@@ -145,7 +145,7 @@ export const authOptions: NextAuthOptions = {
     error: "/login",
   },
   callbacks: {
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger }): Promise<JWT> {
       // Primeiro login ou update manual
       if (user) {
         console.log('[NextAuth] JWT callback - Novo login para usuário:', user.id);

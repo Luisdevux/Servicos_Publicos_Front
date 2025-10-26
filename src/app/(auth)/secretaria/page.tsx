@@ -1,3 +1,5 @@
+// src/app/(auth)/secretaria/page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,11 +20,11 @@ interface DemandaCard {
   tipo: string;
 }
 
-export default function PedidosOperadorPage() {
+export default function PedidosSecretariaPage() {
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
-  const router = useRouter();
   const { data: session, status } = useSession();
+  const router = useRouter();
 
   const ITENS_POR_PAGINA = 6;
 
@@ -33,7 +35,7 @@ export default function PedidosOperadorPage() {
   }, [status, router]);
 
   const { data: response, isLoading, error } = useQuery({
-    queryKey: ['demandas-operador'],
+    queryKey: ['demandas-secretaria'],
     queryFn: async () => {
       try {
         const result = await fetch('/api/auth/secure-fetch', {
@@ -102,13 +104,13 @@ export default function PedidosOperadorPage() {
     const tipoLower = tipo.toLowerCase();
     switch (tipoLower) {
       case "iluminação":
-        return "bg-green-100 text-green-800";
+        return "bg-purple-100 text-purple-800";
       case "coleta":
         return "bg-blue-100 text-blue-800";
       case "saneamento":
         return "bg-cyan-100 text-cyan-800";
       case "árvores":
-        return "bg-emerald-100 text-emerald-800";
+        return "bg-green-100 text-green-800";
       case "animais":
         return "bg-orange-100 text-orange-800";
       case "pavimentação":
@@ -137,12 +139,12 @@ export default function PedidosOperadorPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="linear-gradient(135deg, #10b981 0%, #059669 80%)"
+          backgroundColor="#5b21b6"
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando demandas...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <div className="text-gray-600">Carregando demandas...</div>
           </div>
         </div>
       </div>
@@ -158,24 +160,24 @@ export default function PedidosOperadorPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="linear-gradient(135deg, #10b981 0%, #059669 80%)"
+          backgroundColor="#5b21b6"
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-center max-w-md mx-auto px-4">
             <ClipboardList className="h-16 w-16 text-red-400 mx-auto mb-4" />
-            <p className="text-red-600 font-semibold mb-2">
+            <div className="text-red-600 font-semibold mb-2">
               {isTokenExpired ? "Sessão expirada" : "Erro ao carregar demandas"}
-            </p>
-            <p className="text-gray-600 text-sm mb-4">
+            </div>
+            <div className="text-gray-600 text-sm mb-4">
               {isTokenExpired 
                 ? "Sua sessão expirou. Você será redirecionado para fazer login novamente..." 
                 : (error instanceof Error ? error.message : "Erro desconhecido. Tente novamente.")
               }
-            </p>
+            </div>
             {!isTokenExpired && (
               <Button 
                 onClick={() => window.location.reload()}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
               >
                 Recarregar página
               </Button>
@@ -192,7 +194,7 @@ export default function PedidosOperadorPage() {
         icone={ClipboardList}
         titulo="Pedidos recebidos"
         className="mb-6 md:mb-8"
-        backgroundColor="linear-gradient(135deg, #10b981 0%, #059669 80%)"
+        backgroundColor="#5b21b6"
       />
 
       <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
@@ -237,13 +239,13 @@ export default function PedidosOperadorPage() {
                     </span>
                   </div>
                   
-                  <p className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3">
+                  <div className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3">
                     {demanda.descricao}
-                  </p>
+                  </div>
                   
                   <Button 
                     onClick={() => handleAnalisarDemanda(demanda.id)}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                   >
                     Analisar Demanda
                   </Button>
@@ -256,12 +258,12 @@ export default function PedidosOperadorPage() {
             <h3 className="text-lg font-medium text-[var(--global-text-primary)] mb-2">
               Nenhum pedido encontrado
             </h3>
-            <p className="text-sm text-gray-500 text-center">
+            <div className="text-sm text-gray-500 text-center">
               {filtroSelecionado === "todos" 
                 ? "Não há pedidos registrados no momento."
-                : `Não há pedidos com tipo "${filtroSelecionado}".`
+                : `Não há pedidos com status "${filtroSelecionado}".`
               }
-            </p>
+            </div>
           </div>
         )}
 
