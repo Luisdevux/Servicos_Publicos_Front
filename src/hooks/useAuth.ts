@@ -1,4 +1,5 @@
 // src/hooks/useAuth.ts
+
 'use client';
 
 import { useSession } from 'next-auth/react';
