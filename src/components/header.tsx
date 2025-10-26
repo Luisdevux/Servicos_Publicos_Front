@@ -27,8 +27,39 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
   // Garante que o componente só renderiza os links baseados em auth após montar no cliente
   React.useEffect(() => {
     setMounted(true);
-    setIsSecretariaArea(pathname?.startsWith('/secretaria') || false);
-    setIsOperadorArea(pathname?.startsWith('/operador') || false);
+    
+    const isInSecretaria = pathname?.startsWith('/secretaria');
+    const isInOperador = pathname?.startsWith('/operador');
+    const isInPerfil = pathname === '/perfil';
+    
+    // Se está em secretaria ou operador, salva no sessionStorage
+    if (isInSecretaria) {
+      sessionStorage.setItem('userArea', 'secretaria');
+      setIsSecretariaArea(true);
+      setIsOperadorArea(false);
+    } else if (isInOperador) {
+      sessionStorage.setItem('userArea', 'operador');
+      setIsOperadorArea(true);
+      setIsSecretariaArea(false);
+    } else if (isInPerfil) {
+      // Se está em perfil, verifica de onde veio
+      const userArea = sessionStorage.getItem('userArea');
+      if (userArea === 'secretaria') {
+        setIsSecretariaArea(true);
+        setIsOperadorArea(false);
+      } else if (userArea === 'operador') {
+        setIsOperadorArea(true);
+        setIsSecretariaArea(false);
+      } else {
+        setIsSecretariaArea(false);
+        setIsOperadorArea(false);
+      }
+    } else {
+      // Limpa a área se não está em secretaria, operador ou perfil
+      sessionStorage.removeItem('userArea');
+      setIsSecretariaArea(false);
+      setIsOperadorArea(false);
+    }
   }, [pathname]);
 
   // Define os links baseado na área
