@@ -24,7 +24,6 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
   const { isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
   
-  // Garante que o componente só renderiza os links baseados em auth após montar no cliente
   React.useEffect(() => {
     setMounted(true);
     
@@ -32,7 +31,6 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
     const isInOperador = pathname?.startsWith('/operador');
     const isInPerfil = pathname === '/perfil';
     
-    // Se está em secretaria ou operador, salva no sessionStorage
     if (isInSecretaria) {
       sessionStorage.setItem('userArea', 'secretaria');
       setIsSecretariaArea(true);
@@ -42,7 +40,6 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
       setIsOperadorArea(true);
       setIsSecretariaArea(false);
     } else if (isInPerfil) {
-      // Se está em perfil, verifica de onde veio
       const userArea = sessionStorage.getItem('userArea');
       if (userArea === 'secretaria') {
         setIsSecretariaArea(true);
@@ -55,33 +52,28 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
         setIsOperadorArea(false);
       }
     } else {
-      // Limpa a área se não está em secretaria, operador ou perfil
       sessionStorage.removeItem('userArea');
       setIsSecretariaArea(false);
       setIsOperadorArea(false);
     }
   }, [pathname]);
 
-  // Define os links baseado na área
   let links: HeaderLink[] = [];
   let effectiveTheme = theme;
 
   if (isSecretariaArea) {
-    // Links para área de secretaria
     links = [
       { href: "/secretaria", label: "Pedidos recebidos" },
       { href: "/perfil", label: "Perfil" },
     ];
     effectiveTheme = 'purple';
   } else if (isOperadorArea) {
-    // Links para área de operador
     links = [
       { href: "/operador", label: "Pedidos recebidos" },
       { href: "/perfil", label: "Perfil" },
     ];
     effectiveTheme = 'green';
   } else {
-    // Links padrão
     links = [
       { href: "/", label: "Home" },
       { href: "/meus-pedidos", label: "Meus Pedidos", requiresAuth: true },

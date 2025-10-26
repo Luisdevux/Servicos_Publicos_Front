@@ -26,19 +26,16 @@ export default function PedidosOperadorPage() {
 
   const ITENS_POR_PAGINA = 6;
 
-  // Redireciona se não estiver autenticado
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login/funcionario');
     }
   }, [status, router]);
 
-  // Buscar demandas da API
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['demandas-operador'],
     queryFn: async () => {
       try {
-        // Usa a rota segura que busca o token do servidor
         const result = await fetch('/api/auth/secure-fetch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -65,14 +62,12 @@ export default function PedidosOperadorPage() {
     },
     retry: false,
     refetchOnWindowFocus: false,
-    enabled: status === 'authenticated', // Só executa se estiver autenticado
+    enabled: status === 'authenticated',
   });
 
-  // Detectar token expirado e redirecionar para login
   useEffect(() => {
     if (error) {
       if (error instanceof ApiError && error.status === 498) {
-        // Token expirado - redirecionar para login
         console.warn("Token expirado. Redirecionando para login...");
         router.push('/login/funcionario?expired=true');
       }
@@ -100,7 +95,6 @@ export default function PedidosOperadorPage() {
   };
 
   const handleAnalisarDemanda = (id: string) => {
-    // Navegar para página de análise ou abrir modal
     console.log("Analisar demanda:", id);
   };
 
