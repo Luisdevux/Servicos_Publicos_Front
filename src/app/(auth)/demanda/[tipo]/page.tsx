@@ -4,7 +4,7 @@
 
 import CardDemanda from "@/components/cardDemanda";
 import Banner from "@/components/banner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
@@ -45,13 +45,13 @@ export default function DemandaPage() {
 
   // Use query para buscar as imagens dos tipoDemandas, separando as responsabilidades
   const {
-    data: imageUrls,
+    data: imageBlobs,
     isLoading: imagesIsLoading,
     isError: imagesIsError,
     error: imagesError,
     refetch: imagesRefetch,
   } = useQuery({
-    queryKey: ['tipoDemandaImages', tipoFiltro, cardsFiltrados.map(c => c._id)],
+    queryKey: ['tipoDemandaImages', tipoFiltro],
     queryFn: async () => {
       if (!cardsFiltrados.length) return {};
 
@@ -59,31 +59,46 @@ export default function DemandaPage() {
         try {
           const blob = await tipoDemandaService.buscarFotoTipoDemanda(card._id);
           if (blob.size > 0) {
-            const imageUrl = URL.createObjectURL(blob);
-            return { id: card._id, url: imageUrl };
+            return { id: card._id, blob };
           }
-          return { id: card._id, url: '' };
+          return { id: card._id, blob: null };
         } catch (error) {
           console.warn(`Erro ao buscar imagem para demanda ${card._id}: ${error}`);
-          return { id: card._id, url: '' };
+          return { id: card._id, blob: null };
         }
       });
 
       const results = await Promise.all(imagePromises);
-      const imageMap: Record<string, string> = {};
-      
-      results.forEach(({ id, url }) => {
-        imageMap[id] = url;
+      const blobMap: Record<string, Blob | null> = {};
+
+      results.forEach(({ id, blob }) => {
+        blobMap[id] = blob;
       });
 
-      return imageMap;
+      return blobMap;
     },
-    enabled: !!cardsFiltrados.length,
-    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
-    gcTime: 10 * 60 * 1000,
+    enabled: !!cardsFiltrados.length && !!tipoFiltro,
+    staleTime: 10 * 60 * 1000, // Cache aumentado para 10 minutos
+    gcTime: 15 * 60 * 1000, // Garbage collection aumentado
   });
 
-  // Limpar URLs das imagens ao desmontar para evitar ocupar memória desnecessariamente
+  // Criar URLs das imagens apenas quando necessário
+  const imageUrls = useMemo(() => {
+    if (!imageBlobs) return {};
+
+    const urls: Record<string, string> = {};
+    Object.entries(imageBlobs).forEach(([id, blob]) => {
+      if (blob) {
+        urls[id] = URL.createObjectURL(blob);
+      } else {
+        urls[id] = '';
+      }
+    });
+
+    return urls;
+  }, [imageBlobs]);
+
+  // Limpar URLs das imagens ao desmontar ou quando as imagens mudam
   useEffect(() => {
     return () => {
       if (imageUrls) {
@@ -95,6 +110,20 @@ export default function DemandaPage() {
       }
     };
   }, [imageUrls]);
+
+  // Cleanup adicional ao desmontar o componente
+  useEffect(() => {
+    return () => {
+      // Cleanup de qualquer blob URL restante
+      if (imageUrls) {
+        Object.values(imageUrls).forEach((url) => {
+          if (url.startsWith('blob:')) {
+            URL.revokeObjectURL(url);
+          }
+        });
+      }
+    };
+  }, []);
 
   return (
     <div data-test="demanda-page">

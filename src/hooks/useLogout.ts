@@ -27,9 +27,8 @@ export function useLogout() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            endpoint: '/auth/logout',
-            method: 'POST',
-            body: {}
+            endpoint: '/logout',
+            method: 'POST'
           })
         });
 
