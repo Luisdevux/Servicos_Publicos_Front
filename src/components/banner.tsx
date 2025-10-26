@@ -13,6 +13,42 @@ export interface BannerProps {
   backgroundColor?: string;
 }
 
+// Mapeamento de tipos para ícones
+const ICONE_POR_TIPO: Record<string, string> = {
+  'Árvores': '/homeIconeArvores.svg',
+  'Arvores': '/homeIconeArvores.svg',
+  'Coleta': '/homeIconeColeta.svg',
+  'Coleta de Lixo': '/homeIconeColeta.svg',
+  'Animais': '/homeIconeDog.svg',
+  'Animal': '/homeIconeDog.svg',
+  'Iluminação': '/homeIconeIluminacao.svg',
+  'Iluminacao': '/homeIconeIluminacao.svg',
+  'Iluminação Pública': '/homeIconeIluminacao.svg',
+  'Pavimento': '/homeIconePavimento.svg',
+  'Pavimentação': '/homeIconePavimento.svg',
+  'Asfaltamento': '/homeIconePavimento.svg',
+  'Saneamento': '/homeIconeSaneamento.svg',
+};
+
+// Função para obter o ícone baseado no título
+function obterIconePorTitulo(titulo: string): string {
+  // Primeiro, tenta match exato
+  if (ICONE_POR_TIPO[titulo]) {
+    return ICONE_POR_TIPO[titulo];
+  }
+  
+  // Depois, tenta match parcial (case insensitive)
+  const tituloLower = titulo.toLowerCase();
+  for (const [tipo, icone] of Object.entries(ICONE_POR_TIPO)) {
+    if (tituloLower.includes(tipo.toLowerCase())) {
+      return icone;
+    }
+  }
+  
+  // Fallback padrão
+  return '/trash-icon.svg';
+}
+
 export default function Banner({
   titulo,
   descricao,
@@ -20,6 +56,9 @@ export default function Banner({
   className,
   backgroundColor
 }: BannerProps) {
+  // Se não for fornecido um ícone, tenta determinar pelo título
+  const iconeUrl = icone || obterIconePorTitulo(titulo);
+  
   return (
     <div className="w-full">
       {/* Banner principal */}
@@ -57,30 +96,25 @@ export default function Banner({
           <div className="flex items-center gap-6 md:gap-10 w-full">
             {/* Ícone circular - maior e mais elegante */}
             <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-2xl border-4 border-white/20">
-              {icone ? (
-                typeof icone === 'string' ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={icone}
-                    alt="Ícone do serviço"
-                    className="w-14 h-14 md:w-18 md:h-18 object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  React.createElement(icone, {
-                    className: "w-14 h-14 md:w-20 md:h-20",
-                    style: { color: 'var(--global-accent)' }
-                  })
-                )
+              {typeof iconeUrl === 'string' ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={iconeUrl}
+                  alt="Ícone do serviço"
+                  className="w-14 h-14 md:w-18 md:h-18 object-contain"
+                  style={{
+                    filter: 'invert(58%) sepia(65%) saturate(800%) hue-rotate(170deg) brightness(90%) contrast(110%)'
+                  }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
               ) : (
-                <div className="w-14 h-14 md:w-18 md:h-18 bg-gray-100 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 md:w-10 md:h-10 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                  </svg>
-                </div>
+                React.createElement(iconeUrl as LucideIcon, {
+                  className: "w-14 h-14 md:w-20 md:h-20",
+                  style: { color: 'var(--global-accent)' }
+                })
               )}
             </div>
 
