@@ -80,7 +80,7 @@ export const demandaService = {
   ): Promise<ApiResponse<Demanda>> {
     return patchSecure<ApiResponse<Demanda>>(`/demandas/${id}/devolver`, {
       status: 'Recusada',
-      motivo_devolucao: motivo,
+      motivo_rejeicao: motivo,
     });
   },
 
