@@ -1,3 +1,5 @@
+// src/app/(auth)/layout.tsx
+
 "use client";
 
 import { useSession } from "next-auth/react";
@@ -14,18 +16,19 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     }
   }, [status, router]);
 
-  // Enquanto o estado da sessão estiver carregando, você pode mostrar um loader
+  // Não renderiza nada até verificar a sessão
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-lg text-gray-600">
-          Verificando autenticação...
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[var(--global-accent)] border-t-transparent mx-auto"></div>
+          <p className="mt-6 text-[var(--global-text-primary)] font-medium">Carregando...</p>
         </div>
       </div>
     );
   }
 
-  // Se está autenticado, renderiza os filhos
+  // Só renderiza os children se autenticado
   if (status === "authenticated") {
     return <>{children}</>;
   }

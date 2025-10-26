@@ -1,3 +1,5 @@
+// src/app/(no-auth)/cadastro/page.tsx
+
 "use client";
 
 import { useState } from "react";

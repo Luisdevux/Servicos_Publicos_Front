@@ -1,3 +1,5 @@
+// src/app/(auth)/admin/layout.tsx
+
 "use client";
 
 import { 

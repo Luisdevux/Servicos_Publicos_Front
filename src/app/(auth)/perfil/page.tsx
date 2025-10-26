@@ -1,4 +1,4 @@
-// src/app/perfil/page.tsx
+// src/app/(auth)/perfil/page.tsx
 
 'use client';
 

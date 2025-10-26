@@ -1,3 +1,5 @@
+// src/app/(auth)/operador/page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";

@@ -1,3 +1,5 @@
+// src/app/(no-auth)/layout.tsx
+
 export default function NoAuthLayout({
   children,
 }: {
