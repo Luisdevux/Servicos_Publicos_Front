@@ -27,7 +27,7 @@ interface DemandaCard {
     bairro: string;
     tipoLogradouro: string;
     logradouro: string;
-    numero: string;
+    numero: number;
   };
   usuarios?: (string | { _id: string; nome: string })[];
   resolucao?: string;

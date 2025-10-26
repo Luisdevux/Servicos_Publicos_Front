@@ -18,7 +18,7 @@ interface Demanda {
     bairro: string;
     tipoLogradouro: string;
     logradouro: string;
-    numero: string;
+    numero: number;
   };
 }
 
