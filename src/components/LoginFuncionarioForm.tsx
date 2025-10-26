@@ -1,11 +1,14 @@
 // src/components/LoginFuncionarioForm.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, User, Lock, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import useLogin from '@/hooks/useLogin';
+import { getUserTypeFromLevel } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,7 +26,34 @@ export default function LoginFuncionarioForm() {
   const [errors, setErrors] = useState<Partial<Record<keyof LoginFormValues, string>>>({});
 
   // Login para funcionários - aceita administrador, operador ou secretário
-  const { login, isLoading } = useLogin();
+  const { login, isLoading, isSuccess } = useLogin();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // Redirecionamento baseado no nível de acesso após login bem-sucedido
+  useEffect(() => {
+    if (isSuccess && session?.user?.nivel_acesso && status === 'authenticated') {
+      const userType = getUserTypeFromLevel(session.user.nivel_acesso);
+
+      let redirectUrl = '/';
+      switch (userType) {
+        case 'administrador':
+          redirectUrl = '/admin/dashboard';
+          break;
+        case 'operador':
+          redirectUrl = '/operador';
+          break;
+        case 'secretaria':
+          redirectUrl = '/secretaria';
+          break;
+        default:
+          redirectUrl = '/admin/dashboard';
+      }
+
+      console.log(`[LoginFuncionarioForm] Redirecionando ${userType} para: ${redirectUrl}`);
+      router.push(redirectUrl);
+    }
+  }, [isSuccess, session, status, router]);
 
   const validateField = (name: keyof LoginFormValues, value: string) => {
     try {
@@ -91,7 +121,6 @@ export default function LoginFuncionarioForm() {
       senha: formData.senha,
       lembrarDeMim: formData.lembrarDeMim,
       tipoUsuario: 'funcionario',
-      callbackUrl: '/admin',
     });
   };
 
