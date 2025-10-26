@@ -1,3 +1,5 @@
+// src/app/(auth)/admin/layout.tsx
+
 "use client";
 
 import { 
@@ -20,7 +22,7 @@ import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
-} from "../../components/ui/sidebar";
+} from "../../../components/ui/sidebar";
 
 const data = {
   navMain: [
@@ -112,4 +114,3 @@ export default function AdminLayout({
     </SidebarProvider>
   );
 }
-

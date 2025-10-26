@@ -1,3 +1,5 @@
+// src/components/cardPedido.tsx
+
 "use client";
 
 import { Check, X, ChevronRight } from "lucide-react";

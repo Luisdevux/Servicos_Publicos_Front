@@ -1,3 +1,5 @@
+// src/app/(auth)/secretaria/page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI, Usuarios } from "@/types";
 import DetalhesDemandaSecretariaModal from "@/components/detalheDemandaSecretariaModal";
-import { demandaServiceSecure } from "@/services/demandaServiceSecure";
+import { demandaService } from "@/services/demandaService";
 import { usuarioService } from "@/services/usuarioService";
 import { toast } from "sonner";
 
@@ -52,25 +54,9 @@ export default function PedidosSecretariaPage() {
     queryKey: ['demandas-secretaria'],
     queryFn: async () => {
       try {
-        const result = await fetch('/api/auth/secure-fetch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            endpoint: '/demandas',
-            method: 'GET'
-          })
-        });
-
-        if (!result.ok) {
-          if (result.status === 401) {
-            throw new ApiError('Sessão expirada', 498);
-          }
-          throw new Error('Erro ao buscar demandas');
-        }
-
-        const data = await result.json();
-        console.log("Demandas carregadas:", data);
-        return data;
+        const result = await demandaService.buscarDemandas();
+        console.log("Demandas carregadas:", result);
+        return result;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
         throw err;
@@ -143,7 +129,7 @@ export default function PedidosSecretariaPage() {
 
   const atribuirMutation = useMutation({
     mutationFn: async ({ demandaId, operadorId }: { demandaId: string; operadorId: string }) => {
-      return demandaServiceSecure.atribuirDemanda(demandaId, {
+      return demandaService.atribuirDemanda(demandaId, {
         usuarios: [operadorId]
       });
     },
@@ -164,7 +150,7 @@ export default function PedidosSecretariaPage() {
 
   const rejeitarMutation = useMutation({
     mutationFn: async ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
-      return demandaServiceSecure.rejeitarDemanda(demandaId, motivo);
+      return demandaService.rejeitarDemanda(demandaId, motivo);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['demandas-secretaria'] });

@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import type { TipoDemanda, EstadoBrasil } from '@/types';
 
 interface CreateDemandaDialogProps {
   open: boolean;
@@ -93,16 +94,16 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
         : logradouro;
 
       await createDemanda.mutateAsync({
-        tipo: tipoDemanda,
+        tipo: tipoDemanda as TipoDemanda,
         descricao,
         endereco: {
           logradouro: logradouroCompleto,
           cep,
           bairro,
-          numero: Number(numero),
+          numero: numero,
           complemento: complemento || undefined,
           cidade,
-          estado,
+          estado: estado as EstadoBrasil,
         },
         imagem: imagens[0] || undefined,
       });

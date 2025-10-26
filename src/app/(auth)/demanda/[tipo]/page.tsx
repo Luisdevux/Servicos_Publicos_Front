@@ -1,4 +1,4 @@
-// /app/demanda/[tipo]/page.tsx
+// /app/(auth)/demanda/[tipo]/page.tsx
 
 "use client";
 
@@ -7,32 +7,21 @@ import Banner from "@/components/banner";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
-import { useSession } from "next-auth/react";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { tipoDemandaService } from "@/services";
 
 export default function DemandaPage() {
-  const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
-  const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
   
-  const [imageBlobs, setImageBlobs] = useState<Record<string, string>>({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTipo, setSelectedTipo] = useState<string>('');
   
   const tipoFiltro = decodeURIComponent(params.tipo as string);
-  
-  // Redireciona para login se não autenticado
-  useEffect(() => {
-    if (!isAuthLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isAuthLoading, isAuthenticated, router]);
 
+  // Use query para buscar as imagens dos tipoDemandas
   const {
     data: demandasData,
     isLoading: demandasIsLoading,
@@ -42,17 +31,10 @@ export default function DemandaPage() {
   } = useQuery({
     queryKey: ['tipoDemanda', tipoFiltro],
     queryFn: async () => {
-      const token = session?.user?.accesstoken;
-      
-      if (!token) {
-        router.push('/login');
-        throw new Error('Token não encontrado');
-      }
-
-      const result = await tipoDemandaService.buscarTiposDemandaPorTipo(token, tipoFiltro, 100);
+      const result = await tipoDemandaService.buscarTiposDemandaPorTipo(tipoFiltro, 100);
       return result.data?.docs || [];
     },
-    enabled: !!tipoFiltro && !isAuthLoading && isAuthenticated,
+    enabled: !!tipoFiltro,
     staleTime: 5 * 60 * 1000, // Cache por 5 minutos
     retry: 1,
   });
@@ -61,48 +43,58 @@ export default function DemandaPage() {
   const cardsFiltrados = demandasData || [];
   const bannerData = cardsFiltrados[0] || null;
 
-  // Busca imagem de um card
-  const fetchCardImage = async (cardId: string) => {
-    const token = session?.user?.accesstoken;
-    if (!token) return;
+  // Use query para buscar as imagens dos tipoDemandas, separando as responsabilidades
+  const {
+    data: imageUrls,
+    isLoading: imagesIsLoading,
+    isError: imagesIsError,
+    error: imagesError,
+    refetch: imagesRefetch,
+  } = useQuery({
+    queryKey: ['tipoDemandaImages', tipoFiltro, cardsFiltrados.map(c => c._id)],
+    queryFn: async () => {
+      if (!cardsFiltrados.length) return {};
 
-    try {
-      const blob = await tipoDemandaService.buscarFotoTipoDemanda(cardId, token);
-      const imageUrl = URL.createObjectURL(blob);
-      setImageBlobs(prev => ({ ...prev, [cardId]: imageUrl }));
-    } catch (error) {
-      console.error(`Erro ao buscar imagem do card ${cardId}:`, error);
-    }
-  };
-
-  // Carrega imagens dos cards quando dados mudam
-  useEffect(() => {
-    if (cardsFiltrados.length > 0) {
-      cardsFiltrados.forEach((card) => {
-        fetchCardImage(card._id);
+      const imagePromises = cardsFiltrados.map(async (card) => {
+        try {
+          const blob = await tipoDemandaService.buscarFotoTipoDemanda(card._id);
+          if (blob.size > 0) {
+            const imageUrl = URL.createObjectURL(blob);
+            return { id: card._id, url: imageUrl };
+          }
+          return { id: card._id, url: '' };
+        } catch (error) {
+          console.warn(`Erro ao buscar imagem para demanda ${card._id}: ${error}`);
+          return { id: card._id, url: '' };
+        }
       });
-    }
-  }, [cardsFiltrados.length]);
 
-  // Limpa URLs de imagem ao desmontar
+      const results = await Promise.all(imagePromises);
+      const imageMap: Record<string, string> = {};
+      
+      results.forEach(({ id, url }) => {
+        imageMap[id] = url;
+      });
+
+      return imageMap;
+    },
+    enabled: !!cardsFiltrados.length,
+    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
+    gcTime: 10 * 60 * 1000,
+  });
+
+  // Limpar URLs das imagens ao desmontar para evitar ocupar memória desnecessariamente
   useEffect(() => {
     return () => {
-      Object.values(imageBlobs).forEach((url) => {
-        URL.revokeObjectURL(url);
-      });
+      if (imageUrls) {
+        Object.values(imageUrls).forEach((url) => {
+          if (url.startsWith('blob:')) {
+            URL.revokeObjectURL(url);
+          }
+        });
+      }
     };
-  }, [imageBlobs]);
-
-  // Loading state da autenticação
-  if (isAuthLoading) {
-    return (
-      <div className="flex justify-center items-center py-40 bg-gray-50" data-test="demanda-loading-container">
-        <div className="text-lg text-gray-600" data-test="demanda-loading-message">
-          Verificando autenticação...
-        </div>
-      </div>
-    );
-  }
+  }, [imageUrls]);
 
   return (
     <div data-test="demanda-page">
@@ -165,19 +157,22 @@ export default function DemandaPage() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-stretch" 
             data-test="demanda-cards-grid"
           >
-            {cardsFiltrados.map((card) => (
-              <div key={card._id} data-test={`demanda-card-${card._id}`}>
-                <CardDemanda 
-                  titulo={card.titulo}
-                  descricao={card.descricao}
-                  imagem={imageBlobs[card._id] || card.link_imagem || ''}
-                  onCreateClick={() => {
-                    setSelectedTipo(card.tipo);
-                    setIsDialogOpen(true);
-                  }}
-                />
-              </div>
-            ))}
+            {cardsFiltrados.map((card) => {
+              const imagemFinal = imageUrls?.[card._id] || '';
+              return (
+                <div key={card._id} data-test={`demanda-card-${card._id}`}>
+                  <CardDemanda
+                    titulo={card.titulo}
+                    descricao={card.descricao}
+                    imagem={imagemFinal}
+                    onCreateClick={() => {
+                      setSelectedTipo(card.tipo);
+                      setIsDialogOpen(true);
+                    }}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

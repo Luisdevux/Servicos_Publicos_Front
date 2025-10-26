@@ -1,4 +1,7 @@
- "use client";
+// src/components/MetricCard.tsx
+
+"use client";
+
 import type { MetricCardProps } from "@/types/admin";
 
 export function MetricCard({ title, value, icon }: MetricCardProps) {

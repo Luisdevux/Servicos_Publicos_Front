@@ -1,3 +1,5 @@
+// src/app/(auth)/operador/page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI } from "@/types";
 import DetalhesDemandaOperadorModal from "@/components/detalheDemandaOperadorModal";
-import { demandaServiceSecure } from "@/services/demandaServiceSecure";
+import { demandaService } from "@/services/demandaService";
 import { toast } from "sonner";
 
 interface DemandaCard {
@@ -49,25 +51,9 @@ export default function PedidosOperadorPage() {
     queryKey: ['demandas-operador'],
     queryFn: async () => {
       try {
-        const result = await fetch('/api/auth/secure-fetch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            endpoint: '/demandas',
-            method: 'GET'
-          })
-        });
-
-        if (!result.ok) {
-          if (result.status === 401) {
-            throw new ApiError('Sessão expirada', 498);
-          }
-          throw new Error('Erro ao buscar demandas');
-        }
-
-        const data = await result.json();
-        console.log("Demandas carregadas:", data);
-        return data;
+        const result = await demandaService.buscarDemandas();
+        console.log("Demandas carregadas:", result);
+        return result;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
         throw err;
@@ -103,7 +89,7 @@ export default function PedidosOperadorPage() {
 
   const devolverMutation = useMutation({
     mutationFn: async ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
-      return demandaServiceSecure.devolverDemanda(demandaId, {
+      return demandaService.devolverDemanda(demandaId, {
         motivo_devolucao: motivo
       });
     },
@@ -124,7 +110,7 @@ export default function PedidosOperadorPage() {
 
   const resolverMutation = useMutation({
     mutationFn: async ({ demandaId, descricao, imagens }: { demandaId: string; descricao: string; imagens: File[] }) => {
-      return demandaServiceSecure.resolverDemanda(demandaId, {
+      return demandaService.resolverDemanda(demandaId, {
         resolucao: descricao,
       });
     },

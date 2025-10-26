@@ -1,3 +1,5 @@
+// src/components/footer.tsx
+
 import { Mail, Facebook, Instagram, Phone } from "lucide-react";
 import Link from "next/link";
 

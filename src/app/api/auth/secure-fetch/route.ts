@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { endpoint, method = 'GET', body } = await request.json();
+    const body = await request.json();
+    const { endpoint, method = 'GET', body: requestBody, bodyType, formData } = body;
 
     if (!endpoint) {
       return NextResponse.json(
@@ -37,35 +38,81 @@ export async function POST(request: NextRequest) {
     console.log('[SecureFetch] Fazendo requisição autenticada:', {
       endpoint,
       method,
-      hasBody: !!body
+      hasBody: !!requestBody || !!formData,
+      bodyType
     });
+
+    // Prepara headers e body baseado no tipo
+    const headers: HeadersInit = {
+      'Authorization': `Bearer ${token.accesstoken}`
+    };
+    let finalBody: string | FormData | undefined;
+
+    if (bodyType === 'formData' && formData) {
+      // Para FormData, cria um novo FormData e adiciona os arquivos
+      const form = new FormData();
+      if (formData.file) {
+        // Converte base64 de volta para File se necessário
+        if (typeof formData.file === 'string' && formData.file.startsWith('data:')) {
+          const blob = await fetch(formData.file).then(r => r.blob());
+          const file = new File([blob], 'upload.jpg', { type: blob.type });
+          form.append('file', file);
+        }
+      }
+      finalBody = form;
+      // Não define Content-Type para FormData - deixa o browser definir
+    } else {
+      headers['Content-Type'] = 'application/json';
+      finalBody = requestBody ? JSON.stringify(requestBody) : undefined;
+    }
 
     // Faz a requisição usando os tokens do JWT (servidor)
     // Tokens NUNCA foram expostos ao cliente
     const response = await fetch(fullUrl, {
       method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.accesstoken}`
-      },
-      body: body ? JSON.stringify(body) : undefined,
+      headers,
+      body: finalBody,
     });
 
-    const data = await response.json().catch(() => null);
-
     if (!response.ok) {
-      console.warn('[SecureFetch] Requisição falhou:', response.status);
-      return NextResponse.json(
-        data || { error: 'Request failed' },
-        { status: response.status }
-      );
+      // Tenta ler como JSON primeiro, depois como texto
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { error: await response.text() || 'Request failed' };
+      }
+
+      return NextResponse.json(errorData, { status: response.status });
     }
 
-    console.log('[SecureFetch] Requisição bem-sucedida');
+    // Verifica se é uma resposta binária (imagem, arquivo, etc.)
+    const contentType = response.headers.get('content-type');
+    if (contentType && (
+      contentType.startsWith('image/') ||
+      contentType.startsWith('application/octet-stream') ||
+      contentType.includes('application/pdf') ||
+      !contentType.includes('application/json')
+    )) {
+      const blob = await response.blob();
+      return new NextResponse(blob, {
+        status: response.status,
+        headers: {
+          'Content-Type': contentType || 'application/octet-stream',
+          'Content-Length': blob.size.toString(),
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Cache-Control': 'public, max-age=3600', // Cache por 1 hora
+        },
+      });
+    }
+
+    // Para respostas JSON, parseia normalmente
+    const data = await response.json().catch(() => null);
     return NextResponse.json(data);
 
   } catch (error) {
-    console.error('[SecureFetch] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

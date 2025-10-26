@@ -1,23 +1,36 @@
-// src/app/login/municipe/page.tsx
-import { Metadata } from 'next';
+// src/app/(no-auth)/login/funcionario/page.tsx
+
+"use client";
+
 import { Suspense } from 'react';
 import Link from 'next/link';
-import LoginMunicipeForm from '@/components/LoginMunicipeForm';
+import LoginFuncionarioForm from '@/components/LoginFuncionarioForm';
 
-export const metadata: Metadata = {
-  title: 'Login - Munícipe | Vilhena+Pública',
-  description: 'Acesse sua conta como munícipe',
-};
-
-function LoginMunicipeContent() {
+function LoginFuncionarioContent() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row relative overflow-hidden bg-gray-50">
       <div className="hidden lg:flex relative w-[54%] items-center justify-center p-12 overflow-hidden min-h-screen" style={{ backgroundColor: 'var(--global-accent)' }}>
-        {/* Círculos decorativos */}
-        <div className="absolute top-20 left-20 w-64 h-64 rounded-full bg-white/10" />
-        <div className="absolute bottom-32 left-32 w-48 h-48 rounded-full bg-white/15" />
-        <div className="absolute top-1/2 left-10 w-72 h-72 rounded-full bg-white/5" />
-        <div className="absolute bottom-20 right-20 w-56 h-56 rounded-full bg-white/10" />
+        {/* Padrão de pontos e formas geométricas */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="login-funcionario-grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                <circle cx="30" cy="30" r="2" fill="white"/>
+                <circle cx="0" cy="0" r="1" fill="white"/>
+                <circle cx="60" cy="0" r="1" fill="white"/>
+                <circle cx="0" cy="60" r="1" fill="white"/>
+                <circle cx="60" cy="60" r="1" fill="white"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#login-funcionario-grid)"/>
+          </svg>
+        </div>
+        
+        {/* Formas geométricas decorativas */}
+        <div className="absolute top-20 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-10 left-10 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-32 left-32 w-16 h-16 border-2 border-white/20 rounded-lg rotate-12"></div>
+        <div className="absolute bottom-40 right-40 w-12 h-12 border-2 border-white/20 rounded-full"></div>
         
         {/* Onda Divisória Vertical */}
         <div className="absolute -right-1 top-0 h-full w-32 pointer-events-none z-30">
@@ -44,7 +57,7 @@ function LoginMunicipeContent() {
             Sistema de Gestão de Serviços Públicos
           </p>
           <p className="text-lg text-white/90">
-            Acesso para Munícipes
+            Acesso para Funcionários
           </p>
         </div>
       </div>
@@ -59,19 +72,19 @@ function LoginMunicipeContent() {
             Sistema de Gestão de Serviços Públicos
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            Acesso para Munícipes
+            Acesso para Funcionários
           </p>
         </div>
 
         <div className="w-full max-w-md px-8">
-          <LoginMunicipeForm />
+          <LoginFuncionarioForm />
           
-          {/* Link para login de funcionário */}
+          {/* Link para login de munícipe */}
           <div className="mt-6 text-center">
             <p className="text-gray-600 text-sm">
-              É funcionário da prefeitura?{' '}
+              É munícipe?{' '}
               <Link 
-                href="/login/funcionario" 
+                href="/login/municipe" 
                 className="font-semibold hover:underline transition-colors"
                 style={{ color: 'var(--global-accent)' }}
               >
@@ -85,7 +98,7 @@ function LoginMunicipeContent() {
   );
 }
 
-export default function LoginMunicipePage() {
+export default function LoginFuncionarioPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
@@ -95,7 +108,7 @@ export default function LoginMunicipePage() {
         </div>
       </div>
     }>
-      <LoginMunicipeContent />
+      <LoginFuncionarioContent />
     </Suspense>
   );
 }
