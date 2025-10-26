@@ -155,8 +155,8 @@
 /* tema verde (Operador) */
 .global-theme-green {
   --global-border: #a7f3d0;               /* Bordas em verde claro */
-  --global-text-primary: #46A09B;         /* Texto principal - corpo */
-  --global-text-secondary: #46A09B;       /* Texto secundário - títulos */
+  --global-text-primary: #10b981;         /* Texto principal - verde do banner */
+  --global-text-secondary: #059669;       /* Texto secundário - verde escuro do banner */
   --global-accent: #10b981;               /* Verde de destaque - botões, ícones */
   --global-accent-hover: #059669;         /* Verde mais escuro no hover */
   --global-link-hover: #047857;           /* Verde escuro para links */
@@ -166,11 +166,11 @@
 /* tema roxo (Secretário) */
 .global-theme-purple {
   --global-border: #d8b4fe;               /* Bordas em roxo claro */
-  --global-text-primary: #9558A9;         /* Texto principal - corpo */
-  --global-text-secondary: #9558A9;       /* Texto secundário - títulos */
+  --global-text-primary: #5b21b6;         /* Texto principal - roxo do banner */
+  --global-text-secondary: #5b21b6;       /* Texto secundário - roxo do banner */
   --global-accent: #a855f7;               /* Roxo de destaque - botões, ícones */
-  --global-accent-hover: #9333ea;         /* Roxo mais escuro no hover */
-  --global-link-hover: #5d26bb;           /* Roxo escuro para links */
+  --global-accent-hover: #5b21b6;         /* Roxo do banner no hover */
+  --global-link-hover: #5b21b6;           /* Roxo do banner para links */
   --global-separator: #a855f7;            /* Divisores em roxo */
 }
 

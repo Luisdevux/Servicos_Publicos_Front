@@ -5,11 +5,11 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Banner from "@/components/banner";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { demandaService } from "@/services/demandaService";
 import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI } from "@/types";
 
@@ -24,17 +24,39 @@ export default function PedidosOperadorPage() {
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
   const router = useRouter();
+  const { data: session, status } = useSession();
 
   const ITENS_POR_PAGINA = 6;
 
-  // Buscar demandas da API
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login/funcionario');
+    }
+  }, [status, router]);
+
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['demandas-operador'],
     queryFn: async () => {
       try {
-        const result = await demandaService.buscarDemandas();
-        console.log("Demandas carregadas:", result);
-        return result;
+        const result = await fetch('/api/auth/secure-fetch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            endpoint: '/demandas',
+            method: 'GET'
+          })
+        });
+
+        if (!result.ok) {
+          if (result.status === 401) {
+            throw new ApiError('Sessão expirada', 498);
+          }
+          throw new Error('Erro ao buscar demandas');
+        }
+
+        const data = await result.json();
+        console.log("Demandas carregadas:", data);
+        return data;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
         throw err;
@@ -42,16 +64,13 @@ export default function PedidosOperadorPage() {
     },
     retry: false,
     refetchOnWindowFocus: false,
+    enabled: status === 'authenticated',
   });
 
-  // Detectar token expirado e redirecionar para login
   useEffect(() => {
     if (error) {
       if (error instanceof ApiError && error.status === 498) {
-        // Token expirado - limpar storage e redirecionar
         console.warn("Token expirado. Redirecionando para login...");
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
         router.push('/login/funcionario?expired=true');
       }
     }
@@ -78,7 +97,6 @@ export default function PedidosOperadorPage() {
   };
 
   const handleAnalisarDemanda = (id: string) => {
-    // Navegar para página de análise ou abrir modal
     console.log("Analisar demanda:", id);
   };
 
