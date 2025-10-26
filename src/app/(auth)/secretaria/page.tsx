@@ -30,6 +30,10 @@ interface DemandaCard {
     logradouro: string;
     numero: string;
   };
+  usuarios?: (string | { _id: string; nome: string })[];
+  resolucao?: string;
+  motivo_devolucao?: string;
+  link_imagem_resolucao?: string | string[];
 }
 
 export default function PedidosSecretariaPage() {
@@ -89,6 +93,10 @@ export default function PedidosSecretariaPage() {
       logradouro: demanda.endereco.logradouro,
       numero: demanda.endereco.numero,
     } : undefined,
+    usuarios: demanda.usuarios,
+    resolucao: demanda.resolucao,
+    motivo_devolucao: demanda.motivo_devolucao,
+    link_imagem_resolucao: demanda.link_imagem_resolucao,
   })) || [];
 
   const { data: operadoresResponse } = useQuery({

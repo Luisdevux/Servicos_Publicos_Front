@@ -6,6 +6,8 @@ import { ImageCarousel } from "./ui/image-carousel";
 import { useState } from "react";
 import { Textarea } from "./ui/textarea";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "./ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { usuarioService } from "@/services/usuarioService";
 import type { Usuarios } from "@/types";
 
 interface Demanda {
@@ -21,6 +23,10 @@ interface Demanda {
     logradouro: string;
     numero: string;
   };
+  usuarios?: (string | { _id: string; nome: string })[];
+  resolucao?: string;
+  motivo_devolucao?: string;
+  link_imagem_resolucao?: string | string[];
 }
 
 interface DetalhesDemandaSecretariaModalProps {
@@ -48,6 +54,22 @@ export default function DetalhesDemandaSecretariaModal({
   const [showConfirmarModal, setShowConfirmarModal] = useState(false);
   const [motivoRejeicao, setMotivoRejeicao] = useState("");
   const [operadorSelecionado, setOperadorSelecionado] = useState("");
+
+  // Buscar dados do operador quando a demanda tem operadores atribuídos
+  const operadorRaw = demanda?.usuarios?.[0];
+  
+  // Garantir que operadorId é uma string (pode vir como string ou objeto populado da API)
+  const operadorIdString = typeof operadorRaw === 'string' 
+    ? operadorRaw 
+    : (operadorRaw as any)?._id || '';
+  
+  const { data: operadorData } = useQuery({
+    queryKey: ['operador', operadorIdString],
+    queryFn: () => usuarioService.buscarUsuarioPorId(operadorIdString),
+    enabled: !!operadorIdString && (demanda?.status === "Em andamento" || demanda?.status === "Concluída"),
+  });
+
+  const nomeOperador = operadorData?.data?.nome || 'Carregando...';
 
   if (!demanda) return null;
 
@@ -139,6 +161,75 @@ export default function DetalhesDemandaSecretariaModal({
                     </div>
                   </div>
                 </div>
+              )}
+
+              {/* Mostrar motivo de devolução quando a demanda está em aberto e foi devolvida pelo operador */}
+              {demanda.status === "Em aberto" && demanda.motivo_devolucao && (
+                <div className="space-y-2">
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 className="text-lg font-medium text-orange-800 mb-2">
+                      ⚠️ Demanda devolvida pelo operador
+                    </h3>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-orange-700">Motivo da devolução:</label>
+                      <div className="p-3 rounded-md bg-white border border-orange-200">
+                        <p className="text-sm text-gray-800">{demanda.motivo_devolucao}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Mostrar operador atribuído quando está em andamento */}
+              {demanda.status === "Em andamento" && demanda.usuarios && demanda.usuarios.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium text-purple-600">
+                    Operador Responsável
+                  </h3>
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                    <p className="font-medium text-blue-900">{nomeOperador}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Mostrar informações completas quando concluída */}
+              {demanda.status === "Concluída" && (
+                <>
+                  {demanda.usuarios && demanda.usuarios.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-medium text-purple-600">
+                        Operador Responsável
+                      </h3>
+                      <div className="bg-gray-50 rounded-md p-3">
+                        <p className="font-medium text-gray-900">{nomeOperador}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {demanda.resolucao && (
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-medium text-purple-600">
+                        Descrição da conclusão da demanda
+                      </h3>
+                      <div className="bg-green-50 p-4 rounded-md border border-green-200">
+                        <p className="text-gray-800">{demanda.resolucao}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {demanda.link_imagem_resolucao && (
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-medium text-purple-600">
+                        {Array.isArray(demanda.link_imagem_resolucao) ? 'Imagens da conclusão' : 'Imagem da conclusão'}
+                      </h3>
+                      <ImageCarousel 
+                        images={Array.isArray(demanda.link_imagem_resolucao) ? demanda.link_imagem_resolucao : [demanda.link_imagem_resolucao]}
+                        alt="Imagem da conclusão"
+                        className="h-48"
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
