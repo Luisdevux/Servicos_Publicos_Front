@@ -82,6 +82,20 @@ export const demandaServiceSecure = {
   },
 
   /**
+   * Rejeita uma demanda (atualiza status e adiciona motivo)
+   * PATCH /demandas/:id
+   */
+  async rejeitarDemanda(
+    id: string,
+    motivo: string
+  ): Promise<ApiResponse<Demanda>> {
+    return patchSecure<ApiResponse<Demanda>>(`/demandas/${id}/devolver`, {
+      status: 'Recusada',
+      motivo_devolucao: motivo
+    });
+  },
+
+  /**
    * Deleta uma demanda
    */
   async deletarDemanda(id: string): Promise<ApiResponse<void>> {

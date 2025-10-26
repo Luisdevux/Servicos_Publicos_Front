@@ -2,13 +2,17 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    // Permitir imagens externas se necessário
+    // Permitir imagens externas de qualquer domínio
     remotePatterns: [
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '3001',
         pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
       },
       {
         protocol: 'https',

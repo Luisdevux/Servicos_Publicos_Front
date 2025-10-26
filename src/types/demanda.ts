@@ -16,7 +16,8 @@ export type TipoDemanda = typeof TIPOS_DEMANDA[number];
 export const STATUS_DEMANDA = [
   'Em aberto',
   'Em andamento',
-  'Concluída'
+  'Concluída',
+  'Rejeitada'
 ] as const;
 
 export type StatusDemanda = typeof STATUS_DEMANDA[number];

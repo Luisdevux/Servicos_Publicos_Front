@@ -6,12 +6,14 @@ import { ImageCarousel } from "./ui/image-carousel";
 import { useState } from "react";
 import { Textarea } from "./ui/textarea";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "./ui/select";
+import type { Usuarios } from "@/types";
 
 interface Demanda {
   id: string;
   titulo: string;
   descricao: string;
   tipo: string;
+  status: string;
   imagem?: string | string[];
   endereco?: {
     bairro: string;
@@ -27,6 +29,9 @@ interface DetalhesDemandaSecretariaModalProps {
   onClose: () => void;
   onConfirmar?: (demandaId: string, operadorId: string) => void;
   onRejeitar?: (demandaId: string, motivo: string) => void;
+  operadores?: Usuarios[];
+  isConfirmando?: boolean;
+  isRejeitando?: boolean;
 }
 
 export default function DetalhesDemandaSecretariaModal({ 
@@ -34,7 +39,10 @@ export default function DetalhesDemandaSecretariaModal({
   isOpen, 
   onClose,
   onConfirmar,
-  onRejeitar 
+  onRejeitar,
+  operadores = [],
+  isConfirmando = false,
+  isRejeitando = false
 }: DetalhesDemandaSecretariaModalProps) {
   const [showRejeitarModal, setShowRejeitarModal] = useState(false);
   const [showConfirmarModal, setShowConfirmarModal] = useState(false);
@@ -135,20 +143,32 @@ export default function DetalhesDemandaSecretariaModal({
             </div>
           </div>
 
-          <div className="flex gap-3 px-6 pb-6 flex-shrink-0">
-            <Button
-              onClick={() => setShowRejeitarModal(true)}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-            >
-              Rejeitar
-            </Button>
-            <Button
-              onClick={() => setShowConfirmarModal(true)}
-              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              Confirmar
-            </Button>
-          </div>
+          {demanda.status === "Em aberto" && (
+            <div className="flex gap-3 px-6 pb-6 flex-shrink-0">
+              <Button
+                onClick={() => setShowRejeitarModal(true)}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                Rejeitar
+              </Button>
+              <Button
+                onClick={() => setShowConfirmarModal(true)}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Confirmar
+              </Button>
+            </div>
+          )}
+
+          {demanda.status !== "Em aberto" && (
+            <div className="px-6 pb-6">
+              <div className="flex items-center gap-2 p-3 bg-gray-100 rounded-lg">
+                <span className="text-sm text-gray-600">
+                  <strong>Status:</strong> {demanda.status}
+                </span>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -175,10 +195,10 @@ export default function DetalhesDemandaSecretariaModal({
               </Button>
               <Button
                 onClick={handleRejeitar}
-                disabled={!motivoRejeicao.trim()}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                disabled={!motivoRejeicao.trim() || isRejeitando}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
               >
-                Confirmar Rejeição
+                {isRejeitando ? "Rejeitando..." : "Confirmar Rejeição"}
               </Button>
             </div>
           </div>
@@ -202,9 +222,17 @@ export default function DetalhesDemandaSecretariaModal({
                   <SelectValue placeholder="Escolha um operador" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="op1">João Silva</SelectItem>
-                  <SelectItem value="op2">Maria Santos</SelectItem>
-                  <SelectItem value="op3">Pedro Oliveira</SelectItem>
+                  {operadores.length > 0 ? (
+                    operadores.map((operador) => (
+                      <SelectItem key={operador._id || operador.nome} value={operador._id || ''}>
+                        {operador.nome}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      Nenhum operador disponível
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -217,10 +245,10 @@ export default function DetalhesDemandaSecretariaModal({
               </Button>
               <Button
                 onClick={handleConfirmar}
-                disabled={!operadorSelecionado}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                disabled={!operadorSelecionado || isConfirmando}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
               >
-                Atribuir ao Operador
+                {isConfirmando ? "Atribuindo..." : "Atribuir ao Operador"}
               </Button>
             </div>
           </div>

@@ -28,6 +28,8 @@ interface DetalhesDemandaOperadorModalProps {
   onClose: () => void;
   onDevolver?: (demandaId: string, motivo: string) => void;
   onResolver?: (demandaId: string, descricao: string, imagens: File[]) => void;
+  isDevolvendo?: boolean;
+  isResolvendo?: boolean;
 }
 
 export default function DetalhesDemandaOperadorModal({ 
@@ -35,7 +37,9 @@ export default function DetalhesDemandaOperadorModal({
   isOpen, 
   onClose,
   onDevolver,
-  onResolver 
+  onResolver,
+  isDevolvendo = false,
+  isResolvendo = false
 }: DetalhesDemandaOperadorModalProps) {
   const [showDevolverModal, setShowDevolverModal] = useState(false);
   const [showResolverModal, setShowResolverModal] = useState(false);
@@ -184,10 +188,10 @@ export default function DetalhesDemandaOperadorModal({
               </Button>
               <Button
                 onClick={handleDevolver}
-                disabled={!motivoDevolucao.trim()}
-                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                disabled={!motivoDevolucao.trim() || isDevolvendo}
+                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50"
               >
-                Confirmar Devolução
+                {isDevolvendo ? "Devolvendo..." : "Confirmar Devolução"}
               </Button>
             </div>
           </div>
@@ -245,10 +249,10 @@ export default function DetalhesDemandaOperadorModal({
               </Button>
               <Button
                 onClick={handleResolver}
-                disabled={!descricaoResolucao.trim() || imagensResolucao.length === 0}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                disabled={!descricaoResolucao.trim() || imagensResolucao.length === 0 || isResolvendo}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
               >
-                Confirmar Resolução
+                {isResolvendo ? "Resolvendo..." : "Confirmar Resolução"}
               </Button>
             </div>
           </div>

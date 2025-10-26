@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Banner from "@/components/banner";
@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI } from "@/types";
 import DetalhesDemandaOperadorModal from "@/components/detalheDemandaOperadorModal";
+import { demandaServiceSecure } from "@/services/demandaServiceSecure";
+import { toast } from "sonner";
 
 interface DemandaCard {
   id: string;
@@ -33,6 +35,7 @@ export default function PedidosOperadorPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const { data: session, status } = useSession();
+  const queryClient = useQueryClient();
 
   const ITENS_POR_PAGINA = 6;
 
@@ -89,7 +92,56 @@ export default function PedidosOperadorPage() {
     titulo: `Demanda sobre ${demanda.tipo}`,
     descricao: demanda.descricao,
     tipo: demanda.tipo.toLowerCase(),
+    imagem: demanda.link_imagem,
+    endereco: demanda.endereco ? {
+      bairro: demanda.endereco.bairro,
+      tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
+      logradouro: demanda.endereco.logradouro,
+      numero: demanda.endereco.numero,
+    } : undefined,
   })) || [];
+
+  const devolverMutation = useMutation({
+    mutationFn: async ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
+      return demandaServiceSecure.devolverDemanda(demandaId, {
+        motivo_devolucao: motivo
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['demandas-operador'] });
+      toast.success('Demanda devolvida', {
+        description: 'A demanda foi devolvida para a secretaria.'
+      });
+      handleCloseModal();
+    },
+    onError: (error) => {
+      console.error('Erro ao devolver demanda:', error);
+      toast.error('Erro ao devolver demanda', {
+        description: 'Não foi possível devolver a demanda. Tente novamente.'
+      });
+    },
+  });
+
+  const resolverMutation = useMutation({
+    mutationFn: async ({ demandaId, descricao, imagens }: { demandaId: string; descricao: string; imagens: File[] }) => {
+      return demandaServiceSecure.resolverDemanda(demandaId, {
+        resolucao: descricao,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['demandas-operador'] });
+      toast.success('Demanda resolvida com sucesso!', {
+        description: 'A demanda foi marcada como concluída.'
+      });
+      handleCloseModal();
+    },
+    onError: (error) => {
+      console.error('Erro ao resolver demanda:', error);
+      toast.error('Erro ao resolver demanda', {
+        description: 'Não foi possível resolver a demanda. Tente novamente.'
+      });
+    },
+  });
 
   const handleFiltroChange = (value: string) => {
     setFiltroSelecionado(value);
@@ -118,13 +170,11 @@ export default function PedidosOperadorPage() {
   };
 
   const handleDevolver = async (demandaId: string, motivo: string) => {
-    console.log("Devolver demanda:", demandaId, "Motivo:", motivo);
-    handleCloseModal();
+    devolverMutation.mutate({ demandaId, motivo });
   };
 
   const handleResolver = async (demandaId: string, descricao: string, imagens: File[]) => {
-    console.log("Resolver demanda:", demandaId, "Descrição:", descricao, "Imagens:", imagens.length);
-    handleCloseModal();
+    resolverMutation.mutate({ demandaId, descricao, imagens });
   };
 
   const getStatusColor = (tipo: string) => {
@@ -324,6 +374,8 @@ export default function PedidosOperadorPage() {
           demanda={demandaSelecionada}
           onDevolver={handleDevolver}
           onResolver={handleResolver}
+          isDevolvendo={devolverMutation.isPending}
+          isResolvendo={resolverMutation.isPending}
         />
       )}
     </div>
