@@ -3,15 +3,22 @@
 
 import { signOut, useSession } from "next-auth/react";
 import { useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 
 // Hook para fazer logout completo 
 
 export function useLogout() {
   const { data: session } = useSession();
+  const pathname = usePathname();
 
   const logout = useCallback(async (options?: { silent?: boolean }) => {
     const silent = options?.silent ?? false;
+
+    // Determina a URL de callback baseado na rota atual
+    const isSecretariaArea = pathname?.startsWith('/secretaria');
+    const isOperadorArea = pathname?.startsWith('/operador');
+    const callbackUrl = (isSecretariaArea || isOperadorArea) ? '/login/funcionario' : '/login/municipe';
 
     try {
       // Chama a API de logout do backend através da rota segura
@@ -44,7 +51,7 @@ export function useLogout() {
 
       // Faz signOut do NextAuth
       await signOut({
-        callbackUrl: '/login/municipe',
+        callbackUrl,
         redirect: true
       });
 
@@ -60,10 +67,10 @@ export function useLogout() {
 
       // Força redirect mesmo com erro
       setTimeout(() => {
-        window.location.href = '/login/municipe';
+        window.location.href = callbackUrl;
       }, 1000);
     }
-  }, []);
+  }, [pathname]);
 
   return { logout };
 }
