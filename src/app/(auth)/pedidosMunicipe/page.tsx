@@ -112,14 +112,18 @@ export default function MeusPedidosPage() {
   const pedidosFiltrados = pedidos.filter(pedido => {
     if (filtroSelecionado === "todos") return true;
 
-    const isAceito = pedido.status !== "Recusada";
+    const isAceito = pedido.status === "Em andamento" || pedido.status === "Concluída";
 
     if (filtroSelecionado === "aceito") {
       return isAceito;
     }
 
     if (filtroSelecionado === "recusado") {
-      return !isAceito;
+      return pedido.status === "Recusada";
+    }
+
+    if (filtroSelecionado === "aguardando") {
+      return pedido.status === "Em aberto";
     }
 
     return pedido.status === filtroSelecionado;
@@ -151,12 +155,17 @@ export default function MeusPedidosPage() {
                   <SelectItem value="todos">Todos os pedidos</SelectItem>
                   <SelectItem value="aceito">Aceitos</SelectItem>
                   <SelectItem value="recusado">Recusados</SelectItem>
+                  <SelectItem value="aguardando">Aguardando aprovação</SelectItem>
                 </SelectContent>
               </Select>
               <span className="text-sm text-[var(--global-text-primary)] ml-2">
-                {isLoading
-                  ? 'Carregando...'
-                  : `${totalDocs} ${totalDocs === 1 ? 'pedido' : 'pedidos'} no total`}
+                {isLoading ? (
+                  "Carregando..."
+                ) : filtroSelecionado === 'todos' ? (
+                  `${response?.data?.totalDocs ?? 0} ${(response?.data?.totalDocs ?? 0) === 1 ? 'pedido' : 'pedidos'} no total`
+                ) : (
+                  `${pedidosFiltrados.length} ${pedidosFiltrados.length === 1 ? 'pedido' : 'pedidos'} encontrado(s)`
+                )}
               </span>
             </div>
           </div>
@@ -192,7 +201,7 @@ export default function MeusPedidosPage() {
           </div>
         )}
 
-        {pedidosFiltrados.length > 0 && (
+  {pedidosFiltrados.length > 0 && (
           <div className="flex items-center justify-center gap-4">
               <button
                 onClick={handlePaginaAnterior}

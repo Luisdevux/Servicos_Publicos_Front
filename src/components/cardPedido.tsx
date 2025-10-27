@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Check, X, ChevronRight } from "lucide-react";
+import { Check, X, ChevronRight, Clock } from "lucide-react";
 import { Button } from "./ui/button";
 import ProgressoPedido from "./ProgressoPedido";
 import type { Pedido } from "@/types";
@@ -32,7 +32,15 @@ export default function CardPedido({ pedido, onVerMais }: CardPedidoProps) {
           {pedido.titulo}
         </h3>
         
-        {pedido.status !== "Recusada" ? (
+        {pedido.status === "Em aberto" ? (
+          <div
+            className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-sm font-medium"
+            data-test="card-pedido-status-aguardando"
+          >
+            <Clock size={16} />
+            Aguardando
+          </div>
+        ) : pedido.status !== "Recusada" ? (
           <div 
             className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-md text-sm font-medium"
             data-test="card-pedido-status-aceito"
