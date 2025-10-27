@@ -111,13 +111,21 @@ export default function MeusPedidosPage() {
   };
 
   const pedidosFiltrados = pedidos.filter(pedido => {
-    if (filtroSelecionado === "todos") {
-      return true;
+    if (filtroSelecionado === "todos") return true;
+
+    const isAceito = pedido.status !== "Recusada";
+
+    if (filtroSelecionado === "aceito") {
+      return isAceito;
     }
+
+    if (filtroSelecionado === "recusado") {
+      return !isAceito;
+    }
+
     return pedido.status === filtroSelecionado;
   });
 
-  // Use API pagination data
   const totalPaginas = response?.data?.totalPages || 1;
   const totalDocs = response?.data?.totalDocs || 0;
   const pedidosPaginados = pedidosFiltrados;
