@@ -79,8 +79,17 @@ function LoginMunicipeContent() {
         <div className="w-full max-w-md px-8">
           <LoginMunicipeForm />
           
-          {/* Link para login de funcionário */}
-          <div className="mt-6 text-center">
+          {/* Links de navegação */}
+          <div className="mt-6 text-center space-y-2">
+            <p className="text-gray-600 text-sm">
+              <Link 
+                href="/" 
+                className="font-semibold hover:underline transition-colors"
+                style={{ color: 'var(--global-accent)' }}
+              >
+                ← Voltar à tela inicial
+              </Link>
+            </p>
             <p className="text-gray-600 text-sm">
               É funcionário da prefeitura?{' '}
               <Link 

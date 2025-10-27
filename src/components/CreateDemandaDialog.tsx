@@ -617,6 +617,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                   className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
                   data-test="cidade-input"
                   required
+                  disabled
                 />
               </div>
 
@@ -624,7 +625,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                 <Label htmlFor="estado" className="text-[var(--global-text-primary)] text-sm font-medium">
                   Estado *
                 </Label>
-                <Select value={estado} onValueChange={setEstado}>
+                <Select value={estado} onValueChange={setEstado} disabled>
                   <SelectTrigger
                     className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)] cursor-pointer"
                     data-test="estado-select"
