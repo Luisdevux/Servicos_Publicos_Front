@@ -1,9 +1,8 @@
 // src/services/demandaService.ts
 
-import { get, post, patch, del } from './api';
+import { getSecure, postSecure, patchSecure, delSecure } from './api';
 import type {
   Demanda,
-  TipoDemandaModel,
   ApiResponse,
   PaginatedResponse,
   CreateDemandaData,
@@ -11,6 +10,7 @@ import type {
   AtribuirDemandaData,
   DevolverDemandaData,
   ResolverDemandaData,
+  PaginationParams,
 } from '@/types';
 
 /**
@@ -21,25 +21,37 @@ export const demandaService = {
   /**
    * Busca todas as demandas
    */
-  async buscarDemandas(token: string): Promise<ApiResponse<PaginatedResponse<Demanda>>> {
-    return get<ApiResponse<PaginatedResponse<Demanda>>>('/demandas', token);
+  async buscarDemandas(
+    params?: PaginationParams
+  ): Promise<ApiResponse<PaginatedResponse<Demanda>>> {
+    // Construindo query string a partir dos parâmetros de paginação
+    let endpoint = '/demandas';
+    if (params) {
+      const search = new URLSearchParams();
+      if (params.page !== undefined) search.set('page', String(params.page));
+      if (params.limit !== undefined) search.set('limit', String(params.limit));
+      if (params.sort) search.set('sort', params.sort);
+      if (params.select) search.set('select', params.select);
+      const qs = search.toString();
+      if (qs) endpoint += `?${qs}`;
+    }
+
+    return getSecure<ApiResponse<PaginatedResponse<Demanda>>>(endpoint);
   },
+
 
   /**
    * Busca uma demanda por ID
    */
-  async buscarDemandaPorId(id: string, token: string): Promise<ApiResponse<Demanda>> {
-    return get<ApiResponse<Demanda>>(`/demandas/${id}`, token);
+  async buscarDemandaPorId(id: string): Promise<ApiResponse<Demanda>> {
+    return getSecure<ApiResponse<Demanda>>(`/demandas/${id}`);
   },
 
   /**
    * Cria uma nova demanda
    */
-  async criarDemanda(
-    data: CreateDemandaData,
-    token: string
-  ): Promise<ApiResponse<Demanda>> {
-    return post<ApiResponse<Demanda>>('/demandas', data, token);
+  async criarDemanda(data: CreateDemandaData): Promise<ApiResponse<Demanda>> {
+    return postSecure<ApiResponse<Demanda>>('/demandas', data);
   },
 
   /**
@@ -47,10 +59,9 @@ export const demandaService = {
    */
   async atualizarDemanda(
     id: string,
-    data: UpdateDemandaData,
-    token: string
+    data: UpdateDemandaData
   ): Promise<ApiResponse<Demanda>> {
-    return patch<ApiResponse<Demanda>>(`/demandas/${id}`, data, token);
+    return patchSecure<ApiResponse<Demanda>>(`/demandas/${id}`, data);
   },
 
   /**
@@ -59,10 +70,9 @@ export const demandaService = {
    */
   async atribuirDemanda(
     id: string,
-    data: AtribuirDemandaData,
-    token: string
+    data: AtribuirDemandaData
   ): Promise<ApiResponse<Demanda>> {
-    return patch<ApiResponse<Demanda>>(`/demandas/${id}/atribuir`, data, token);
+    return patchSecure<ApiResponse<Demanda>>(`/demandas/${id}/atribuir`, data);
   },
 
   /**
@@ -71,10 +81,9 @@ export const demandaService = {
    */
   async devolverDemanda(
     id: string,
-    data: DevolverDemandaData,
-    token: string
+    data: DevolverDemandaData
   ): Promise<ApiResponse<Demanda>> {
-    return patch<ApiResponse<Demanda>>(`/demandas/${id}/devolver`, data, token);
+    return patchSecure<ApiResponse<Demanda>>(`/demandas/${id}/devolver`, data);
   },
 
   /**
@@ -83,17 +92,16 @@ export const demandaService = {
    */
   async resolverDemanda(
     id: string,
-    data: ResolverDemandaData,
-    token: string
+    data: ResolverDemandaData
   ): Promise<ApiResponse<Demanda>> {
-    return patch<ApiResponse<Demanda>>(`/demandas/${id}/resolver`, data, token);
+    return patchSecure<ApiResponse<Demanda>>(`/demandas/${id}/resolver`, data);
   },
 
   /**
    * Deleta uma demanda
    */
-  async deletarDemanda(id: string, token: string): Promise<ApiResponse<void>> {
-    return del<ApiResponse<void>>(`/demandas/${id}`, token);
+  async deletarDemanda(id: string): Promise<ApiResponse<void>> {
+    return delSecure<ApiResponse<void>>(`/demandas/${id}`);
   },
 
   /**
@@ -101,22 +109,26 @@ export const demandaService = {
    */
   async uploadFotoDemanda(
     id: string,
-    file: File,
-    token: string
+    file: File
   ): Promise<ApiResponse<{ link_imagem: string }>> {
+    
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/demandas/${id}/foto/demanda`,
-      {
+    const response = await fetch('/api/auth/secure-fetch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        endpoint: `/demandas/${id}/foto/demanda`,
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      }
-    );
+        bodyType: 'formData',
+        formData: {
+          file: await fileToBase64(file)
+        }
+      })
+    });
 
     if (!response.ok) {
       throw new Error('Erro ao fazer upload da foto');
@@ -125,3 +137,15 @@ export const demandaService = {
     return response.json();
   },
 };
+
+/**
+ * Helper para converter File para Base64
+ */
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+}

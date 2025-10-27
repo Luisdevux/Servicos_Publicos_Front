@@ -9,7 +9,7 @@ import type {
 } from '@/types/admin';
 
 export const adminService = {
-  async buscarMetricas(token: string): Promise<ApiResponse<DashboardData>> {
+  async buscarMetricas(): Promise<ApiResponse<DashboardData>> {
     let allDemandas: Demanda[] = [];
     let page = 1;
     let totalPages = 1;
@@ -17,8 +17,7 @@ export const adminService = {
     try {
       while (page <= totalPages) {
         const response = await get<ApiResponse<PaginatedResponse<Demanda>>>(
-          `/demandas?page=${page}`,
-          token
+          `/demandas?page=${page}`
         );
 
         allDemandas = [...allDemandas, ...(response.data?.docs || [])];

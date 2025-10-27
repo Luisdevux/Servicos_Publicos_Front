@@ -6,6 +6,7 @@ import { Navigation } from "./ui/navigation";
 import NavLink from "./ui/nav-link";
 import * as React from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { usePathname } from "next/navigation";
 
 interface HeaderLink {
   href: string;
@@ -18,19 +19,68 @@ interface HeaderLink {
 export default function Header({ theme, inverted }: { theme?: 'default' | 'green' | 'purple'; inverted?: boolean }) {
   const [open, setOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
+  const [isSecretariaArea, setIsSecretariaArea] = React.useState(false);
+  const [isOperadorArea, setIsOperadorArea] = React.useState(false);
   const { isAuthenticated, logout } = useAuth();
+  const pathname = usePathname();
   
-    // Garante que o componente só renderiza os links baseados em auth após montar no cliente
-    React.useEffect(() => {
-      setMounted(true);
-    }, []);
+  React.useEffect(() => {
+    setMounted(true);
+    
+    const isInSecretaria = pathname?.startsWith('/secretaria');
+    const isInOperador = pathname?.startsWith('/operador');
+    const isInPerfil = pathname === '/perfil';
+    
+    if (isInSecretaria) {
+      sessionStorage.setItem('userArea', 'secretaria');
+      setIsSecretariaArea(true);
+      setIsOperadorArea(false);
+    } else if (isInOperador) {
+      sessionStorage.setItem('userArea', 'operador');
+      setIsOperadorArea(true);
+      setIsSecretariaArea(false);
+    } else if (isInPerfil) {
+      const userArea = sessionStorage.getItem('userArea');
+      if (userArea === 'secretaria') {
+        setIsSecretariaArea(true);
+        setIsOperadorArea(false);
+      } else if (userArea === 'operador') {
+        setIsOperadorArea(true);
+        setIsSecretariaArea(false);
+      } else {
+        setIsSecretariaArea(false);
+        setIsOperadorArea(false);
+      }
+    } else {
+      sessionStorage.removeItem('userArea');
+      setIsSecretariaArea(false);
+      setIsOperadorArea(false);
+    }
+  }, [pathname]);
 
-  const links: HeaderLink[] = [
-    { href: "/", label: "Home" },
-    { href: "/meus-pedidos", label: "Meus Pedidos", requiresAuth: true },
-    { href: "/perfil", label: "Perfil", requiresAuth: true },
-    { href: "/login", label: "Login", hideWhenAuth: true },
-  ];
+  let links: HeaderLink[] = [];
+  let effectiveTheme = theme;
+
+  if (isSecretariaArea) {
+    links = [
+      { href: "/secretaria", label: "Pedidos recebidos" },
+      { href: "/perfil", label: "Perfil" },
+    ];
+    effectiveTheme = 'purple';
+  } else if (isOperadorArea) {
+    links = [
+      { href: "/operador", label: "Pedidos recebidos" },
+      { href: "/perfil", label: "Perfil" },
+    ];
+    effectiveTheme = 'green';
+  } else {
+    links = [
+      { href: "/", label: "Home" },
+      { href: "/pedidosMunicipe", label: "Meus Pedidos", requiresAuth: true },
+      { href: "/perfil", label: "Perfil", requiresAuth: true },
+      { href: "/login", label: "Login", hideWhenAuth: true },
+    ];
+  }
 
   const visibleLinks = mounted ? links.filter(link => {
     if (link.requiresAuth && !isAuthenticated) return false;
@@ -39,7 +89,7 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
   }) : links.filter(link => !link.requiresAuth);
 
   const cls = `site-header bg-[var(--global-bg)] border-b ${inverted ? 'site-header--inverted' : ''}`;
-  const themeClass = theme === 'green' ? 'global-theme-green' : theme === 'purple' ? 'global-theme-purple' : '';
+  const themeClass = effectiveTheme === 'green' ? 'global-theme-green' : effectiveTheme === 'purple' ? 'global-theme-purple' : '';
 
   return (
     <header 
@@ -49,14 +99,24 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
       <div className="px-6 sm:px-6 lg:px-40">
         <div className="flex items-center justify-between" style={{ height: 64 }}>
           <div className="flex-shrink-0">
-            <Link
-              href="/"
-              className="font-semibold tracking-wide text-[18px] md:text-[20px]"
-              style={{ color: 'var(--global-text-primary)' }}
-              data-test="header-logo"
-            >
-              VILHENA+PÚBLICA
-            </Link>
+            {mounted && (isSecretariaArea || isOperadorArea) ? (
+              <span
+                className="font-semibold tracking-wide text-[18px] md:text-[20px] cursor-default"
+                style={{ color: 'var(--global-text-primary)' }}
+                data-test="header-logo"
+              >
+                VILHENA+PÚBLICA
+              </span>
+            ) : (
+              <Link
+                href="/"
+                className="font-semibold tracking-wide text-[18px] md:text-[20px]"
+                style={{ color: 'var(--global-text-primary)' }}
+                data-test="header-logo"
+              >
+                VILHENA+PÚBLICA
+              </Link>
+            )}
           </div>
 
           <div className="hidden md:block" data-test="header-nav-desktop">
@@ -72,10 +132,10 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
                   </NavLink>
                 ))}
               </Navigation>
-              {mounted && isAuthenticated && (
+              {mounted && (isAuthenticated || isSecretariaArea || isOperadorArea) && (
                 <button
                   onClick={logout}
-                  className="ml-2 px-4 py-2 bg-[var(--global-text-primary)]/90 text-white text-sm font-medium rounded-lg hover:bg-[var(--global-text-secondary)] transition-colors"
+                  className="ml-2 px-4 py-2 bg-[var(--global-text-primary)]/90 text-white text-sm font-medium rounded-lg hover:bg-[var(--global-text-secondary)] transition-colors cursor-pointer"
                   data-test="header-logout-button"
                 >
                   Sair
@@ -128,10 +188,10 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
                 </NavLink>
               ))}
             </Navigation>
-            {mounted && isAuthenticated && (
+            {mounted && (isAuthenticated || isSecretariaArea || isOperadorArea) && (
               <button
                 onClick={logout}
-                className="mt-3 w-full px-4 py-2 bg-[var(--global-text-primary)]/90 text-white text-sm font-medium rounded-lg hover:bg-[var(--global-text-secondary)] transition-colors"
+                className="mt-3 w-full px-4 py-2 bg-[var(--global-text-primary)]/90 text-white text-sm font-medium rounded-lg hover:bg-[var(--global-text-secondary)] transition-colors cursor-pointer"
                 data-test="header-mobile-logout-button"
               >
                 Sair

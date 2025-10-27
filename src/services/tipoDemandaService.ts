@@ -1,6 +1,6 @@
 // src/services/tipoDemandaService.ts
 
-import { get, post, patch, del } from './api';
+import { getSecure, postSecure, patchSecure, delSecure } from './api';
 import type {
   TipoDemandaModel,
   ApiResponse,
@@ -16,33 +16,46 @@ export const tipoDemandaService = {
   /**
    * Busca todos os tipos de demanda
    */
-  async buscarTiposDemanda(
-    token: string
+  async buscarTiposDemanda(): Promise<ApiResponse<PaginatedResponse<TipoDemandaModel>>> {
+    return getSecure<ApiResponse<PaginatedResponse<TipoDemandaModel>>>('/tipoDemanda');
+  },
+
+  /**
+   * Busca tipos de demanda filtrados por tipo com limite customizado
+   */
+  async buscarTiposDemandaPorTipo(
+    filters: Record<string, any> = {},
+    limite: number = 10,
+    page: number = 1
   ): Promise<ApiResponse<PaginatedResponse<TipoDemandaModel>>> {
-    return get<ApiResponse<PaginatedResponse<TipoDemandaModel>>>(
-      '/tipoDemanda',
-      token
+    const params = new URLSearchParams();
+
+    for (const key in filters) {
+      const value = filters[key];
+      if (value) {
+        params.append(key, value);
+      }
+    }
+    params.append('limite', String(limite));
+    params.append('page', String(page));
+
+    return getSecure<ApiResponse<PaginatedResponse<TipoDemandaModel>>>(
+      `/tipoDemanda?${params.toString()}`
     );
   },
 
   /**
    * Busca um tipo de demanda por ID
    */
-  async buscarTipoDemandaPorId(
-    id: string,
-    token: string
-  ): Promise<ApiResponse<TipoDemandaModel>> {
-    return get<ApiResponse<TipoDemandaModel>>(`/tipoDemanda/${id}`, token);
+  async buscarTipoDemandaPorId(id: string): Promise<ApiResponse<TipoDemandaModel>> {
+    return getSecure<ApiResponse<TipoDemandaModel>>(`/tipoDemanda/${id}`);
   },
 
   /**
    * Cria um novo tipo de demanda
    */
-  async criarTipoDemanda(
-    data: CreateTipoDemandaData,
-    token: string
-  ): Promise<ApiResponse<TipoDemandaModel>> {
-    return post<ApiResponse<TipoDemandaModel>>('/tipoDemanda', data, token);
+  async criarTipoDemanda(data: CreateTipoDemandaData): Promise<ApiResponse<TipoDemandaModel>> {
+    return postSecure<ApiResponse<TipoDemandaModel>>('/tipoDemanda', data);
   },
 
   /**
@@ -50,41 +63,39 @@ export const tipoDemandaService = {
    */
   async atualizarTipoDemanda(
     id: string,
-    data: UpdateTipoDemandaData,
-    token: string
+    data: UpdateTipoDemandaData
   ): Promise<ApiResponse<TipoDemandaModel>> {
-    return patch<ApiResponse<TipoDemandaModel>>(`/tipoDemanda/${id}`, data, token);
+    return patchSecure<ApiResponse<TipoDemandaModel>>(`/tipoDemanda/${id}`, data);
   },
 
   /**
    * Deleta um tipo de demanda
    */
-  async deletarTipoDemanda(
-    id: string,
-    token: string
-  ): Promise<ApiResponse<void>> {
-    return del<ApiResponse<void>>(`/tipoDemanda/${id}`, token);
+  async deletarTipoDemanda(id: string): Promise<ApiResponse<void>> {
+    return delSecure<ApiResponse<void>>(`/tipoDemanda/${id}`);
   },
 
   /**
    * Busca foto de um tipo de demanda
    * GET /tipoDemanda/:id/foto
    */
-  async buscarFotoTipoDemanda(id: string, token: string): Promise<Blob> {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/tipoDemanda/${id}/foto`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+  async buscarFotoTipoDemanda(id: string): Promise<Blob> {
+    const response = await fetch('/api/auth/secure-fetch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endpoint: `/tipoDemanda/${id}/foto`,
+        method: 'GET'
+      })
+    });
 
     if (!response.ok) {
-      throw new Error('Erro ao buscar foto');
+      const errorText = await response.text();
+      throw new Error(`Erro ao buscar foto: ${response.status} ${response.statusText}`);
     }
 
-    return response.blob();
+    const blob = await response.blob();
+    return blob;
   },
 
   /**

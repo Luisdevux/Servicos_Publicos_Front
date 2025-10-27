@@ -1,0 +1,58 @@
+services:
+  # MongoDB - Banco de dados (Production)
+  mongodb:
+    container_name: mongodb-servicos
+    image: mongo:8
+    volumes:
+      - vol-mongodb-servicos:/data/db
+    ports:
+      - 27017:27017
+    networks:
+      - servicos-network
+
+  # API Backend - Node.js Express (Production)
+  api:
+    container_name: api-servicos
+    build:
+      context: ../servicos-publicos-api
+      dockerfile: Dockerfile
+    environment:
+      DB_URL: "mongodb://mongodb-servicos:27017/exemplo"
+      NODE_ENV: "production"
+    ports:
+      - 5011:5011
+    depends_on:
+      - mongodb
+    networks:
+      - servicos-network
+    restart: unless-stopped
+
+  # Frontend - Next.js (Production)
+  frontend:
+    container_name: frontend-servicos
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        API_URL_SERVER: "http://api-servicos:5011"
+        NEXT_PUBLIC_API_URL_CLIENT: "http://localhost:5011"
+        PROXY_OAUTH_CALLBACK: "true"
+    environment:
+      NODE_ENV: "production"
+    ports:
+      - 3000:3000
+    depends_on:
+      - api
+    networks:
+      - servicos-network
+    restart: unless-stopped
+
+# Volumes - Persistência de dados
+volumes:
+  vol-mongodb-servicos:
+
+# Networks - Orquestração de containers
+networks:
+  servicos-network:
+    name: servicos-network
+    driver: bridge
