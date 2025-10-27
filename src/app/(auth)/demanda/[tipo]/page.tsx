@@ -2,13 +2,14 @@
 
 "use client";
 
+import CardDemandaSkeleton from "@/components/CardDemandaSkeleton";
 import CardDemanda from "@/components/cardDemanda";
 import Banner from "@/components/banner";
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
-import { ArrowLeft, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Search, ChevronLeft, ChevronRight, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { tipoDemandaService } from "@/services";
@@ -145,36 +146,44 @@ export default function DemandaPage() {
   return (
     <div data-test="demanda-page">
       <Banner
-        titulo={bannerData?.tipo || tipoFiltro}
-        descricao={`Conheça a gama completa de serviços públicos municipais voltados para ${tipoFiltro.toLowerCase()}. Navegue pelas opções, encontre informações detalhadas e acesse o atendimento especializado`}
+        titulo={`Serviços de ${bannerData?.tipo || tipoFiltro}`}
+        descricao={`Encontre e solicite o que precisa. Explore abaixo todos os serviços de ${tipoFiltro.toLowerCase()} disponíveis para você. Detalhes, prazos e abertura de demandas em um só lugar.`}
         className="mb-4"
       />
 
       <div className="px-6 sm:px-6 lg:px-40 py-4" data-test="demanda-page-container">
-        <div className="flex justify-between items-center mb-6">
-          <Button
-            size="lg"
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Voltar</span>
-          </Button>
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Buscar por título do serviço..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-[var(--global-text-secondary)] mb-4">Explore os Serviços</h2>
+          <div className="flex justify-between items-center p-4 bg-white rounded-lg border shadow-sm">
+            <Button
+              size="lg"
+              onClick={() => router.back()}
+              className="flex items-center gap-2 bg-[var(--global-accent)] text-[var(--global-bg)] hover:bg-[var(--global-link-hover)]/90"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span className="font-medium">Voltar</span>
+            </Button>
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Buscar por título do serviço..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </div>
         </div>
 
         {(demandasIsLoading || imagesIsLoading) && (
-          <div className="flex justify-center items-center py-20">
-            <div className="text-lg text-gray-600">Carregando serviços...</div>
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-stretch"
+            data-test="demanda-skeleton-grid"
+          >
+            {Array.from({ length: 8 }).map((_, index) => (
+              <CardDemandaSkeleton key={index} />
+            ))}
           </div>
         )}
 
@@ -195,16 +204,18 @@ export default function DemandaPage() {
         )}
 
         {!demandasIsLoading && !demandasIsError && cardsFiltrados.length === 0 && (
-          <div className="flex justify-center items-center py-20">
-            <div className="text-center">
-              <p className="text-lg text-gray-600 mb-2">
-                Nenhum serviço encontrado para "{tipoFiltro}"
-                {debouncedSearchTerm && ` com o termo "${debouncedSearchTerm}"`}
-              </p>
-              <p className="text-sm text-gray-500">
-                Tente um termo diferente ou explore outras categorias.
-              </p>
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="bg-gray-100 p-6 rounded-full mb-4">
+              <SearchX className="h-12 w-12 text-gray-400" />
             </div>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              Nenhum serviço encontrado
+            </h3>
+            <p className="text-gray-500 max-w-md">
+              Não encontramos serviços para "{tipoFiltro}"
+              {debouncedSearchTerm && ` com o termo "${debouncedSearchTerm}"`}. 
+              Por favor, tente uma busca diferente.
+            </p>
           </div>
         )}
 
@@ -213,10 +224,15 @@ export default function DemandaPage() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-stretch"
             data-test="demanda-cards-grid"
           >
-            {cardsFiltrados.map((card) => {
+            {cardsFiltrados.map((card, index) => {
               const imagemFinal = imageUrls?.[card._id] || '';
               return (
-                <div key={card._id} data-test={`demanda-card-${card._id}`}>
+                <div 
+                  key={card._id} 
+                  data-test={`demanda-card-${card._id}`}
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
                   <CardDemanda
                     titulo={card.titulo}
                     descricao={card.descricao}
@@ -232,7 +248,6 @@ export default function DemandaPage() {
           </div>
         )}
 
-        {/* Controles de Paginação */}
         {!demandasIsLoading && !demandasIsError && cardsFiltrados.length > 0 && (
           <div className="flex items-center justify-center gap-4 mt-8">
             <button

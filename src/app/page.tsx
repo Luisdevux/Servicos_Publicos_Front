@@ -201,7 +201,7 @@ export default function Home() {
                     </p>
                   </div>
                   <button 
-                    className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-[var(--global-accent)]/10 hover:bg-[var(--global-accent)] text-[var(--global-accent)] hover:text-white rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 group-hover:shadow-md mt-2 sm:mt-3"
+                    className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-[var(--global-accent)]/10 hover:bg-[var(--global-accent)] text-[var(--global-accent)] hover:text-white rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 group-hover:shadow-md mt-2 sm:mt-3 cursor-pointer"
                   >
                     Solicitar
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
