@@ -52,7 +52,7 @@ export default function MeusPedidosPage() {
       titulo: `Demanda sobre ${demanda.tipo}`,
       status: statusMapping[demanda.status] || "Em aberto",
       descricao: demanda.descricao,
-      imagem: demanda.link_imagem ? [demanda.link_imagem] : undefined,
+      link_imagem: demanda.link_imagem ? [demanda.link_imagem] : undefined,
       endereco: demanda.endereco ? {
         bairro: demanda.endereco.bairro || "",
         logradouro: demanda.endereco.logradouro || "",

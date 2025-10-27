@@ -72,13 +72,13 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
             </div>
           )}
 
-          {pedido.imagem && (
+          {pedido.link_imagem && (
             <div className="space-y-2" data-test="imagens-demanda-section">
               <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
-                {Array.isArray(pedido.imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
+                {Array.isArray(pedido.link_imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
               </h3>
-              <ImageCarousel 
-                images={Array.isArray(pedido.imagem) ? pedido.imagem : [pedido.imagem]}
+              <ImageCarousel
+                images={Array.isArray(pedido.link_imagem) ? pedido.link_imagem : [pedido.link_imagem]}
                 alt="Imagem da demanda"
                 className="h-48"
               />
