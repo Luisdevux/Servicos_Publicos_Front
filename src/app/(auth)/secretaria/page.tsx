@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Banner from "@/components/banner";
@@ -11,20 +11,40 @@ import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/services/api";
-import type { Demanda as DemandaAPI } from "@/types";
+import type { Demanda as DemandaAPI, Usuarios } from "@/types";
+import DetalhesDemandaSecretariaModal from "@/components/detalheDemandaSecretariaModal";
+import { demandaService } from "@/services/demandaService";
+import { usuarioService } from "@/services/usuarioService";
+import { toast } from "sonner";
 
 interface DemandaCard {
   id: string;
   titulo: string;
   descricao: string;
   tipo: string;
+  status: string;
+  imagem?: string | string[];
+  endereco?: {
+    bairro: string;
+    tipoLogradouro: string;
+    logradouro: string;
+    numero: number;
+  };
+  usuarios?: (string | { _id: string; nome: string })[];
+  resolucao?: string;
+  motivo_devolucao?: string;
+  link_imagem_resolucao?: string | string[];
 }
 
 export default function PedidosSecretariaPage() {
+  const [abaAtiva, setAbaAtiva] = useState<"em-aberto" | "em-andamento" | "concluidas">("em-aberto");
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [demandaSelecionada, setDemandaSelecionada] = useState<DemandaCard | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const ITENS_POR_PAGINA = 6;
 
@@ -38,25 +58,9 @@ export default function PedidosSecretariaPage() {
     queryKey: ['demandas-secretaria'],
     queryFn: async () => {
       try {
-        const result = await fetch('/api/auth/secure-fetch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            endpoint: '/demandas',
-            method: 'GET'
-          })
-        });
-
-        if (!result.ok) {
-          if (result.status === 401) {
-            throw new ApiError('Sessão expirada', 498);
-          }
-          throw new Error('Erro ao buscar demandas');
-        }
-
-        const data = await result.json();
-        console.log("Demandas carregadas:", data);
-        return data;
+        const result = await demandaService.buscarDemandas();
+        console.log("Demandas carregadas:", result);
+        return result;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
         throw err;
@@ -76,12 +80,107 @@ export default function PedidosSecretariaPage() {
     }
   }, [error, router]);
 
-  const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => ({
-    id: demanda._id,
-    titulo: `Demanda sobre ${demanda.tipo}`,
-    descricao: demanda.descricao,
-    tipo: demanda.tipo.toLowerCase(),
-  })) || [];
+  const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => {
+    // Debug: log da demanda completa para ver estrutura
+    if (demanda.status === "Concluída") {
+      console.log("Demanda da API (Concluída):", demanda);
+    }
+    
+    return {
+      id: demanda._id,
+      titulo: `Demanda sobre ${demanda.tipo}`,
+      descricao: demanda.descricao,
+      tipo: demanda.tipo.toLowerCase(),
+      status: demanda.status || 'Em aberto',
+      imagem: demanda.link_imagem,
+      endereco: demanda.endereco ? {
+        bairro: demanda.endereco.bairro,
+        tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
+        logradouro: demanda.endereco.logradouro,
+        numero: demanda.endereco.numero,
+      } : undefined,
+      usuarios: demanda.usuarios,
+      resolucao: demanda.resolucao,
+      motivo_devolucao: demanda.motivo_devolucao,
+      link_imagem_resolucao: demanda.link_imagem_resolucao,
+    };
+  }) || [];
+
+  const { data: operadoresResponse } = useQuery({
+    queryKey: ['operadores'],
+    queryFn: async () => {
+      try {
+        const result = await fetch('/api/auth/secure-fetch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            endpoint: '/usuarios?nivel_acesso=operador',
+            method: 'GET'
+          })
+        });
+
+        if (!result.ok) {
+          console.error('Erro ao buscar operadores:', result.status, result.statusText);
+          throw new Error('Erro ao buscar operadores');
+        }
+
+        const payload = await result.json();
+        console.log('Operadores recebidos:', payload?.data?.docs?.length || 0);
+
+        return payload;
+      } catch (error) {
+        console.error('Erro na busca de operadores:', error);
+        toast.error('Erro ao carregar operadores', {
+          description: 'Não foi possível carregar a lista de operadores. Tente novamente.'
+        });
+        throw error;
+      }
+    },
+    enabled: status === 'authenticated',
+    retry: 1,
+  });
+
+  const operadores: Usuarios[] = operadoresResponse?.data?.docs || [];
+
+  const atribuirMutation = useMutation({
+    mutationFn: async ({ demandaId, operadorId }: { demandaId: string; operadorId: string }) => {
+      return demandaService.atribuirDemanda(demandaId, {
+        usuarios: [operadorId]
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['demandas-secretaria'] });
+      toast.success('Demanda atribuída com sucesso!', {
+        description: 'O operador foi notificado e a demanda está em andamento.'
+      });
+      handleCloseModal();
+    },
+    onError: (error) => {
+      console.error('Erro ao atribuir demanda:', error);
+      toast.error('Erro ao atribuir demanda', {
+        description: 'Não foi possível atribuir a demanda. Tente novamente.'
+      });
+    },
+  });
+
+  const rejeitarMutation = useMutation({
+    mutationFn: async ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
+      return demandaService.rejeitarDemanda(demandaId, motivo);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['demandas-secretaria'] });
+      toast.success('Demanda rejeitada', {
+        description: 'A demanda foi rejeitada e o solicitante será notificado.'
+      });
+      handleCloseModal();
+    },
+    onError: (error) => {
+      console.error('Erro ao rejeitar demanda:', error);
+      toast.error('Erro ao rejeitar demanda', {
+        description: 'Não foi possível rejeitar a demanda. Tente novamente.'
+      });
+    },
+  });
 
   const handleFiltroChange = (value: string) => {
     setFiltroSelecionado(value);
@@ -97,7 +196,24 @@ export default function PedidosSecretariaPage() {
   };
 
   const handleAnalisarDemanda = (id: string) => {
-    console.log("Analisar demanda:", id);
+    const demanda = demandas?.find((d) => d.id === id);
+    if (demanda) {
+      setDemandaSelecionada(demanda);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setDemandaSelecionada(null);
+  };
+
+  const handleConfirmar = async (demandaId: string, operadorId: string) => {
+    atribuirMutation.mutate({ demandaId, operadorId });
+  };
+
+  const handleRejeitar = async (demandaId: string, motivo: string) => {
+    rejeitarMutation.mutate({ demandaId, motivo });
   };
 
   const getStatusColor = (tipo: string) => {
@@ -121,10 +237,20 @@ export default function PedidosSecretariaPage() {
   };
 
   const demandasFiltradas = demandas.filter(demanda => {
-    if (filtroSelecionado === "todos") {
-      return true;
+    // Filtro por status (aba ativa)
+    let statusMatch = false;
+    if (abaAtiva === "em-aberto") {
+      statusMatch = demanda.status === "Em aberto";
+    } else if (abaAtiva === "em-andamento") {
+      statusMatch = demanda.status === "Em andamento";
+    } else if (abaAtiva === "concluidas") {
+      statusMatch = demanda.status === "Concluída";
     }
-    return demanda.tipo === filtroSelecionado.toLowerCase();
+
+    // Filtro por tipo
+    const tipoMatch = filtroSelecionado === "todos" || demanda.tipo === filtroSelecionado.toLowerCase();
+
+    return statusMatch && tipoMatch;
   });
 
   const totalPaginas = Math.ceil(demandasFiltradas.length / ITENS_POR_PAGINA);
@@ -199,6 +325,74 @@ export default function PedidosSecretariaPage() {
 
       <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
         <div className="mx-auto">
+          {/* Abas de Status */}
+          <div className="mb-6 border-b border-gray-200">
+            <div className="flex gap-8">
+              <button
+                onClick={() => {
+                  setAbaAtiva("em-aberto");
+                  setPaginaAtual(1);
+                }}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  abaAtiva === "em-aberto"
+                    ? "border-purple-600 text-purple-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Em Aberto
+                {demandas.filter(d => d.status === "Em aberto").length > 0 && (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    abaAtiva === "em-aberto" ? "bg-purple-100 text-purple-600" : "bg-gray-100 text-gray-600"
+                  }`}>
+                    {demandas.filter(d => d.status === "Em aberto").length}
+                  </span>
+                )}
+              </button>
+              
+              <button
+                onClick={() => {
+                  setAbaAtiva("em-andamento");
+                  setPaginaAtual(1);
+                }}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  abaAtiva === "em-andamento"
+                    ? "border-purple-600 text-purple-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Em Andamento
+                {demandas.filter(d => d.status === "Em andamento").length > 0 && (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    abaAtiva === "em-andamento" ? "bg-purple-100 text-purple-600" : "bg-gray-100 text-gray-600"
+                  }`}>
+                    {demandas.filter(d => d.status === "Em andamento").length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  setAbaAtiva("concluidas");
+                  setPaginaAtual(1);
+                }}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  abaAtiva === "concluidas"
+                    ? "border-purple-600 text-purple-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Concluídas
+                {demandas.filter(d => d.status === "Concluída").length > 0 && (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    abaAtiva === "concluidas" ? "bg-purple-100 text-purple-600" : "bg-gray-100 text-gray-600"
+                  }`}>
+                    {demandas.filter(d => d.status === "Concluída").length}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
           <div className="mb-6">
 
 
@@ -221,9 +415,8 @@ export default function PedidosSecretariaPage() {
               </Select>
             </div>
           </div>
-        </div>
 
-        {demandasFiltradas.length > 0 ? (
+          {demandasFiltradas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16 mb-8">
               {demandasPaginadas.map((demanda) => (
                 <div 
@@ -247,7 +440,9 @@ export default function PedidosSecretariaPage() {
                     onClick={() => handleAnalisarDemanda(demanda.id)}
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                   >
-                    Analisar Demanda
+                    {abaAtiva === "em-aberto" && "Analisar Demanda"}
+                    {abaAtiva === "em-andamento" && "Ver Detalhes"}
+                    {abaAtiva === "concluidas" && "Ver Resolução"}
                   </Button>
                 </div>
               ))}
@@ -259,10 +454,9 @@ export default function PedidosSecretariaPage() {
               Nenhum pedido encontrado
             </h3>
             <div className="text-sm text-gray-500 text-center">
-              {filtroSelecionado === "todos" 
-                ? "Não há pedidos registrados no momento."
-                : `Não há pedidos com status "${filtroSelecionado}".`
-              }
+              {abaAtiva === "em-aberto" && "Não há demandas aguardando análise."}
+              {abaAtiva === "em-andamento" && "Não há demandas em andamento no momento."}
+              {abaAtiva === "concluidas" && "Não há demandas concluídas ainda."}
             </div>
           </div>
         )}
@@ -288,8 +482,21 @@ export default function PedidosSecretariaPage() {
               <ChevronRight size={20} />
             </button>
           </div>
-
+        </div>
       </div>
+
+      {demandaSelecionada && (
+        <DetalhesDemandaSecretariaModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          demanda={demandaSelecionada}
+          onConfirmar={handleConfirmar}
+          onRejeitar={handleRejeitar}
+          operadores={operadores}
+          isConfirmando={atribuirMutation.isPending}
+          isRejeitando={rejeitarMutation.isPending}
+        />
+      )}
     </div>
   );
 }
