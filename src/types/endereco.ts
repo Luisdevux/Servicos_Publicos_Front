@@ -23,8 +23,8 @@ export interface Endereco {
   logradouro: string;
   cep: string;
   bairro: string;
-  numero: string;
+  numero: number;
   complemento?: string;
-  cidade?: string;
-  estado?: EstadoBrasil;
+  cidade: string;
+  estado: EstadoBrasil;
 }

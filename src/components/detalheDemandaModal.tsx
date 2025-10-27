@@ -1,13 +1,14 @@
+// src/components/detalheDemandaModal.tsx
+
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Pedido } from "@/types";
 import ProgressoPedido from "./ProgressoPedido";
-import Image from "next/image";
 import { StarRating } from "./ui/star-rating";
 import { Button } from "./ui/button";
 import { ImageCarousel } from "./ui/image-carousel";
 import { useState } from "react";
+import type { Pedido } from "@/types";
 
 interface DetalhesDemandaModalProps {
   pedido: Pedido | null;

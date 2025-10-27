@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { Eye, EyeOff, Lock, User as UserIcon } from 'lucide-react';
-import { useLogin } from '@/hooks/useAuthMutations';
+import useLogin from '@/hooks/useLogin';
 import type { UserType } from '@/lib/auth';
 
 interface LoginFormProps {
@@ -16,14 +16,14 @@ export default function LoginForm({ userType }: LoginFormProps) {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
 
-  const loginMutation = useLogin(userType);
+  const { login, isLoading } = useLogin();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    loginMutation.mutate({
-      identificador: identifier,
+    await login({ 
+      identificador: identifier, 
       senha: password,
+      callbackUrl: '/' 
     });
   };
 
@@ -35,16 +35,6 @@ export default function LoginForm({ userType }: LoginFormProps) {
       <p className="text-gray-600 text-center mb-6 text-sm" data-test="subtitulo-login">
         Acesse com suas credenciais
       </p>
-
-      {loginMutation.isError && (
-        <div 
-          className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
-          data-test="mensagem-erro"
-          role="alert"
-        >
-          {loginMutation.error?.message || 'Erro ao fazer login. Verifique suas credenciais.'}
-        </div>
-      )}
 
       <div 
         className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-xs"
@@ -65,7 +55,7 @@ export default function LoginForm({ userType }: LoginFormProps) {
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="E-mail, CPF ou Usuário"
               required
-              disabled={loginMutation.isPending}
+              disabled={isLoading}
               data-test="input-identificador"
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#337695] focus:border-[#337695] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
@@ -83,7 +73,7 @@ export default function LoginForm({ userType }: LoginFormProps) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Senha"
               required
-              disabled={loginMutation.isPending}
+              disabled={isLoading}
               data-test="input-senha"
               className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#337695] focus:border-[#337695] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
@@ -115,11 +105,11 @@ export default function LoginForm({ userType }: LoginFormProps) {
 
         <button
           type="submit"
-          disabled={loginMutation.isPending}
+          disabled={isLoading}
           data-test="button-acessar"
           className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white font-semibold py-3 rounded-lg transition-all shadow-lg uppercase text-sm tracking-wide disabled:opacity-70 disabled:cursor-not-allowed hover:-translate-y-0.5"
         >
-          {loginMutation.isPending ? 'ENTRANDO...' : 'ACESSAR'}
+          {isLoading ? 'ENTRANDO...' : 'ACESSAR'}
         </button>
       </form>
     </div>

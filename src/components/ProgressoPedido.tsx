@@ -1,3 +1,5 @@
+// src/components/ProgressoPedido.tsx
+
 "use client";
 
 import { Check, X } from "lucide-react";
