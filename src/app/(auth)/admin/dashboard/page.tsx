@@ -14,9 +14,15 @@ import {
   Building2 
 } from "lucide-react";
 import { adminService } from "@/services/adminService";
+import { useAuth } from "@/hooks/useAuth";
 import type { DashboardMetrics, DemandaPorBairro, DemandaPorCategoria } from "@/types/admin";
+import { useSession, signOut } from "next-auth/react";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['dashboard-metrics'],
@@ -32,6 +38,23 @@ export default function DashboardPage() {
     retry: 1,
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    if (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStatus = (error as any)?.status;
+      
+      if (
+        errorStatus === 498 ||
+        errorMessage.includes('expirado')
+      ) {
+        toast.error('Sua sessão expirou. Você será redirecionado para fazer login novamente...');
+        signOut({ redirect: false }).then(() => {
+          window.location.href = '/login/funcionario';
+        });
+      }
+    }
+  }, [error]);
 
   const metricas: DashboardMetrics = response?.data?.metricas || {
     totalDemandas: 0,
@@ -75,36 +98,13 @@ export default function DashboardPage() {
       <div className="space-y-6 pt-3">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-[var(--global-accent)] border-t-transparent mx-auto"></div>
             <p className="text-gray-600">Carregando métricas...</p>
           </div>
         </div>
       </div>
     );
   }
-
-  // if (error) {
-  //   const isTokenExpired = error instanceof ApiError && error.status === 498;
-    
-  //   return (
-  //     <div className="space-y-6 pt-3">
-  //       <div className="flex items-center justify-center py-12">
-  //         <div className="text-center max-w-md mx-auto px-4">
-  //           <FolderKanban className="h-16 w-16 text-red-400 mx-auto mb-4" />
-  //           <p className="text-red-600 font-semibold mb-2">
-  //             {isTokenExpired ? "Sessão expirada" : "Erro ao carregar métricas"}
-  //           </p>
-  //           <p className="text-gray-600 text-sm mb-4">
-  //             {isTokenExpired 
-  //               ? "Sua sessão expirou. Você será redirecionado para fazer login novamente..." 
-  //               : (error instanceof Error ? error.message : "Erro desconhecido. Tente novamente.")
-  //             }
-  //           </p>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="space-y-6 pt-3">

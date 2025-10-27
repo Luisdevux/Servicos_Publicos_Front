@@ -50,7 +50,7 @@ const data = {
       icon: IdCardLanyard,
     },
     {
-      title: "Add Empresas Terceiras",
+      title: "Add Secretaria",
       path: "#",
       icon: Building2,
     },

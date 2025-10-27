@@ -65,7 +65,8 @@ export const adminService = {
       };
     } catch (error) {
       console.error(`[ERROR] Falha ao buscar métricas:`, error);
-      throw new Error('Erro ao buscar métricas');
+      // Preserve the original error with status
+      throw error;
     }
   },
 
