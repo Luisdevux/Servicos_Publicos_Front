@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -13,25 +13,35 @@ interface ImageCarouselProps {
 
 export function ImageCarousel({ images, alt = "Imagem", className }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   const nextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % images.length);
+  setCurrentIndex((prev) => (prev + 1) % images.length);
+  setIsLoading(true);
   };
 
   const prevImage = () => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  setIsLoading(true);
   };
 
   if (!images || images.length === 0) return null;
 
   return (
-    <div className={cn("relative w-full h-60 rounded-md overflow-hidden border", className)}>
+    <div className={cn("relative w-full h-60 rounded-md overflow-hidden border bg-gray-100", className)}>
       <Image
         src={images[currentIndex]}
         alt={`${alt} ${currentIndex + 1}`}
         fill
         className="object-cover"
+  onLoadingComplete={() => setIsLoading(false)}
       />
+
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+          <Loader2 className="animate-spin text-white" size={36} />
+        </div>
+      )}
       
       {images.length > 1 && (
         <>
