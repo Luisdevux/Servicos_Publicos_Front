@@ -83,6 +83,9 @@ export default function PedidosOperadorPage() {
     // Debug: log da demanda completa para ver estrutura
     if (demanda.status === "Concluída") {
       console.log("Demanda da API no operador (Concluída):", demanda);
+      console.log("link_imagem_resolucao:", demanda.link_imagem_resolucao);
+      console.log("tipo de link_imagem_resolucao:", typeof demanda.link_imagem_resolucao);
+      console.log("é array?", Array.isArray(demanda.link_imagem_resolucao));
     }
     
     return {
@@ -128,9 +131,19 @@ export default function PedidosOperadorPage() {
 
   const resolverMutation = useMutation({
     mutationFn: async ({ demandaId, descricao, imagens }: { demandaId: string; descricao: string; imagens: File[] }) => {
-      return demandaService.resolverDemanda(demandaId, {
+      // Primeiro, resolve a demanda com a descrição
+      const resultadoResolucao = await demandaService.resolverDemanda(demandaId, {
         resolucao: descricao,
       });
+
+      // Depois, faz upload das imagens de resolução
+      if (imagens && imagens.length > 0) {
+        for (const imagem of imagens) {
+          await demandaService.uploadFotoResolucao(demandaId, imagem);
+        }
+      }
+
+      return resultadoResolucao;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['demandas-operador'] });

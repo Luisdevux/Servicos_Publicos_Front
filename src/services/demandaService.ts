@@ -150,6 +150,39 @@ export const demandaService = {
 
     return response.json();
   },
+
+  /**
+   * Faz upload de foto da resolução da demanda
+   */
+  async uploadFotoResolucao(
+    id: string,
+    file: File
+  ): Promise<ApiResponse<{ link_imagem_resolucao: string }>> {
+    
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/auth/secure-fetch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        endpoint: `/demandas/${id}/foto/resolucao`,
+        method: 'POST',
+        bodyType: 'formData',
+        formData: {
+          file: await fileToBase64(file)
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao fazer upload da foto de resolução');
+    }
+
+    return response.json();
+  },
 };
 
 /**
