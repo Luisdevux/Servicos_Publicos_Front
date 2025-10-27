@@ -13,6 +13,7 @@ interface Demanda {
   titulo: string;
   descricao: string;
   tipo: string;
+  status: string;
   imagem?: string | string[];
   endereco?: {
     bairro: string;
@@ -20,6 +21,8 @@ interface Demanda {
     logradouro: string;
     numero: number;
   };
+  resolucao?: string;
+  link_imagem_resolucao?: string | string[];
 }
 
 interface DetalhesDemandaOperadorModalProps {
@@ -48,6 +51,11 @@ export default function DetalhesDemandaOperadorModal({
   const [imagensResolucao, setImagensResolucao] = useState<File[]>([]);
 
   if (!demanda) return null;
+
+  // Debug: verificar se link_imagem_resolucao está chegando
+  if (demanda.status === "Concluída") {
+    console.log("Demanda concluída no operador - link_imagem_resolucao:", demanda.link_imagem_resolucao);
+  }
 
   const handleDevolver = () => {
     if (motivoDevolucao.trim() && onDevolver) {
@@ -78,10 +86,30 @@ export default function DetalhesDemandaOperadorModal({
     <>
       <Dialog open={isOpen && !showDevolverModal && !showResolverModal} onOpenChange={onClose}>
         <DialogContent 
-          className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-white border-none flex flex-col [&>button]:text-white [&>button]:hover:text-gray-200"
+          className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col [&>button]:text-white [&>button]:hover:text-gray-200"
         >
-          <DialogHeader className="bg-green-600 py-4 px-6 rounded-t-lg flex-shrink-0">
-            <DialogTitle className="text-center text-xl font-semibold text-white">
+          <DialogHeader className="bg-green-600 py-6 px-6 rounded-t-lg relative overflow-hidden flex-shrink-0">
+            {/* Grid de pontos decorativos */}
+            <div className="absolute inset-0 opacity-10">
+              <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <pattern id="dialog-grid-operador" width="60" height="60" patternUnits="userSpaceOnUse">
+                    <circle cx="30" cy="30" r="2" fill="white" />
+                    <circle cx="0" cy="0" r="1" fill="white" />
+                    <circle cx="60" cy="0" r="1" fill="white" />
+                    <circle cx="0" cy="60" r="1" fill="white" />
+                    <circle cx="60" cy="60" r="1" fill="white" />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#dialog-grid-operador)" />
+              </svg>
+            </div>
+
+            {/* Elementos decorativos geométricos */}
+            <div className="absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12"></div>
+            <div className="absolute bottom-4 right-8 w-10 h-10 border-2 border-white/20 rounded-full"></div>
+
+            <DialogTitle className="text-3xl font-bold text-center text-white drop-shadow-md relative z-10">
               {demanda.titulo}
             </DialogTitle>
           </DialogHeader>
@@ -93,7 +121,7 @@ export default function DetalhesDemandaOperadorModal({
                   <h3 className="text-lg font-medium text-green-600">
                     Descrição da demanda
                   </h3>
-                  <div className="bg-gray-50 p-4 rounded-md">
+                  <div className="bg-[var(--global-bg-select)] p-4 rounded-md">
                     <p>{demanda.descricao}</p>
                   </div>
                 </div>
@@ -120,48 +148,88 @@ export default function DetalhesDemandaOperadorModal({
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Bairro</label>
-                      <div className="p-2 rounded-md bg-gray-50 text-sm">
+                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
                         {demanda.endereco.bairro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Tipo de logradouro</label>
-                      <div className="p-2 rounded-md bg-gray-50 text-sm">
+                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
                         {demanda.endereco.tipoLogradouro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Logradouro</label>
-                      <div className="p-2 rounded-md bg-gray-50 text-sm">
+                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
                         {demanda.endereco.logradouro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Número</label>
-                      <div className="p-2 rounded-md bg-gray-50 text-sm">
+                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
                         {demanda.endereco.numero}
                       </div>
                     </div>
                   </div>
                 </div>
               )}
+
+              {/* Mostrar informações de conclusão quando a demanda estiver concluída */}
+              {demanda.status === "Concluída" && (
+                <>
+                  {demanda.resolucao && (
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-medium text-green-600">
+                        Descrição da conclusão da demanda
+                      </h3>
+                      <div className="bg-green-50 p-4 rounded-md border border-green-200">
+                        <p className="text-[var(--global-text-primary)]">{demanda.resolucao}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {demanda.link_imagem_resolucao && (
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-medium text-green-600">
+                        {Array.isArray(demanda.link_imagem_resolucao) ? 'Imagens da conclusão' : 'Imagem da conclusão'}
+                      </h3>
+                      <ImageCarousel 
+                        images={
+                          Array.isArray(demanda.link_imagem_resolucao) 
+                            ? demanda.link_imagem_resolucao.map(img => 
+                                img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011'}/demandas/${demanda.id}/foto/resolucao`
+                              )
+                            : [demanda.link_imagem_resolucao.startsWith('http') 
+                                ? demanda.link_imagem_resolucao 
+                                : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011'}/demandas/${demanda.id}/foto/resolucao`
+                              ]
+                        }
+                        alt="Imagem da conclusão"
+                        className="h-48"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
 
-          <div className="flex gap-3 px-6 pb-6 flex-shrink-0">
-            <Button
-              onClick={() => setShowDevolverModal(true)}
-              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
-            >
-              Devolver
-            </Button>
-            <Button
-              onClick={() => setShowResolverModal(true)}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-            >
-              Resolver
-            </Button>
-          </div>
+          {demanda.status !== "Concluída" && (
+            <div className="flex gap-3 px-6 pb-6 flex-shrink-0">
+              <Button
+                onClick={() => setShowDevolverModal(true)}
+                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                Devolver
+              </Button>
+              <Button
+                onClick={() => setShowResolverModal(true)}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              >
+                Resolver
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

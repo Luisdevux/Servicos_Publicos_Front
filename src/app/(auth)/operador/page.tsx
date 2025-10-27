@@ -79,24 +79,31 @@ export default function PedidosOperadorPage() {
     }
   }, [error, router]);
 
-  const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => ({
-    id: demanda._id,
-    titulo: `Demanda sobre ${demanda.tipo}`,
-    descricao: demanda.descricao,
-    tipo: demanda.tipo.toLowerCase(),
-    status: demanda.status || 'Em aberto',
-    imagem: demanda.link_imagem,
-    endereco: demanda.endereco ? {
-      bairro: demanda.endereco.bairro,
-      tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
-      logradouro: demanda.endereco.logradouro,
-      numero: demanda.endereco.numero,
-    } : undefined,
-    usuarios: demanda.usuarios,
-    resolucao: demanda.resolucao,
-    motivo_devolucao: demanda.motivo_devolucao,
-    link_imagem_resolucao: demanda.link_imagem_resolucao,
-  })) || [];
+  const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => {
+    // Debug: log da demanda completa para ver estrutura
+    if (demanda.status === "Concluída") {
+      console.log("Demanda da API no operador (Concluída):", demanda);
+    }
+    
+    return {
+      id: demanda._id,
+      titulo: `Demanda sobre ${demanda.tipo}`,
+      descricao: demanda.descricao,
+      tipo: demanda.tipo.toLowerCase(),
+      status: demanda.status || 'Em aberto',
+      imagem: demanda.link_imagem,
+      endereco: demanda.endereco ? {
+        bairro: demanda.endereco.bairro,
+        tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
+        logradouro: demanda.endereco.logradouro,
+        numero: demanda.endereco.numero,
+      } : undefined,
+      usuarios: demanda.usuarios,
+      resolucao: demanda.resolucao,
+      motivo_devolucao: demanda.motivo_devolucao,
+      link_imagem_resolucao: demanda.link_imagem_resolucao,
+    };
+  }) || [];
 
   const devolverMutation = useMutation({
     mutationFn: async ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
@@ -389,7 +396,7 @@ export default function PedidosOperadorPage() {
                     onClick={() => handleAnalisarDemanda(demanda.id)}
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
                   >
-                    Analisar Demanda
+                    {demanda.status === "Concluída" ? "Analisar Resolução" : "Analisar Demanda"}
                   </Button>
                 </div>
               ))}
