@@ -4,7 +4,6 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import ProgressoPedido from "./ProgressoPedido";
-import Image from "next/image";
 import { StarRating } from "./ui/star-rating";
 import { Button } from "./ui/button";
 import { ImageCarousel } from "./ui/image-carousel";
@@ -50,10 +49,10 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
 
         <div className="flex-1 overflow-y-auto px-6 pt-4 pb-6 min-h-0 scrollbar-hide">
           <div className="mb-4" data-test="progresso-section">
-            {pedido.status === "aceito" && pedido.progresso && (
+            {pedido.status !== "Recusada" && pedido.progresso && (
               <ProgressoPedido progresso={pedido.progresso} />
             )}
-            {pedido.status === "recusado" && (
+            {pedido.status === "Recusada" && (
               <ProgressoPedido 
                 progresso={{ aprovado: true, emProgresso: true, concluido: true }} 
                 variant="error" 
@@ -73,13 +72,13 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
             </div>
           )}
 
-          {pedido.imagem && (
+          {pedido.link_imagem && (
             <div className="space-y-2" data-test="imagens-demanda-section">
               <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
-                {Array.isArray(pedido.imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
+                {Array.isArray(pedido.link_imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
               </h3>
-              <ImageCarousel 
-                images={Array.isArray(pedido.imagem) ? pedido.imagem : [pedido.imagem]}
+              <ImageCarousel
+                images={Array.isArray(pedido.link_imagem) ? pedido.link_imagem : [pedido.link_imagem]}
                 alt="Imagem da demanda"
                 className="h-48"
               />
@@ -92,16 +91,16 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                 Endereço do ocorrido
               </h3>
               <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                  <label className="text-sm text-gray-600">CEP</label>
+                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-tipo-logradouro">
+                    {pedido.endereco.cep}
+                  </div>
+                </div>
                 <div className="space-y-1">
                   <label className="text-sm text-gray-600">Bairro</label>
                   <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-bairro">
                     {pedido.endereco.bairro}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm text-gray-600">Tipo de logradouro</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-tipo-logradouro">
-                    {pedido.endereco.tipoLogradouro}
                   </div>
                 </div>
                 <div className="space-y-1">
@@ -117,6 +116,13 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                   </div>
                 </div>
               </div>
+              {pedido.endereco.complemento && (
+              <div className="space-y-1">
+                  <label className="text-sm text-gray-600">Complemento</label>
+                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-complemento">
+                    {pedido.endereco.complemento}
+                  </div>
+              </div>)}
             </div>
           )}
 

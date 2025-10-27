@@ -1,4 +1,5 @@
 // src/hooks/useLogout.ts
+
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
@@ -9,7 +10,6 @@ import { toast } from "sonner";
 // Hook para fazer logout completo 
 
 export function useLogout() {
-  const { data: session } = useSession();
   const pathname = usePathname();
 
   const logout = useCallback(async (options?: { silent?: boolean }) => {
@@ -27,9 +27,8 @@ export function useLogout() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            endpoint: '/auth/logout',
-            method: 'POST',
-            body: {}
+            endpoint: '/logout',
+            method: 'POST'
           })
         });
 

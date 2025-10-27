@@ -72,7 +72,7 @@ export default function Home() {
                 ) : (
                   <>
                     <Link 
-                      href="/login"
+                      href="/cadastro"
                       className="text-center px-10 py-4 bg-white text-[var(--global-accent)] font-bold rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
                       data-test="botao-comece-agora"
                     >
@@ -116,8 +116,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="servicos" className="pt-4 pb-16 px-6 sm:px-6 lg:px-40 bg-white relative" data-test="secao-servicos">
-        <div className="text-center mb-12">
+      <section id="servicos" className="pt-18 pb-32 px-6 sm:px-6 lg:px-40 bg-gradient-to-b from-gray-50 to-blue-100/20 relative" data-test="secao-servicos">
+        <div className="text-center mb-16">
           <div className="inline-block px-4 py-2 bg-[var(--global-accent)]/10 rounded-full mb-4">
             <span className="text-sm font-semibold text-[var(--global-accent)] uppercase tracking-wider">Serviços Disponíveis</span>
           </div>
@@ -129,48 +129,48 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-5" data-test="grid-servicos">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" data-test="grid-servicos">
           {[
             {
               icon: "/homeIconeColeta.svg",
               label: "Coleta",
               href: "/demanda/coleta",
-              description: "Solicite serviço de coleta de lixo, resíduos e limpeza urbana"
+              description: "Solicite coleta de lixo, resíduos e limpeza de áreas públicas."
             },
             {
               icon: "/homeIconeIluminacao.svg",
-              label: "Iluminação",
+              label: "Iluminação Pública",
               href: "/demanda/iluminação",
-              description: "Reporte problemas com postes, lâmpadas e iluminação pública"
+              description: "Reporte problemas em postes, lâmpadas queimadas e falta de luz."
             },
             {
               icon: "/homeIconeDog.svg",
               label: "Animais",
               href: "/demanda/animais",
-              description: "Informe sobre animais abandonados ou em situação de risco"
+              description: "Informe sobre animais abandonados, feridos ou em situação de risco."
             },
             {
               icon: "/homeIconeArvores.svg",
               label: "Árvores",
               href: "/demanda/arvores",
-              description: "Solicite poda, remoção ou plantio de árvores e vegetação"
+              description: "Solicite poda, remoção ou avaliação de árvores em locais públicos."
             },
             {
               icon: "/homeIconePavimento.svg",
               label: "Pavimentação",
               href: "/demanda/pavimentação",
-              description: "Reporte buracos, rachaduras e problemas no asfalto"
+              description: "Reporte buracos, rachaduras e outros problemas no asfalto."
             },
             {
               icon: "/homeIconeSaneamento.svg",
               label: "Saneamento",
               href: "/demanda/saneamento",
-              description: "Informe problemas de esgoto, bueiros e drenagem urbana"
+              description: "Informe sobre vazamentos de esgoto, bueiros entupidos, drenagem ou qualquer serviço realcionado."
             },
           ].map((service) => (
             <div
               key={service.label}
-              className="group relative bg-white rounded-2xl p-3 sm:p-4 md:p-5 border border-gray-200 hover:border-[var(--global-accent)] transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+              className="group relative bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 transition-all duration-300 shadow-lg hover:shadow-2xl hover:border-[var(--global-accent)]/50 hover:-translate-y-2 cursor-pointer overflow-hidden"
               data-test={`card-servico-${service.label.toLowerCase()}`}
               onClick={() => {
                 if (isAuthenticated) {
@@ -180,36 +180,37 @@ export default function Home() {
                 }
               }}
             >
-              <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3 w-full h-full">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg flex-shrink-0">
-                  <Image
-                    src={service.icon}
-                    alt={service.label}
-                    width={32}
-                    height={32}
-                    style={{ width: '32px', height: '32px' }}
-                    className="filter brightness-0 invert"
-                  />
+                <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-full opacity-10 group-hover:opacity-20 group-hover:scale-125 transition-all duration-500"></div>
+                <div className="relative z-10 flex flex-col h-full">
+                    <div className="flex-shrink-0 mb-5">
+                        <div className="w-14 h-14 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+                            <div className="w-8 h-8 relative">
+                                <Image
+                                    src={service.icon}
+                                    alt={service.label}
+                                    fill
+                                    className="filter brightness-0 invert object-contain"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex-grow">
+                        <h3 className="text-xl font-bold text-[var(--global-text-secondary)] mb-2 group-hover:text-[var(--global-accent)] transition-colors duration-300" data-test={`titulo-servico-${service.label.toLowerCase()}`}>
+                          {service.label}
+                        </h3>
+                        <p className="text-sm text-[var(--global-text-primary)]/70 leading-relaxed" data-test={`descricao-servico-${service.label.toLowerCase()}`}>
+                          {service.description}
+                        </p>
+                    </div>
+                    <div className="mt-6">
+                        <div className="inline-flex items-center font-semibold text-[var(--global-accent)] transition-all duration-300">
+                            <span className="text-sm">Solicitar Serviço</span>
+                            <svg className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                        </div>
+                    </div>
                 </div>
-                <div className="w-full flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-[var(--global-text-secondary)] mb-1.5 group-hover:text-[var(--global-accent)] transition-colors leading-tight" data-test={`titulo-servico-${service.label.toLowerCase()}`}>
-                      {service.label}
-                    </h3>
-                    <p className="text-xs sm:text-sm md:text-base text-[var(--global-text-primary)]/70 hidden md:block leading-snug" data-test={`descricao-servico-${service.label.toLowerCase()}`}>
-                      {service.description}
-                    </p>
-                  </div>
-                  <button 
-                    className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-[var(--global-accent)]/10 hover:bg-[var(--global-accent)] text-[var(--global-accent)] hover:text-white rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 group-hover:shadow-md mt-2 sm:mt-3"
-                  >
-                    Solicitar
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
             </div>
           ))}
         </div>
@@ -270,13 +271,13 @@ export default function Home() {
                 <div className="hidden md:block absolute top-16 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-[var(--global-accent)]/30 to-transparent z-0"></div>
               )}
               
-              <div className="relative bg-white rounded-2xl p-10 hover:shadow-xl transition-all duration-300 border-2 border-gray-100 group-hover:border-[var(--global-accent)]/30 h-[340px] flex flex-col justify-center">
+              <div className="relative bg-white rounded-2xl p-10 hover:shadow-xl transition-all duration-300 border-2 border-gray-100 group-hover:border-[var(--global-accent)]/30 min-h-[340px] flex flex-col justify-center">
                 <div className="flex flex-col items-center text-center space-y-5 w-full">
                   <div className="relative">
                     <div className="w-24 h-24 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
                       {step.icon}
                     </div>
-                    <div className="absolute -top-2 -right-2 w-10 h-10 bg-white border-2 border-[var(--global-accent)] rounded-full flex items-center justify-center text-base font-bold text-[var(--global-accent)]" data-test={`numero-passo-${step.number}`}>
+                    <div className="absolute -top-4 -right-4 w-14 h-14 bg-[var(--global-accent)] border-4 border-white rounded-full flex items-center justify-center text-xl font-bold text-white shadow-md" data-test={`numero-passo-${step.number}`}>
                       {step.number}
                     </div>
                   </div>
