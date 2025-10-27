@@ -153,6 +153,11 @@ export default function MeusPedidosPage() {
                   <SelectItem value="recusado">Recusados</SelectItem>
                 </SelectContent>
               </Select>
+              <span className="text-sm text-[var(--global-text-primary)] ml-2">
+                {isLoading
+                  ? 'Carregando...'
+                  : `${totalDocs} ${totalDocs === 1 ? 'pedido' : 'pedidos'} no total`}
+              </span>
             </div>
           </div>
         </div>
