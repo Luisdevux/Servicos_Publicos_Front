@@ -4,3 +4,28 @@ export interface MetricCardProps {
     icon?: React.ReactNode;
     className?: string;
   }
+
+export interface DashboardMetrics {
+  totalDemandas: number;
+  novosColaboradores: number;
+  novosOperadores: number;
+  secretarias: number;
+}
+
+export interface DemandaPorBairro {
+  bairro: string;
+  quantidade: number;
+  cor: string;
+}
+
+export interface DemandaPorCategoria {
+  categoria: string;
+  quantidade: number;
+  cor: string;
+}
+
+export interface DashboardData {
+  metricas: DashboardMetrics;
+  demandasPorBairro: DemandaPorBairro[];
+  demandasPorCategoria: DemandaPorCategoria[];
+}

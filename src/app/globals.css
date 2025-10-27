@@ -229,6 +229,12 @@ html {
   --global-border: transparent;
 }
 
+.recharts-wrapper *, 
+.recharts-wrapper g, 
+.recharts-wrapper svg {
+  outline: none !important;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -243,3 +249,4 @@ html {
 .animate-fade-in {
   animation: fadeIn 0.5s ease-in-out forwards;
 }
+

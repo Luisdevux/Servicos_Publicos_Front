@@ -9,7 +9,9 @@ import {
   IdCardLanyard,
   Handshake,
   Briefcase,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Sidebar,
   SidebarContent,
@@ -28,34 +30,39 @@ const data = {
   navMain: [
     {
       title: "Dados",
-      url: "/admin/dashboard",
+      path: "/admin/dashboard",
       icon: HomeIcon,
       isActive: true,
     },
     {
       title: "Demandas",
-      url: "#",
+      path: "#",
       icon: FolderKanban,
     },
     {
       title: "Add Colaborador",
-      url: "#",
+      path: "#",
       icon: Handshake,
     },
     {
       title: "Add Operador",
-      url: "#",
+      path: "#",
       icon: IdCardLanyard,
     },
     {
-      title: "Add Empresas Terceiras",
-      url: "#",
+      title: "Add Secretaria",
+      path: "#",
       icon: Building2,
     },
     {
       title: "Add Tipo Demanda",
-      url: "#",
+      path: "#",
       icon: Briefcase,
+    },
+    {
+      title: "Sair",
+      path: "#",
+      icon: LogOut,
     }
   ]
 };
@@ -65,6 +72,8 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { logout } = useAuth();
+
   return (
     <SidebarProvider>
       <Sidebar variant="inset">
@@ -77,19 +86,30 @@ export default function AdminLayout({
             <SidebarGroupLabel>Menu</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {data.navMain.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      isActive={item.isActive}  
-                    >
-                      <a href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+              {data.navMain.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                    {item.title === "Sair" ? (
+                      <SidebarMenuButton
+                        asChild
+                        onClick={() => logout()}
+                        className="cursor-pointer"
+                      >
+                        <button className="flex items-center gap-2 w-full text-left">
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </button>
+                      </SidebarMenuButton>
+                    ) : (
+                      <SidebarMenuButton asChild isActive={item.isActive}>
+                        <a href={item.path}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    )}
+                </SidebarMenuItem>
                 ))}
+
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
