@@ -24,8 +24,7 @@ export default function MeusPedidosPage() {
   const {data: response, isLoading, error } = useQuery ({
     queryKey: ['demandas', paginaAtual],
     queryFn: async () => {
-
-  const result = await demandaService.buscarDemandas();
+  const result = await demandaService.buscarDemandas({ page: paginaAtual });
       console.log(result);
       return result;
     },

@@ -21,8 +21,22 @@ export const demandaService = {
   /**
    * Busca todas as demandas
    */
-  async buscarDemandas(): Promise<ApiResponse<PaginatedResponse<Demanda>>> {
-    return getSecure<ApiResponse<PaginatedResponse<Demanda>>>('/demandas');
+  async buscarDemandas(
+    params?: PaginationParams
+  ): Promise<ApiResponse<PaginatedResponse<Demanda>>> {
+    // Construindo query string a partir dos parâmetros de paginação
+    let endpoint = '/demandas';
+    if (params) {
+      const search = new URLSearchParams();
+      if (params.page !== undefined) search.set('page', String(params.page));
+      if (params.limit !== undefined) search.set('limit', String(params.limit));
+      if (params.sort) search.set('sort', params.sort);
+      if (params.select) search.set('select', params.select);
+      const qs = search.toString();
+      if (qs) endpoint += `?${qs}`;
+    }
+
+    return getSecure<ApiResponse<PaginatedResponse<Demanda>>>(endpoint);
   },
 
 
