@@ -52,19 +52,19 @@ export default function DashboardPage() {
     },
     {
       id: 2,
-      title: "Novos Colaboradores",
+      title: "Colaboradores",
       value: metricas.novosColaboradores.toLocaleString(),
       icon: <Users className="h-6 w-6" />
     },
     {
       id: 3,
-      title: "Novos Operadores",
+      title: "Operadores",
       value: metricas.novosOperadores.toLocaleString(),
       icon: <IdCardLanyard className="h-6 w-6" />
     },
     {
       id: 4,
-      title: "Novas Empresas Terceirizadas",
+      title: "Secretárias ",
       value: metricas.novasEmpresasTerceirizadas.toLocaleString(),
       icon: <Building2 className="h-6 w-6" />
     }
@@ -75,7 +75,7 @@ export default function DashboardPage() {
       <div className="space-y-6 pt-3">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Carregando métricas...</p>
           </div>
         </div>

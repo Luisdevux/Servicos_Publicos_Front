@@ -1,4 +1,4 @@
-import { get } from './api';
+import { get, getSecure } from './api';
 import type { ApiResponse, PaginatedResponse } from '@/types';
 import type { Demanda } from '@/types/demanda';
 import type {
@@ -16,14 +16,17 @@ export const adminService = {
 
     try {
       while (page <= totalPages) {
-        const response = await get<ApiResponse<PaginatedResponse<Demanda>>>(
+        const response = await getSecure<ApiResponse<PaginatedResponse<Demanda>>>(
           `/demandas?page=${page}`
+
         );
 
         allDemandas = [...allDemandas, ...(response.data?.docs || [])];
         totalPages = response.data?.totalPages || 1;
         page++;
       }
+
+      console.log('Demandas', allDemandas);
 
        const dashboardData = this.calcularMetricas({
          message: 'Métricas calculadas com sucesso',
@@ -103,6 +106,11 @@ export const adminService = {
 
   calcularDemandasPorBairro(demandas: Demanda[]): DemandaPorBairro[] {
     const bairros: { [key: string]: number } = {};
+
+    demandas.forEach((demanda) => {
+      const bairro = demanda.endereco?.bairro || 'Não informado';
+      bairros[bairro] = (bairros[bairro] || 0) + 1;
+    });
 
     const cores = ['#8b5cf6', '#94E9B8', '#3b82f6', '#9F9FF8', '#10b981'];
 
