@@ -116,7 +116,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="servicos" className="pt-24 pb-32 px-6 sm:px-6 lg:px-40 bg-gradient-to-b from-gray-50 to-blue-100/20 relative" data-test="secao-servicos">
+      <section id="servicos" className="pt-18 pb-32 px-6 sm:px-6 lg:px-40 bg-gradient-to-b from-gray-50 to-blue-100/20 relative" data-test="secao-servicos">
         <div className="text-center mb-16">
           <div className="inline-block px-4 py-2 bg-[var(--global-accent)]/10 rounded-full mb-4">
             <span className="text-sm font-semibold text-[var(--global-accent)] uppercase tracking-wider">Serviços Disponíveis</span>
