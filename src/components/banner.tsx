@@ -102,9 +102,6 @@ export default function Banner({
                   src={iconeUrl}
                   alt="Ícone do serviço"
                   className="w-14 h-14 md:w-18 md:h-18 object-contain"
-                  style={{
-                    filter: 'invert(58%) sepia(65%) saturate(800%) hue-rotate(170deg) brightness(90%) contrast(110%)'
-                  }}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -113,7 +110,7 @@ export default function Banner({
               ) : (
                 React.createElement(iconeUrl as LucideIcon, {
                   className: "w-14 h-14 md:w-20 md:h-20",
-                  style: { color: 'var(--global-accent)' }
+                  style: { color: 'var(--global-text-primary)' }
                 })
               )}
             </div>
@@ -143,4 +140,3 @@ export default function Banner({
     </div>
   );
 }
-

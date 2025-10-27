@@ -75,7 +75,7 @@ export const usuarioService = {
       body: JSON.stringify({
         endpoint: `/usuarios/${id}/foto`,
         method: 'POST',
-        body: formData // TODO: secure-fetch precisa suportar FormData
+        body: formData
       })
     });
 
