@@ -1,6 +1,8 @@
-import { get, getSecure } from './api';
+import { getSecure } from './api';
 import type { ApiResponse, PaginatedResponse } from '@/types';
 import type { Demanda } from '@/types/demanda';
+import type { Usuarios } from '@/types/usuarios';
+import type { Secretaria } from '@/types/secretaria';
 import type {
   DashboardData,
   DashboardMetrics,
@@ -9,78 +11,101 @@ import type {
 } from '@/types/admin';
 
 export const adminService = {
-  async buscarMetricas(): Promise<ApiResponse<DashboardData>> {
-    let allDemandas: Demanda[] = [];
+  async fetchAllPages<T>(endpoint: string): Promise<PaginatedResponse<T>> {
+    let allDocs: T[] = [];
     let page = 1;
     let totalPages = 1;
+    let totalDocs = 0;
 
+    do {
+      const response = await getSecure<ApiResponse<PaginatedResponse<T>>>(
+        `${endpoint}?page=${page}`
+      );
+
+      const data = response.data;
+      allDocs = [...allDocs, ...(data?.docs || [])];
+      totalPages = data?.totalPages || 1;
+      totalDocs = data?.totalDocs || allDocs.length;
+      page++;
+    } while (page <= totalPages);
+
+    return {
+      docs: allDocs,
+      totalDocs,
+      limit: allDocs.length,
+      totalPages: 1,
+      page: 1,
+      hasNextPage: false,
+      hasPrevPage: false,
+      nextPage: null,
+      prevPage: null,
+      pagingCounter: 1,
+    };
+  },
+
+  async buscarMetricas(): Promise<ApiResponse<DashboardData>> {
     try {
-      while (page <= totalPages) {
-        const response = await getSecure<ApiResponse<PaginatedResponse<Demanda>>>(
-          `/demandas?page=${page}`
+      const [demandas, usuarios, secretarias] = await Promise.all([
+        this.fetchAllPages<Demanda>('/demandas'),
+        this.fetchAllPages<Usuarios>('/usuarios'),
+        this.fetchAllPages<Secretaria>('/secretaria'),
+      ]);
 
-        );
+      const dashboardData = this.calcularMetricas(
+        { message: 'Métricas calculadas com sucesso', data: demandas, errors: [] },
+        usuarios.docs,
+        secretarias.docs,
+        secretarias.totalDocs
+      );
 
-        allDemandas = [...allDemandas, ...(response.data?.docs || [])];
-        totalPages = response.data?.totalPages || 1;
-        page++;
-      }
-
-      console.log('Demandas', allDemandas);
-
-       const dashboardData = this.calcularMetricas({
-         message: 'Métricas calculadas com sucesso',
-         data: {
-           docs: allDemandas,
-           totalDocs: allDemandas.length,
-           limit: allDemandas.length,
-           totalPages: 1,
-           page: 1,
-           hasNextPage: false,
-           hasPrevPage: false,
-           nextPage: null,
-           prevPage: null,
-           pagingCounter: 1,
-         },
-         errors: [],
-       });
-
-       return {
-         message: 'Métricas calculadas com sucesso',
-         data: dashboardData,
-         errors: [],
-       };
+      return {
+        message: 'Métricas calculadas com sucesso',
+        data: dashboardData,
+        errors: [],
+      };
     } catch (error) {
-      console.error(`[ERROR] Falha ao buscar demandas:`, error);
-      throw new Error('Erro ao buscar demandas');
+      console.error(`[ERROR] Falha ao buscar métricas:`, error);
+      throw new Error('Erro ao buscar métricas');
     }
   },
 
-  calcularMetricas(response: ApiResponse<PaginatedResponse<Demanda>>): DashboardData {
+  calcularMetricas(
+    response: ApiResponse<PaginatedResponse<Demanda>>,
+    usuarios: Usuarios[],
+    secretarias: Secretaria[],
+    totalSecretariasCount: number
+  ): DashboardData {
     const demandas = response.data?.docs || [];
     const totalDemandas = response.data?.totalDocs || demandas.length;
 
+    let totalColaboradores = 0;
+    let totalOperadores = 0;
+
+    usuarios.forEach((usuario) => {
+      if (usuario.ativo === false) return;
+      const nivel = usuario.nivel_acesso;
+      if (nivel?.operador || nivel?.secretario || nivel?.administrador) totalColaboradores++;
+      if (nivel?.operador) totalOperadores++;
+    });
+
     const metricas: DashboardMetrics = {
       totalDemandas,
-      novosColaboradores: 0, // TODO: implementar quando tivermos endpoint
-      novosOperadores: 0, // TODO: implementar quando tivermos endpoint
-      novasEmpresasTerceirizadas: 0, // TODO: implementar quando tivermos endpoint
+      novosColaboradores: totalColaboradores,
+      novosOperadores: totalOperadores,
+      secretarias: totalSecretariasCount,
     };
-
-    const demandasPorCategoria = this.calcularDemandasPorCategoria(demandas);
-    const demandasPorBairro = this.calcularDemandasPorBairro(demandas);
 
     return {
       metricas,
-      demandasPorBairro,
-      demandasPorCategoria,
+      demandasPorCategoria: this.calcularDemandasPorCategoria(demandas),
+      demandasPorBairro: this.calcularDemandasPorBairro(demandas),
     };
   },
 
   calcularDemandasPorCategoria(demandas: Demanda[]): DemandaPorCategoria[] {
-    const categorias: { [key: string]: number } = {};
+    const categorias: Record<string, number> = {};
 
-    demandas.forEach((demanda, index) => {
+    demandas.forEach((demanda) => {
       const tipo = demanda.tipo || 'Outros';
       categorias[tipo] = (categorias[tipo] || 0) + 1;
     });
@@ -105,7 +130,7 @@ export const adminService = {
   },
 
   calcularDemandasPorBairro(demandas: Demanda[]): DemandaPorBairro[] {
-    const bairros: { [key: string]: number } = {};
+    const bairros: Record<string, number> = {};
 
     demandas.forEach((demanda) => {
       const bairro = demanda.endereco?.bairro || 'Não informado';

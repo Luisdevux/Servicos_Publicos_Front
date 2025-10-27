@@ -37,7 +37,7 @@ export default function DashboardPage() {
     totalDemandas: 0,
     novosColaboradores: 0,
     novosOperadores: 0,
-    novasEmpresasTerceirizadas: 0
+    secretarias: 0
   };
 
   const dadosDemandasPorBairro: DemandaPorBairro[] = response?.data?.demandasPorBairro || [];
@@ -64,8 +64,8 @@ export default function DashboardPage() {
     },
     {
       id: 4,
-      title: "Secretárias ",
-      value: metricas.novasEmpresasTerceirizadas.toLocaleString(),
+      title: "Secretarias",
+      value: metricas.secretarias.toLocaleString(),
       icon: <Building2 className="h-6 w-6" />
     }
   ];

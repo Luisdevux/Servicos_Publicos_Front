@@ -9,7 +9,7 @@ export interface DashboardMetrics {
   totalDemandas: number;
   novosColaboradores: number;
   novosOperadores: number;
-  novasEmpresasTerceirizadas: number;
+  secretarias: number;
 }
 
 export interface DemandaPorBairro {
