@@ -27,8 +27,19 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'http',
+        hostname: 'localhost',
+        port: '5011',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
         hostname: 'api',
         port: '5011',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
         pathname: '/**',
       },
       {
@@ -42,6 +53,8 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Configurar timeout para downloads de imagens remotas
+    minimumCacheTTL: 60,
   },
 };
 

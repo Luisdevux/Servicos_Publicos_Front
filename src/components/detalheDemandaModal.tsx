@@ -7,7 +7,7 @@ import ProgressoPedido from "./ProgressoPedido";
 import { StarRating } from "./ui/star-rating";
 import { Button } from "./ui/button";
 import { ImageCarousel } from "./ui/image-carousel";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Pedido } from "@/types";
 
 interface DetalhesDemandaModalProps {
@@ -17,9 +17,15 @@ interface DetalhesDemandaModalProps {
 }
 
 export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: DetalhesDemandaModalProps) {
-  const [rating, setRating] = useState(0);
-  const [avaliacao, setAvaliacao] = useState("");
+  const [rating, setRating] = useState(pedido?.avaliacao?.feedback || 0);
+  const [avaliacao, setAvaliacao] = useState(pedido?.avaliacao?.avaliacao_resolucao || "");
   const isConcluido = pedido?.progresso?.concluido;
+  
+  // Update state when pedido changes
+  useEffect(() => {
+    setRating(pedido?.avaliacao?.feedback || 0);
+    setAvaliacao(pedido?.avaliacao?.avaliacao_resolucao || "");
+  }, [pedido?.avaliacao]);
 
   if (!pedido) return null;
 
@@ -72,7 +78,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
             </div>
           )}
 
-          {pedido.link_imagem && (
+          {/* {pedido.link_imagem && (
             <div className="space-y-2" data-test="imagens-demanda-section">
               <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
                 {Array.isArray(pedido.link_imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
@@ -83,7 +89,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                 className="h-48"
               />
             </div>
-          )}
+          )} */}
 
         {pedido.endereco && (
             <div className="space-y-2" data-test="endereco-section">
@@ -137,30 +143,40 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
             </div>
         )}
 
-         {isConcluido && pedido.conclusao?.imagem && (
+         {/* {isConcluido && pedido.conclusao?.imagem && (
              <div className="space-y-2" data-test="imagens-conclusao-section">
                <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
                  {Array.isArray(pedido.conclusao.imagem) ? 'Imagens da conclusão' : 'Imagem da conclusão'}
                </h3>
                <ImageCarousel 
-                 images={Array.isArray(pedido.conclusao.imagem) ? pedido.conclusao.imagem : [pedido.conclusao.imagem]}
+                 images={
+                   Array.isArray(pedido.conclusao.imagem)
+                     ? pedido.conclusao.imagem.map(img =>
+                         img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011'}/demandas/${pedido.id}/foto/resolucao`
+                       )
+                     : [pedido.conclusao.imagem.startsWith('http')
+                         ? pedido.conclusao.imagem
+                         : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011'}/demandas/${pedido.id}/foto/resolucao`
+                       ]
+                 }
                  alt="Imagem da conclusão"
                  className="h-48"
                />
              </div>
-           )}
+           )} */}
 
         {isConcluido && (
             <div className="space-y-4" data-test="avaliacao-section">
               <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
-                Avalie esse serviço
+                {pedido.avaliacao ? "Sua avaliação" : "Avalie esse serviço"}
               </h3>
               <div className="space-y-4">
                 <textarea
                   value={avaliacao}
                   onChange={(e) => setAvaliacao(e.target.value)}
                   placeholder="Escreva a sua avaliação"
-                  className="w-full p-3 border rounded-md resize-none h-24 focus:outline-none focus:ring-2 focus:ring-[var(--global-accent)]"
+                  disabled={!!pedido.avaliacao}
+                  className="w-full p-3 border rounded-md resize-none h-24 focus:outline-none focus:ring-2 focus:ring-[var(--global-accent)] disabled:bg-gray-100 disabled:cursor-not-allowed"
                   data-test="avaliacao-textarea"
                 />
                 <div className="flex items-center gap-4">
@@ -168,19 +184,22 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                     value={rating}
                     onChange={setRating}
                     maxStars={5}
+                    readonly={!!pedido.avaliacao}
                   />
-                  <span className="text-sm text-gray-600">Avalie</span>
+                  <span className="text-sm text-gray-600">{pedido.avaliacao ? "Avaliado" : "Avalie"}</span>
                 </div>
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handleEnviarAvaliacao}
-                    disabled={rating === 0 || !avaliacao.trim()}
-                    className="bg-[var(--global-accent)] hover:bg-[var(--global-accent-hover)] text-white"
-                    data-test="enviar-avaliacao-btn"
-                  >
-                    Enviar Avaliação
-                  </Button>
-                </div>
+                {!pedido.avaliacao && (
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleEnviarAvaliacao}
+                      disabled={rating === 0 || !avaliacao.trim()}
+                      className="bg-[var(--global-accent)] hover:bg-[var(--global-accent-hover)] text-white"
+                      data-test="enviar-avaliacao-btn"
+                    >
+                      Enviar Avaliação
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           )}
