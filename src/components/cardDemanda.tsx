@@ -40,12 +40,12 @@ export default function CardDemanda({ titulo, descricao, imagem, theme = 'defaul
           </div>
         )}
       </div>
-      <div className="p-4 flex flex-col justify-between h-[208px]" data-test="card-demanda-content">
-        <div className="flex flex-col flex-1">
+      <div className="p-4 flex flex-col justify-between h-[208px] min-h-0" data-test="card-demanda-content">
+        <div className="flex flex-col flex-1 min-h-0">
           <h3 className="text-lg font-semibold text-gray-800 mb-2 text-center line-clamp-2" data-test="card-demanda-titulo">
             {titulo}
           </h3>
-          <p className="text-gray-600 text-sm text-center mb-3 line-clamp-4" data-test="card-demanda-descricao">
+          <p className="text-gray-600 text-sm text-center mb-3 line-clamp-4 overflow-hidden wrap-break-word" data-test="card-demanda-descricao">
             {descricao}
           </p>
         </div>
