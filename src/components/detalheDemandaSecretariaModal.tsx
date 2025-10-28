@@ -100,9 +100,24 @@ export default function DetalhesDemandaSecretariaModal({
     <>
       <Dialog open={isOpen && !showRejeitarModal && !showConfirmarModal} onOpenChange={onClose}>
         <DialogContent 
-          className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col [&>button]:text-white [&>button]:hover:text-gray-200"
+          className="!max-w-2xl !max-h-[90vh] overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
         >
-          <DialogHeader className="bg-purple-600 py-6 px-6 rounded-t-lg relative overflow-hidden flex-shrink-0">
+          {/* Background decorativo */}
+          <div className="absolute inset-0 pointer-events-none opacity-5 z-0">
+            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="modal-grid-secretaria" width="30" height="30" patternUnits="userSpaceOnUse">
+                  <circle cx="15" cy="15" r="1.5" fill="currentColor"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#modal-grid-secretaria)"/>
+            </svg>
+            <div className="absolute top-40 left-10 w-16 h-16 border-2 border-current rounded-lg rotate-12 opacity-30"></div>
+            <div className="absolute bottom-20 right-16 w-12 h-12 border-2 border-current rounded-full opacity-30"></div>
+            <div className="absolute top-1/2 right-8 w-8 h-8 border-2 border-current rotate-45 opacity-30"></div>
+          </div>
+
+          <DialogHeader className="bg-purple-600 py-6 px-6 rounded-t-lg relative overflow-hidden flex-shrink-0 z-10">
             {/* Grid de pontos decorativos */}
             <div className="absolute inset-0 opacity-10">
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -128,7 +143,7 @@ export default function DetalhesDemandaSecretariaModal({
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-6 pt-4 pb-6 min-h-0 scrollbar-hide">
+          <div className="flex-1 overflow-y-auto px-6 pt-4 pb-6 min-h-0 scrollbar-hide relative z-10">
             <div className="space-y-6">
               {demanda.descricao && (
                 <div className="space-y-4">

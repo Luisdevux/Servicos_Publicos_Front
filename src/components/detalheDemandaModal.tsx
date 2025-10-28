@@ -41,19 +41,54 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-white border-none flex flex-col [&>button]:text-white [&>button]:hover:text-gray-200"
+        className="!max-w-2xl !max-h-[90vh] overflow-hidden p-0 bg-white border-none flex flex-col"
         data-test="detalhe-demanda-modal"
       >
-        <DialogHeader className="bg-[var(--global-accent)] py-4 px-6 rounded-t-lg flex-shrink-0">
+        {/* Background decorativo */}
+        <div className="absolute inset-0 pointer-events-none opacity-5 z-0">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="modal-grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                <circle cx="15" cy="15" r="1.5" fill="currentColor"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#modal-grid)"/>
+          </svg>
+          <div className="absolute top-10 left-10 w-16 h-16 border-2 border-current rounded-lg rotate-12 opacity-30"></div>
+          <div className="absolute bottom-20 right-16 w-12 h-12 border-2 border-current rounded-full opacity-30"></div>
+          <div className="absolute top-1/2 right-8 w-8 h-8 border-2 border-current rotate-45 opacity-30"></div>
+        </div>
+
+        <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg flex-shrink-0 relative overflow-hidden">
+          {/* Grid de pontos decorativos */}
+          <div className="absolute inset-0 opacity-10">
+            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="dialog-grid-demanda" width="60" height="60" patternUnits="userSpaceOnUse">
+                  <circle cx="30" cy="30" r="2" fill="white" />
+                  <circle cx="0" cy="0" r="1" fill="white" />
+                  <circle cx="60" cy="0" r="1" fill="white" />
+                  <circle cx="0" cy="60" r="1" fill="white" />
+                  <circle cx="60" cy="60" r="1" fill="white" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#dialog-grid-demanda)" />
+            </svg>
+          </div>
+
+          {/* Elementos decorativos geométricos */}
+          <div className="absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12"></div>
+          <div className="absolute bottom-4 right-8 w-10 h-10 border-2 border-white/20 rounded-full"></div>
+
           <DialogTitle 
-            className="text-center text-xl font-semibold bg-[var(--global-accent)] text-white py-3 px-6 rounded-md text-white"
+            className="text-3xl font-bold text-center text-white drop-shadow-md relative z-10"
             data-test="modal-titulo"
           >
             {pedido.titulo}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 pt-4 pb-6 min-h-0 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto px-6 pt-4 pb-6 min-h-0 scrollbar-hide relative z-10">
           <div className="mb-4" data-test="progresso-section">
             {pedido.status !== "Recusada" && pedido.progresso && (
               <ProgressoPedido progresso={pedido.progresso} />
