@@ -494,7 +494,7 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-r from-white to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </a>
                 <Link 
-                  href="/meus-pedidos"
+                  href="/pedidosMunicipe"
                   className="px-10 py-5 bg-transparent text-white font-bold text-lg rounded-lg border-2 border-white hover:bg-white hover:text-[var(--global-accent)] transition-all duration-300"
                   data-test="botao-ver-pedidos"
                 >
