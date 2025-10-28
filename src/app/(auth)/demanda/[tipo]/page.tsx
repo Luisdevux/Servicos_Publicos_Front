@@ -9,7 +9,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
-import { ArrowLeft, Search, ChevronLeft, ChevronRight, SearchX } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { tipoDemandaService } from "@/services";
@@ -26,9 +26,11 @@ export default function DemandaPage() {
   const [page, setPage] = useState(1);
 
   const tipoFiltro = decodeURIComponent(params.tipo as string);
+  const tipoFromParams = decodeURIComponent(params.tipo as string);
+  const [currentTipo, setCurrentTipo] = useState<string>(tipoFromParams);
   const [tiposUnicos, setTiposUnicos] = useState<string[]>([]);
 
-  // buscar tipos dinamicamente para popular os chips de filtro
+  // Busca tipos dinamicamente para popular os chips de filtro
   const {
     data: tiposData,
     isLoading: tiposIsLoading,
@@ -53,6 +55,15 @@ export default function DemandaPage() {
     }
   }, [tiposData]);
 
+  // Mantem currentTipo sincronizado com a rota para evitar recarregamentos desnecessários
+  useEffect(() => {
+    if (typeof tipoFromParams === 'string' && tipoFromParams !== currentTipo) {
+      setCurrentTipo(tipoFromParams);
+      setPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tipoFromParams]);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -71,17 +82,17 @@ export default function DemandaPage() {
     error: demandasError,
     refetch: demandasRefetch,
   } = useQuery({
-    queryKey: ['tipoDemanda', tipoFiltro, debouncedSearchTerm, page],
+    queryKey: ['tipoDemanda', currentTipo, debouncedSearchTerm, page],
     queryFn: async () => {
       const filters = {
-        tipo: tipoFiltro,
+        tipo: currentTipo,
         titulo: debouncedSearchTerm,
       };
       // A função de serviço agora recebe o número da página
       const result = await tipoDemandaService.buscarTiposDemandaPorTipo(filters, 10, page);
       return result.data; // Retorna o objeto de paginação completo
     },
-    enabled: !!tipoFiltro,
+  enabled: !!currentTipo,
     staleTime: 5 * 60 * 1000, // Cache por 5 minutos
     retry: 1,
   });
@@ -98,7 +109,7 @@ export default function DemandaPage() {
     error: imagesError,
     refetch: imagesRefetch,
   } = useQuery({
-    queryKey: ['tipoDemandaImages', tipoFiltro, debouncedSearchTerm, page],
+    queryKey: ['tipoDemandaImages', currentTipo, debouncedSearchTerm, page],
     queryFn: async () => {
       if (!cardsFiltrados.length) return {};
 
@@ -124,7 +135,7 @@ export default function DemandaPage() {
 
       return blobMap;
     },
-    enabled: !!cardsFiltrados.length && !!tipoFiltro,
+  enabled: !!cardsFiltrados.length && !!currentTipo,
     staleTime: 10 * 60 * 1000, // Cache aumentado para 10 minutos
     gcTime: 15 * 60 * 1000, // Garbage collection aumentado
   });
@@ -173,8 +184,8 @@ export default function DemandaPage() {
   return (
     <div data-test="demanda-page">
       <Banner
-        titulo={`Serviços de ${bannerData?.tipo || tipoFiltro}`}
-        descricao={`Encontre e solicite o que precisa. Explore abaixo todos os serviços de ${tipoFiltro.toLowerCase()} disponíveis para você. Detalhes, prazos e abertura de demandas em um só lugar.`}
+        titulo={`Serviços de ${bannerData?.tipo || currentTipo}`}
+        descricao={`Encontre e solicite o que precisa. Explore abaixo todos os serviços de ${String(currentTipo).toLowerCase()} disponíveis para você. Detalhes, prazos e abertura de demandas em um só lugar.`}
         className="mb-4"
       />
 
@@ -240,11 +251,16 @@ export default function DemandaPage() {
                     <span className="text-sm text-gray-500">Nenhum filtro disponível</span>
                   )}
                   {!tiposIsLoading && tiposUnicos.map((t: string) => {
-                    const active = typeof tipoFiltro === 'string' && t.toLowerCase() === tipoFiltro.toLowerCase();
+                    const active = typeof currentTipo === 'string' && t.toLowerCase() === currentTipo.toLowerCase();
                     return (
                       <button
                         key={t}
-                        onClick={() => router.push(`/demanda/${encodeURIComponent(t)}`)}
+                        onClick={() => {
+                          // Aplica o filtro sem navegar para evitar remount e perda de blobs
+                          setCurrentTipo(t);
+                          setPage(1);
+                          setSearchTerm('');
+                        }}
                         aria-pressed={active}
                         className={`px-3 py-1.5 rounded-full text-sm ${active ? 'bg-[var(--global-accent)] text-[var(--global-bg)]' : 'bg-gray-100 text-gray-700'}`}
                       >
