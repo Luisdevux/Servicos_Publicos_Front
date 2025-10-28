@@ -22,9 +22,36 @@ export default function DemandaPage() {
   const [selectedTipo, setSelectedTipo] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
 
   const tipoFiltro = decodeURIComponent(params.tipo as string);
+  const [tiposUnicos, setTiposUnicos] = useState<string[]>([]);
+
+  // buscar tipos dinamicamente para popular os chips de filtro
+  const {
+    data: tiposData,
+    isLoading: tiposIsLoading,
+    isError: tiposIsError,
+  } = useQuery({
+    queryKey: ['tiposDemandaAll'],
+    queryFn: async () => {
+      const res = await tipoDemandaService.buscarTiposDemandaPorTipo({}, 1000, 1);
+      return res.data?.docs || [];
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (tiposData) {
+      const setTipos = new Set<string>();
+      tiposData.forEach((d: any) => {
+        if (d?.tipo) setTipos.add(d.tipo);
+      });
+      setTiposUnicos(Array.from(setTipos));
+    }
+  }, [tiposData]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -153,25 +180,80 @@ export default function DemandaPage() {
 
       <div className="px-6 sm:px-6 lg:px-40 py-4" data-test="demanda-page-container">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-[var(--global-text-secondary)] mb-4">Explore os Serviços</h2>
-          <div className="flex justify-between items-center p-4 bg-white rounded-lg border shadow-sm">
+          <div className="flex items-center gap-4 mb-2">
             <Button
-              size="lg"
               onClick={() => router.back()}
-              className="flex items-center gap-2 bg-[var(--global-accent)] text-[var(--global-bg)] hover:bg-[var(--global-link-hover)]/90"
+              className="h-10 px-3 rounded-md bg-transparent border border-gray-200 text-[var(--global-text-primary)] hover:bg-gray-50"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5" />
               <span className="font-medium">Voltar</span>
             </Button>
-            <div className="relative w-full max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Buscar por título do serviço..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          </div>
+          <div className="w-full">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-2xl font-medium text-[var(--global-text-secondary)]">Explore os serviços</h3>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setShowFilters((s) => !s)}
+                    className="h-9 px-3 rounded-md bg-transparent border border-gray-200 text-[var(--global-text-primary)] hover:bg-gray-50"
+                  >
+                    Filtros
+                  </Button>
+                  <Button
+                    onClick={() => setDebouncedSearchTerm(searchTerm)}
+                    className="hidden md:inline h-9 px-3 rounded-md bg-[var(--global-accent)] text-[var(--global-bg)] hover:bg-[var(--global-link-hover)]/90"
+                  >
+                    Buscar
+                  </Button>
+                </div>
+              </div>
+
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Buscar por título do serviço..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-12 pr-10 h-12 rounded-md bg-white border border-gray-200 shadow-sm w-full"
+                />
+
+                {searchTerm && (
+                  <button
+                    aria-label="Limpar busca"
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-gray-500 hover:bg-gray-100"
+                  >
+                    <SearchX className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {showFilters && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {tiposIsLoading && <span className="text-sm text-gray-500">Carregando filtros...</span>}
+                  {!tiposIsLoading && tiposUnicos.length === 0 && (
+                    <span className="text-sm text-gray-500">Nenhum filtro disponível</span>
+                  )}
+                  {!tiposIsLoading && tiposUnicos.map((t: string) => {
+                    const active = typeof tipoFiltro === 'string' && t.toLowerCase() === tipoFiltro.toLowerCase();
+                    return (
+                      <button
+                        key={t}
+                        onClick={() => router.push(`/demanda/${encodeURIComponent(t)}`)}
+                        aria-pressed={active}
+                        className={`px-3 py-1.5 rounded-full text-sm ${active ? 'bg-[var(--global-accent)] text-[var(--global-bg)]' : 'bg-gray-100 text-gray-700'}`}
+                      >
+                        {t}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
