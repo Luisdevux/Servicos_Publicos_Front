@@ -298,7 +298,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validações
+    // Validações específicas
     if (!tipoDemanda) {
       toast.error('Tipo de demanda obrigatório', {
         description: 'Selecione um tipo de demanda antes de continuar',
@@ -307,15 +307,36 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
     }
 
     if (!descricao.trim()) {
-      toast.error('Descrição obrigatória', {
-        description: 'Preencha a descrição da demanda',
+      toast.error('Campo obrigatório: Descrição', {
+        description: 'Preencha a descrição da demanda para continuar',
       });
       return;
     }
 
-    if (!bairro.trim() || !logradouro.trim() || !cidade.trim()) {
-      toast.error('Campos obrigatórios faltando', {
-        description: 'Preencha Bairro, Logradouro e Cidade',
+    if (!bairro.trim()) {
+      toast.error('Campo obrigatório: Bairro', {
+        description: 'Preencha o bairro do endereço',
+      });
+      return;
+    }
+
+    if (!logradouro.trim()) {
+      toast.error('Campo obrigatório: Logradouro', {
+        description: 'Preencha o nome da rua/avenida',
+      });
+      return;
+    }
+
+    if (!numero.trim()) {
+      toast.error('Campo obrigatório: Número', {
+        description: 'Preencha o número do endereço (ex: 5222)',
+      });
+      return;
+    }
+
+    if (!cidade.trim()) {
+      toast.error('Campo obrigatório: Cidade', {
+        description: 'Preencha a cidade do endereço',
       });
       return;
     }
@@ -324,12 +345,12 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
       const logradouroCompleto = `${tipoLogradouro} ${logradouro}`.trim();
 
       // Converter número para inteiro 
-      const numeroInt = numero.trim() ? parseInt(numero.trim(), 10) : 0;
+      const numeroInt = parseInt(numero.trim(), 10);
 
       // Validar se número é válido
-      if (numero.trim() && (isNaN(numeroInt) || numeroInt <= 0)) {
+      if (isNaN(numeroInt) || numeroInt <= 0) {
         toast.error('Número inválido', {
-          description: 'Digite um número válido ou deixe em branco',
+          description: 'Digite um número válido (ex: 5222)',
         });
         return;
       }
@@ -437,8 +458,9 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bairro" className="text-[var(--global-text-primary)] text-sm font-medium">
-                  Bairro *
+                <Label htmlFor="bairro" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                  <span className="text-red-500">*</span>
+                  Bairro
                 </Label>
                 <div className="relative">
                   <Input
@@ -487,8 +509,9 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
             {/* Linha 2: Tipo de Logradouro e Logradouro */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="tipoLogradouro" className="text-[var(--global-text-primary)] text-sm font-medium">
-                  Tipo *
+                <Label htmlFor="tipoLogradouro" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                  <span className="text-red-500">*</span>
+                  Tipo
                 </Label>
                 <Select value={tipoLogradouro} onValueChange={setTipoLogradouro}>
                   <SelectTrigger
@@ -513,8 +536,9 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="logradouro" className="text-[var(--global-text-primary)] text-sm font-medium">
-                  Logradouro *
+                <Label htmlFor="logradouro" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                  <span className="text-red-500">*</span>
+                  Logradouro
                 </Label>
                 <div className="relative">
                   <Input
@@ -570,7 +594,8 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
             {/* Linha 3: Número e Complemento */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="numero" className="text-[var(--global-text-primary)] text-sm font-medium">
+                <Label htmlFor="numero" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                  <span className="text-red-500">*</span>
                   Número
                 </Label>
                 <Input
@@ -582,9 +607,10 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                     const value = e.target.value.replace(/\D/g, '');
                     setNumero(value);
                   }}
-                  placeholder="Nº"
+                  placeholder="Ex: 5222"
                   className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
                   data-test="numero-input"
+                  required
                 />
               </div>
 
@@ -606,8 +632,9 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
             {/* Linha 4: Cidade e Estado */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="cidade" className="text-[var(--global-text-primary)] text-sm font-medium">
-                  Cidade *
+                <Label htmlFor="cidade" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                  <span className="text-red-500">*</span>
+                  Cidade
                 </Label>
                 <Input
                   id="cidade"
@@ -622,8 +649,9 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="estado" className="text-[var(--global-text-primary)] text-sm font-medium">
-                  Estado *
+                <Label htmlFor="estado" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                  <span className="text-red-500">*</span>
+                  Estado
                 </Label>
                 <Select value={estado} onValueChange={setEstado} disabled>
                   <SelectTrigger

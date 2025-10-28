@@ -43,6 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    command: sh -c "if [ ! -f 'node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node' ]; then rm -rf node_modules/* 2>/dev/null || true; npm install --include=optional --legacy-peer-deps; fi && npm run dev"
     environment:
       # Server-side: Container → Container (usa nome do serviço)
       API_URL_SERVER_SIDED: "http://api-servicos:5011"
