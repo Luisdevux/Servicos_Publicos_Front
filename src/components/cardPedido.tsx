@@ -32,31 +32,39 @@ export default function CardPedido({ pedido, onVerMais }: CardPedidoProps) {
           {pedido.titulo}
         </h3>
         
-        {pedido.status === "Em aberto" ? (
-          <div
-            className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-sm font-medium"
-            data-test="card-pedido-status-aguardando"
-          >
-            <Clock size={16} />
-            Aguardando
-          </div>
-        ) : pedido.status !== "Recusada" ? (
-          <div 
-            className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-md text-sm font-medium"
-            data-test="card-pedido-status-aceito"
-          >
-            <Check size={16} />
-            Aceito
-          </div>
-        ) : (
-          <div 
-            className="inline-flex items-center gap-1 bg-red-100 text-red-800 px-2 py-1 rounded-md text-sm font-medium"
-            data-test="card-pedido-status-recusado"
-          >
-            <X size={16} />
-            Recusado
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {pedido.status === "Em aberto" ? (
+            <div
+              className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-sm font-medium"
+              data-test="card-pedido-status-aguardando"
+            >
+              <Clock size={16} />
+              Aguardando
+            </div>
+          ) : pedido.status !== "Recusada" ? (
+            <div 
+              className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-md text-sm font-medium"
+              data-test="card-pedido-status-aceito"
+            >
+              <Check size={16} />
+              Aceito
+            </div>
+          ) : (
+            <div 
+              className="inline-flex items-center gap-1 bg-red-100 text-red-800 px-2 py-1 rounded-md text-sm font-medium"
+              data-test="card-pedido-status-recusado"
+            >
+              <X size={16} />
+              Recusado
+            </div>
+          )}
+          
+          {pedido.status === "Concluída" && !pedido.avaliacao && (
+            <div className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm font-medium">
+              ⭐ Avalie esse serviço
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col justify-center" data-test="card-pedido-progresso-section">

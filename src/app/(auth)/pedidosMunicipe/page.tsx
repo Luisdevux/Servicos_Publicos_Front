@@ -173,7 +173,7 @@ export default function MeusPedidosPage() {
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-[var(--global-accent)] border-t-transparent mx-auto"></div>
             <p className="text-sm text-gray-500">Carregando seus pedidos...</p>
           </div>
         ) : pedidosFiltrados.length > 0 ? (
