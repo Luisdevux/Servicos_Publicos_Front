@@ -147,7 +147,7 @@ export default function MeusPedidosPage() {
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-2">
               <Button
-                onClick={() => router.back()}
+                onClick={() => router.push('/')}
                 className="h-10 px-3 rounded-md bg-transparent border border-gray-200 text-[var(--global-text-primary)] hover:bg-gray-50"
               >
                 <ChevronLeft className="w-5 h-5" />
