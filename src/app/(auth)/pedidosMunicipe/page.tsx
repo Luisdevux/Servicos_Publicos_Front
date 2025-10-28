@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Banner from "@/components/banner";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import CardPedido from "@/components/cardPedido";
 import type { Pedido } from "@/types";
 import DetalhesDemandaModal from "@/components/detalheDemandaModal";
@@ -143,6 +144,18 @@ export default function MeusPedidosPage() {
 
       <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
         <div className="mx-auto">
+          <div className="mb-8">
+            <div className="flex items-center gap-4 mb-2">
+              <Button
+                onClick={() => router.back()}
+                className="h-10 px-3 rounded-md bg-transparent border border-gray-200 text-[var(--global-text-primary)] hover:bg-gray-50"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                <span className="font-medium">Voltar</span>
+              </Button>
+            </div>
+          </div>
+
           <div className="mb-6">
             <div className="flex items-center gap-4">
               <Filter className="h-4 w-4 text-[var(--global-text-primary)]" />
