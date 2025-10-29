@@ -1,5 +1,4 @@
 // src/components/createSecretariaModal.tsx
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -65,8 +64,6 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
     retry: 1,
   });
 
-  console.log('tiposDemandaData',tiposDemandaData?.map((item) => item.tipo))
-
   useEffect(() => {
     if (tiposDemandaData) {
       const tiposSet = new Set<string>();
@@ -94,7 +91,8 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl"  
+        className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl"
+        data-test="create-secretaria-dialog"
       >
         <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
@@ -117,13 +115,13 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
 
           <DialogTitle
             className="text-2xl font-bold text-center text-white drop-shadow-md relative z-10"
+            data-test="create-secretaria-title"
           >
             Adicionar Nova Secretaria
           </DialogTitle>
         </DialogHeader>
 
-        <form className="space-y-6 p-6 max-h-[calc(95vh-140px)] overflow-y-auto"
-        >
+        <form className="space-y-6 p-6 max-h-[calc(95vh-140px)] overflow-y-auto" data-test="create-secretaria-form">
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -140,6 +138,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                     className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)] pr-10"
                     type='text'
                     required
+                    data-test="nome-secretaria-input"
                   />
                 </div>
               </div>
@@ -158,6 +157,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                     className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
                     required
                     type='text'
+                    data-test="sigla-secretaria-input"
                   />
                 </div>
               </div>
@@ -178,6 +178,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                     className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
                     type='email'
                     required
+                    data-test="email-secretaria-input"
                   />
                 </div>
               </div>
@@ -196,6 +197,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                     type='tel'
                     className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
                     required
+                    data-test="telefone-secretaria-input"
                   />
                 </div>
               </div>
@@ -208,22 +210,26 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                   Tipo de Secretaria
                 </Label>
                 <Select value={tipo} onValueChange={setTipo} disabled={isLoadingTipos}>
-                  <SelectTrigger>
+                  <SelectTrigger data-test="tipo-secretaria-select">
                     <SelectValue placeholder={isLoadingTipos ? 'Carregando tipos...' : 'Selecione o tipo de secretaria'} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent data-test="tipo-secretaria-options">
                     {isLoadingTipos ? (
-                      <div className="flex items-center justify-center p-4">
+                      <div className="flex items-center justify-center p-4" data-test="tipo-secretaria-loading">
                         <Loader2 className="h-4 w-4 animate-spin text-[var(--global-accent)]" />
                       </div>
                     ) : tiposUnicos.length > 0 ? (
                       tiposUnicos.map((tipoOption) => (
-                        <SelectItem key={tipoOption} value={tipoOption}>
+                        <SelectItem 
+                          key={tipoOption} 
+                          value={tipoOption}
+                          data-test={`tipo-secretaria-option-${tipoOption.toLowerCase().replace(/\s+/g, '-')}`}
+                        >
                           {tipoOption}
                         </SelectItem>
                       ))
                     ) : (
-                      <div className="px-2 py-1.5 text-sm text-[var(--global-text-secondary)] text-center">
+                      <div className="px-2 py-1.5 text-sm text-[var(--global-text-secondary)] text-center" data-test="tipo-secretaria-empty">
                         Nenhum tipo disponível
                       </div>
                     )}
@@ -239,6 +245,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
               type="button"
               onClick={() => onOpenChange(false)}
               className="flex-1 border-2 border-[var(--global-border)] bg-white text-[var(--global-text-primary)] hover:bg-[var(--global-bg-select)] font-medium"
+              data-test="cancel-button"
             >
               Cancelar
             </Button>
@@ -249,6 +256,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                 "flex-1 bg-[var(--global-accent)] hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
                 !isFormValid && "opacity-70 cursor-not-allowed"
               )}
+              data-test="submit-button"
             >
               <CheckCircle2 className="w-4 h-4 mr-2" />
               Criar Secretaria
