@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import {
   Dialog,
@@ -36,6 +36,16 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
   const [tipo, setTipo] = useState('');
 
   const isFormValid = nome.trim() && sigla.trim() && email.trim() && telefone.trim() && tipo.trim();
+
+  useEffect(() => {
+    if (!open) {
+      setNome('');
+      setSigla('');
+      setEmail('');
+      setTelefone('');
+      setTipo('');
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -162,7 +172,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                     <SelectItem value="Saneamento Básico">Saneamento Básico</SelectItem>
                     <SelectItem value="Limpeza Pública">Limpeza Pública</SelectItem>
                     <SelectItem value="Segurança Pública">Segurança Pública</SelectItem>
-                    <SelectItem value="Outros">Outros</SelectItem>
+                    <SelectItem value="Outros">+ Adicionar Outro Tipo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
