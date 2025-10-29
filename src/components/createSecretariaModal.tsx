@@ -2,6 +2,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import {
   Dialog,
@@ -28,6 +29,13 @@ interface CreateSecretariaModalProps {
 }
 
 export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaModalProps) {
+  const [nome, setNome] = useState('');
+  const [sigla, setSigla] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [tipo, setTipo] = useState('');
+
+  const isFormValid = nome.trim() && sigla.trim() && email.trim() && telefone.trim() && tipo.trim();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,6 +80,8 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                 <div className="relative">
                   <Input
                     id="nomeSecretaria"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
                     placeholder="Secretaria Municipal de Iluminação Pública"
                     className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)] pr-10"
                     type='text'
@@ -88,6 +98,8 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                 <div className="relative">
                   <Input
                     id="siglaSecretaria"
+                    value={sigla}
+                    onChange={(e) => setSigla(e.target.value)}
                     placeholder="SEMILU"
                     className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
                     required
@@ -106,6 +118,8 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                 <div className="relative">
                   <Input
                     id="emailSecretaria"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="iluminacao@prefeitura.gov.br"
                     className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
                     type='email'
@@ -122,6 +136,8 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                 <div className="relative">
                   <Input
                     id="telefoneSecretaria"
+                    value={telefone}
+                    onChange={(e) => setTelefone(e.target.value)}
                     placeholder="(69) 99999-9999"
                     type='tel'
                     className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
@@ -137,7 +153,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                   <span className="text-red-500">*</span>
                   Tipo de Secretaria
                 </Label>
-                <Select>
+                <Select value={tipo} onValueChange={setTipo}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o tipo de secretaria" />
                   </SelectTrigger>
@@ -164,8 +180,10 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
             </Button>
             <Button
               type="submit"
+              disabled={!isFormValid}
               className={cn(
-                "flex-1 bg-[var(--global-accent)] hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all"
+                "flex-1 bg-[var(--global-accent)] hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
+                !isFormValid && "opacity-70 cursor-not-allowed"
               )}
             >
               <CheckCircle2 className="w-4 h-4 mr-2" />
