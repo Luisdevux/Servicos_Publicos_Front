@@ -9,3 +9,4 @@ export * from './viaCepService';
 export * from './tipoDemandaService';
 export * from './usuarioService';
 export * from './adminService';
+export * from './secretariaService';

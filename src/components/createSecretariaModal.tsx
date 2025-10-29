@@ -2,7 +2,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import {
   Dialog,
@@ -22,8 +23,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { tipoDemandaService } from '@/services';
-import type { TipoDemandaModel } from '@/types';
+import { tipoDemandaService, secretariaService } from '@/services';
+import type { TipoDemandaModel, CreateSecretariaData } from '@/types';
 import { CreateTipoDemandaModal } from '@/components/createTipoDemandaModal';
 
 interface CreateSecretariaModalProps {
@@ -32,6 +33,7 @@ interface CreateSecretariaModalProps {
 }
 
 export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaModalProps) {
+  const queryClient = useQueryClient();
   const [nome, setNome] = useState('');
   const [sigla, setSigla] = useState('');
   const [email, setEmail] = useState('');
@@ -39,6 +41,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
   const [tipo, setTipo] = useState('');
   const [tiposUnicos, setTiposUnicos] = useState<string[]>([]);
   const [isCreateTipoOpen, setIsCreateTipoOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: tiposDemandaData, isLoading: isLoadingTipos, refetch: refetchTipos } = useQuery({
     queryKey: ['tipoDemanda', 'all'],
@@ -97,6 +100,82 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
     onOpenChange(newOpen);
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    if (!nome.trim()) {
+      toast.error('Campo obrigatório: Nome', {
+        description: 'Preencha o nome da secretaria',
+      });
+      return;
+    }
+
+    if (!sigla.trim()) {
+      toast.error('Campo obrigatório: Sigla', {
+        description: 'Preencha a sigla da secretaria',
+      });
+      return;
+    }
+
+    if (!email.trim()) {
+      toast.error('Campo obrigatório: Email', {
+        description: 'Preencha o email institucional da secretaria',
+      });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+    if (!emailRegex.test(email.trim())) {
+      toast.error('Email inválido', {
+        description: 'Informe um email válido (ex: nome@dominio.com)',
+      });
+      return;
+    }
+
+    if (!telefone.trim()) {
+      toast.error('Campo obrigatório: Telefone', {
+        description: 'Informe um telefone para contato',
+      });
+      return;
+    }
+    const telefoneNumeros = telefone.replace(/\D/g, '');
+    if (telefoneNumeros.length < 10 || telefoneNumeros.length > 11) {
+      toast.error('Telefone inválido', {
+        description: 'Informe DDD e número válidos (ex: 69999999999)',
+      });
+      return;
+    }
+
+    if (!tipo.trim()) {
+      toast.error('Campo obrigatório: Tipo de Secretaria', {
+        description: 'Selecione o tipo para continuar',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload: CreateSecretariaData = {
+        nome: nome.trim(),
+        sigla: sigla.trim(),
+        email: email.trim(),
+        telefone: telefone.trim(),
+        tipo: tipo.trim(),
+      };
+
+      await secretariaService.criarSecretaria(payload);
+
+      toast.success('Secretaria criada com sucesso!');
+      void queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
+      onOpenChange(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao criar secretaria';
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange} modal>
       <DialogContent
@@ -130,7 +209,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
           </DialogTitle>
         </DialogHeader>
 
-        <form className="space-y-6 p-6 max-h-[calc(95vh-140px)] overflow-y-auto" data-test="create-secretaria-form">
+        <form onSubmit={handleSubmit} className="space-y-6 p-6 max-h-[calc(95vh-140px)] overflow-y-auto" data-test="create-secretaria-form">
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -148,6 +227,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                     type='text'
                     required
                     data-test="nome-secretaria-input"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -167,6 +247,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                     required
                     type='text'
                     data-test="sigla-secretaria-input"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -188,6 +269,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                     type='email'
                     required
                     data-test="email-secretaria-input"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -207,6 +289,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                     className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
                     required
                     data-test="telefone-secretaria-input"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -221,7 +304,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                 <Select
                   value={tipo || ''}
                   onValueChange={setTipo}
-                  disabled={isLoadingTipos}
+                  disabled={isLoadingTipos || isSubmitting}
                 >
                   <SelectTrigger data-test="tipo-secretaria-select">
                     <SelectValue placeholder={isLoadingTipos ? 'Carregando tipos...' : 'Selecione o tipo de secretaria'} />
@@ -274,21 +357,31 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
               type="button"
               onClick={() => onOpenChange(false)}
               className="flex-1 border-2 border-[var(--global-border)] bg-white text-[var(--global-text-primary)] hover:bg-[var(--global-bg-select)] font-medium"
+              disabled={isSubmitting}
               data-test="cancel-button"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              disabled={!isFormValid}
+              disabled={!isFormValid || isSubmitting}
               className={cn(
                 "flex-1 bg-[var(--global-accent)] hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
-                !isFormValid && "opacity-70 cursor-not-allowed"
+                (!isFormValid || isSubmitting) && "opacity-70 cursor-not-allowed"
               )}
               data-test="submit-button"
             >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Criar Secretaria
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Criar Secretaria
+                </>
+              )}
             </Button>
           </div>
         </form>
