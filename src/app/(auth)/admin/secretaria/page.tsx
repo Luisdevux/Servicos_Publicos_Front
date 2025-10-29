@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Banner from "@/components/banner";
-import { Building2, ChevronLeft, ChevronRight, Filter, Plus, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { secretariaService } from "@/services/secretariaService";
 import type { Secretaria } from "@/types";
@@ -19,9 +17,13 @@ export default function SecretariaAdminPage() {
 
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["secretarias", page],
+    queryKey: ["secretarias", page, searchText],
     queryFn: async () => {
-      return secretariaService.buscarSecretarias({}, 9, page);
+      const filters: Record<string, any> = {};
+      if (searchText.trim()) {
+        filters.nome = searchText.trim();
+      }
+      return secretariaService.buscarSecretarias(filters, 9, page);
     },
     placeholderData: (previousData) => previousData,
     staleTime: 60_000,
@@ -31,28 +33,40 @@ export default function SecretariaAdminPage() {
     setPage(1);
   }, [searchText]);
 
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setSearchText(pendingSearchText);
+    }, 300);
+    return () => clearTimeout(id);
+  }, [pendingSearchText]);
+
   const totalPages = data?.data?.totalPages ?? 1;
   const hasNextPage = data?.data?.hasNextPage ?? false;
   const hasPrevPage = data?.data?.hasPrevPage ?? false;
   const secretarias: Secretaria[] = data?.data?.docs ?? [];
+  
+  const secretariasFiltradas = searchText.trim() 
+    ? secretarias.filter((s) => {
+        const termo = searchText.trim().toLowerCase();
+        return (
+          s.nome?.toLowerCase().includes(termo) || 
+          s.sigla?.toLowerCase().includes(termo)
+        );
+      })
+    : secretarias;
 
   return (
     <div className="min-h-screen bg-[var(--global-bg)]">
       <div className="px-6 sm:px-6 py-6 md:py-8">
         <div className="mx-auto space-y-6">
           <div className="flex flex-col md:flex-row gap-3 md:items-end md:justify-between">
-              <div className="relative flex gap-2">
+              <div className="relative flex gap-2 items-center">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="Pesquisar por nome ou sigla"
                     value={pendingSearchText}
                     onChange={(e) => setPendingSearchText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        setSearchText(pendingSearchText);
-                      }
-                    }}
                     className="w-64 pl-9"
                   />
                 </div>
@@ -87,14 +101,14 @@ export default function SecretariaAdminPage() {
                         Carregando secretarias...
                       </td>
                     </tr>
-                  ) : secretarias.length === 0 ? (
+                  ) : secretariasFiltradas.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                         Nenhuma secretaria encontrada.
                       </td>
                     </tr>
                   ) : (
-                    secretarias.map((s) => (
+                    secretariasFiltradas.map((s) => (
                       <tr key={s._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.nome}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.sigla}</td>
