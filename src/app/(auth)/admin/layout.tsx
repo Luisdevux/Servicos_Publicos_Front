@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { 
   Home as HomeIcon, 
   Building2,
@@ -40,7 +41,6 @@ interface NavItem {
   title: string;
   path: string;
   icon: React.ComponentType;
-  isActive?: boolean;
   modalType?: ModalType;
   isAction?: boolean;
 }
@@ -51,7 +51,6 @@ const data = {
       title: "Dados",
       path: "/admin/dashboard",
       icon: HomeIcon,
-      isActive: true,
     },
     {
       title: "Demandas",
@@ -92,6 +91,7 @@ const data = {
 
 export default function AdminLayout({children,}: {children: React.ReactNode;}) {
   const { logout } = useAuth();
+  const pathname = usePathname();
   
   const [openModal, setOpenModal] = useState<ModalType>(null);
 
@@ -140,7 +140,7 @@ export default function AdminLayout({children,}: {children: React.ReactNode;}) {
                         </button>
                       </SidebarMenuButton>
                     ) : (
-                      <SidebarMenuButton asChild isActive={item.isActive}>
+                      <SidebarMenuButton asChild isActive={pathname === item.path}>
                         <a href={item.path}>
                           <item.icon />
                           <span>{item.title}</span>
