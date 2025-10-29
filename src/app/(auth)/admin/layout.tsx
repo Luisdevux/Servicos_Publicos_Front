@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useState } from "react";
 import { 
   Home as HomeIcon, 
   Building2,
@@ -26,6 +27,24 @@ import {
   SidebarTrigger,
 } from "../../../components/ui/sidebar";
 
+import { CreateSecretariaModal } from "@/components/createSecretariaModal";
+
+type ModalType = 
+  | 'secretaria' 
+  | 'colaborador' 
+  | 'operador' 
+  | 'tipoDemanda' 
+  | null;
+
+interface NavItem {
+  title: string;
+  path: string;
+  icon: React.ComponentType;
+  isActive?: boolean;
+  modalType?: ModalType;
+  isAction?: boolean;
+}
+
 const data = {
   navMain: [
     {
@@ -43,36 +62,47 @@ const data = {
       title: "Add Colaborador",
       path: "#",
       icon: Handshake,
+      modalType: 'colaborador' as ModalType,
     },
     {
       title: "Add Operador",
       path: "#",
       icon: IdCardLanyard,
+      modalType: 'operador' as ModalType,
     },
     {
       title: "Add Secretaria",
       path: "#",
       icon: Building2,
+      modalType: 'secretaria' as ModalType,
     },
     {
       title: "Add Tipo Demanda",
       path: "#",
       icon: Briefcase,
+      modalType: 'tipoDemanda' as ModalType,
     },
     {
       title: "Sair",
       path: "#",
       icon: LogOut,
+      isAction: true,
     }
-  ]
+  ] as NavItem[]
 };
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({children,}: {children: React.ReactNode;}) {
   const { logout } = useAuth();
+  
+  const [openModal, setOpenModal] = useState<ModalType>(null);
+
+  const handleOpenModal = (modalType: ModalType) => {
+    setOpenModal(modalType);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(null);
+  };
 
   return (
     <SidebarProvider>
@@ -88,10 +118,21 @@ export default function AdminLayout({
               <SidebarMenu>
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                    {item.title === "Sair" ? (
+                    {item.isAction ? (
                       <SidebarMenuButton
                         asChild
                         onClick={() => logout()}
+                        className="cursor-pointer"
+                      >
+                        <button className="flex items-center gap-2 w-full text-left">
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </button>
+                      </SidebarMenuButton>
+                    ) : item.modalType ? (
+                      <SidebarMenuButton
+                        asChild
+                        onClick={() => handleOpenModal(item.modalType!)}
                         className="cursor-pointer"
                       >
                         <button className="flex items-center gap-2 w-full text-left">
@@ -131,6 +172,25 @@ export default function AdminLayout({
             </div>
           </div>
       </SidebarInset>
+      
+      {openModal === 'secretaria' && (
+        <CreateSecretariaModal 
+          open={true} 
+          onOpenChange={(open) => !open && handleCloseModal()}
+        />
+      )}
+
+      {openModal === 'colaborador' && (
+        null
+      )}
+      
+      {openModal === 'operador' && (
+        null
+      )}
+      
+      {openModal === 'tipoDemanda' && (
+        null
+      )}
     </SidebarProvider>
   );
 }
