@@ -59,6 +59,11 @@ const data = {
       icon: FolderKanban,
     },
     {
+      title: "Secretarias",
+      path: "/admin/secretaria",
+      icon: Building2,
+    },
+    {
       title: "Add Colaborador",
       path: "#",
       icon: Handshake,
@@ -69,12 +74,6 @@ const data = {
       path: "#",
       icon: IdCardLanyard,
       modalType: 'operador' as ModalType,
-    },
-    {
-      title: "Add Secretaria",
-      path: "#",
-      icon: Building2,
-      modalType: 'secretaria' as ModalType,
     },
     {
       title: "Add Tipo Demanda",
