@@ -3,7 +3,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { CheckCircle2, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { tipoDemandaService } from '@/services';
+import type { TipoDemandaModel } from '@/types';
 
 interface CreateSecretariaModalProps {
   open: boolean;
@@ -34,6 +37,47 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [tipo, setTipo] = useState('');
+  const [tiposUnicos, setTiposUnicos] = useState<string[]>([]);
+
+  const { data: tiposDemandaData, isLoading: isLoadingTipos } = useQuery({
+    queryKey: ['tipoDemanda', 'all'],
+    queryFn: async () => {
+      let allDocs: TipoDemandaModel[] = [];
+      let page = 1;
+      let totalPages = 1;
+
+      do {
+        const res = await tipoDemandaService.buscarTiposDemandaPorTipo({}, 10, page);
+        const data = res.data;
+        
+        if (data?.docs) {
+          allDocs = [...allDocs, ...data.docs];
+        }
+        
+        totalPages = data?.totalPages || 1;
+        page++;
+      } while (page <= totalPages);
+
+      return allDocs;
+    },
+    enabled: open,
+    staleTime: 5 * 60 * 1000, 
+    retry: 1,
+  });
+
+  console.log('tiposDemandaData',tiposDemandaData?.map((item) => item.tipo))
+
+  useEffect(() => {
+    if (tiposDemandaData) {
+      const tiposSet = new Set<string>();
+      tiposDemandaData.forEach((item) => {
+        if (item?.tipo && item.tipo.trim()) {
+          tiposSet.add(item.tipo.trim());
+        }
+      });
+      setTiposUnicos(Array.from(tiposSet).sort());
+    }
+  }, [tiposDemandaData]);
 
   const isFormValid = nome.trim() && sigla.trim() && email.trim() && telefone.trim() && tipo.trim();
 
@@ -163,16 +207,26 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                   <span className="text-red-500">*</span>
                   Tipo de Secretaria
                 </Label>
-                <Select value={tipo} onValueChange={setTipo}>
+                <Select value={tipo} onValueChange={setTipo} disabled={isLoadingTipos}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo de secretaria" />
+                    <SelectValue placeholder={isLoadingTipos ? 'Carregando tipos...' : 'Selecione o tipo de secretaria'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Iluminação Pública">Iluminação Pública</SelectItem>
-                    <SelectItem value="Saneamento Básico">Saneamento Básico</SelectItem>
-                    <SelectItem value="Limpeza Pública">Limpeza Pública</SelectItem>
-                    <SelectItem value="Segurança Pública">Segurança Pública</SelectItem>
-                    <SelectItem value="Outros">+ Adicionar Outro Tipo</SelectItem>
+                    {isLoadingTipos ? (
+                      <div className="flex items-center justify-center p-4">
+                        <Loader2 className="h-4 w-4 animate-spin text-[var(--global-accent)]" />
+                      </div>
+                    ) : tiposUnicos.length > 0 ? (
+                      tiposUnicos.map((tipoOption) => (
+                        <SelectItem key={tipoOption} value={tipoOption}>
+                          {tipoOption}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="px-2 py-1.5 text-sm text-[var(--global-text-secondary)] text-center">
+                        Nenhum tipo disponível
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
