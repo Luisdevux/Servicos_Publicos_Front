@@ -24,6 +24,7 @@ import {
 import { cn } from '@/lib/utils';
 import { tipoDemandaService } from '@/services';
 import type { TipoDemandaModel } from '@/types';
+import { CreateTipoDemandaModal } from '@/components/createTipoDemandaModal';
 
 interface CreateSecretariaModalProps {
   open: boolean;
@@ -37,8 +38,9 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
   const [telefone, setTelefone] = useState('');
   const [tipo, setTipo] = useState('');
   const [tiposUnicos, setTiposUnicos] = useState<string[]>([]);
+  const [isCreateTipoOpen, setIsCreateTipoOpen] = useState(false);
 
-  const { data: tiposDemandaData, isLoading: isLoadingTipos } = useQuery({
+  const { data: tiposDemandaData, isLoading: isLoadingTipos, refetch: refetchTipos } = useQuery({
     queryKey: ['tipoDemanda', 'all'],
     queryFn: async () => {
       let allDocs: TipoDemandaModel[] = [];
@@ -88,8 +90,15 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
     }
   }, [open]);
 
+  const handleDialogOpenChange = (newOpen: boolean) => {
+    if (!newOpen && isCreateTipoOpen) {
+      return;
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange} modal>
       <DialogContent
         className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl"
         data-test="create-secretaria-dialog"
@@ -209,7 +218,11 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                   <span className="text-red-500">*</span>
                   Tipo de Secretaria
                 </Label>
-                <Select value={tipo} onValueChange={setTipo} disabled={isLoadingTipos}>
+                <Select
+                  value={tipo || ''}
+                  onValueChange={setTipo}
+                  disabled={isLoadingTipos}
+                >
                   <SelectTrigger data-test="tipo-secretaria-select">
                     <SelectValue placeholder={isLoadingTipos ? 'Carregando tipos...' : 'Selecione o tipo de secretaria'} />
                   </SelectTrigger>
@@ -218,20 +231,36 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                       <div className="flex items-center justify-center p-4" data-test="tipo-secretaria-loading">
                         <Loader2 className="h-4 w-4 animate-spin text-[var(--global-accent)]" />
                       </div>
-                    ) : tiposUnicos.length > 0 ? (
-                      tiposUnicos.map((tipoOption) => (
-                        <SelectItem 
-                          key={tipoOption} 
-                          value={tipoOption}
-                          data-test={`tipo-secretaria-option-${tipoOption.toLowerCase().replace(/\s+/g, '-')}`}
-                        >
-                          {tipoOption}
-                        </SelectItem>
-                      ))
                     ) : (
-                      <div className="px-2 py-1.5 text-sm text-[var(--global-text-secondary)] text-center" data-test="tipo-secretaria-empty">
-                        Nenhum tipo disponível
-                      </div>
+                      <>
+                        {tiposUnicos.length > 0 && tiposUnicos.map((tipoOption) => (
+                          <SelectItem 
+                            key={tipoOption} 
+                            value={tipoOption}
+                            data-test={`tipo-secretaria-option-${tipoOption.toLowerCase().replace(/\s+/g, '-')}`}
+                          >
+                            {tipoOption}
+                          </SelectItem>
+                        ))}
+                        <div className="border-t border-[var(--global-border)]">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setIsCreateTipoOpen(true);
+                            }}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                            }}
+                            className="w-full px-2 py-1.5 text-sm text-[var(--global-accent)] hover:bg-[var(--global-bg-select)] cursor-pointer transition-colors flex items-center gap-2"
+                            data-test="tipo-demanda-option-novo"
+                          >
+                            <span className="font-medium">+</span>
+                            <span>Adicionar novo tipo</span>
+                          </button>
+                        </div>
+                      </>
                     )}
                   </SelectContent>
                 </Select>
@@ -264,6 +293,16 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
           </div>
         </form>
       </DialogContent>
+
+      <CreateTipoDemandaModal
+        open={isCreateTipoOpen}
+        onOpenChange={(newOpen) => {
+          if (!newOpen) {
+            setIsCreateTipoOpen(false);
+            void refetchTipos();
+          }
+        }}
+      />
     </Dialog>
   );
 }
