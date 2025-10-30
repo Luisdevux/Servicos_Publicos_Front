@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +14,8 @@ export default function SecretariaAdminPage() {
   const [searchText, setSearchText] = useState("");
   const [pendingSearchText, setPendingSearchText] = useState("");
   const [openCreate, setOpenCreate] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [selectedSecretaria, setSelectedSecretaria] = useState<Secretaria | null>(null);
 
 
   const { data, isLoading, refetch } = useQuery({
@@ -92,6 +94,8 @@ export default function SecretariaAdminPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -114,7 +118,21 @@ export default function SecretariaAdminPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.sigla}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.email}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.telefone}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">{s.tipo}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.tipo}</td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedSecretaria(s);
+                              setOpenEdit(true);
+                            }}
+                            className="p-1 hover:bg-gray-100 rounded"
+                            aria-label={`Editar ${s.nome}`}
+                          >
+                            <Pencil className="h-4 w-4 text-[var(--global-text-primary)]" />
+                          </button>
+                        </td>
+                        <td><Trash className="h-4 w-4 text-[var(--global-text-primary)]" /></td>
                       </tr>
                     ))
                   )}
@@ -156,6 +174,20 @@ export default function SecretariaAdminPage() {
               refetch();
             }
           }}
+        />
+      )}
+
+      {openEdit && (
+        <CreateSecretariaModal
+          open={openEdit}
+          onOpenChange={(open) => {
+            setOpenEdit(open);
+            if (!open) {
+              setSelectedSecretaria(null);
+              refetch();
+            }
+          }}
+          secretaria={selectedSecretaria}
         />
       )}
     </div>

@@ -25,15 +25,16 @@ import {
 import { cn } from '@/lib/utils';
 import { tipoDemandaService, secretariaService } from '@/services';
 import { TIPOS_DEMANDA } from '@/types';
-import type { CreateSecretariaData, TipoDemandaModel } from '@/types';
+import type { CreateSecretariaData, TipoDemandaModel, Secretaria, UpdateSecretariaData } from '@/types';
 import { CreateTipoDemandaModal } from '@/components/createTipoDemandaModal';
 
 interface CreateSecretariaModalProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;  
+  onOpenChange: (open: boolean) => void;
+  secretaria?: Secretaria | null;
 }
 
-export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaModalProps) {
+export function CreateSecretariaModal({ open, onOpenChange, secretaria }: CreateSecretariaModalProps) {
   const queryClient = useQueryClient();
   const [nome, setNome] = useState('');
   const [sigla, setSigla] = useState('');
@@ -86,14 +87,20 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
   }, [tiposDemandaData]);
 
   useEffect(() => {
-    if (!open) {
+    if (open && secretaria) {
+      setNome(secretaria.nome || '');
+      setSigla(secretaria.sigla || '');
+      setEmail(secretaria.email || '');
+      setTelefone(secretaria.telefone || '');
+      setTipo(secretaria.tipo || '');
+    } else if (!open) {
       setNome('');
       setSigla('');
       setEmail('');
       setTelefone('');
       setTipo('');
     }
-  }, [open]);
+  }, [open, secretaria]);
 
   const handleDialogOpenChange = (newOpen: boolean) => {
     if (!newOpen && isCreateTipoOpen) {
@@ -157,17 +164,35 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
 
     setIsSubmitting(true);
     try {
-      const payload: CreateSecretariaData = {
+      const trimmed = {
         nome: nome.trim(),
         sigla: sigla.trim(),
         email: email.trim(),
         telefone: telefone.trim(),
         tipo: tipo.trim(),
-      };
+      } as const;
 
-      await secretariaService.criarSecretaria(payload);
+      if (secretaria?._id) {
+        const updatePayload: UpdateSecretariaData = {};
+        if (trimmed.nome !== secretaria.nome) updatePayload.nome = trimmed.nome;
+        if (trimmed.sigla !== secretaria.sigla) updatePayload.sigla = trimmed.sigla;
+        if (trimmed.email !== secretaria.email) updatePayload.email = trimmed.email;
+        if (trimmed.telefone !== secretaria.telefone) updatePayload.telefone = trimmed.telefone;
+        if (trimmed.tipo !== secretaria.tipo) updatePayload.tipo = trimmed.tipo;
 
-      toast.success('Secretaria criada com sucesso!');
+        if (Object.keys(updatePayload).length === 0) {
+          toast.info('Nenhuma alteração para salvar.');
+          onOpenChange(false);
+          return;
+        }
+
+        await secretariaService.atualizarSecretaria(secretaria._id, updatePayload);
+        toast.success('Secretaria atualizada com sucesso!');
+      } else {
+        const payload: CreateSecretariaData = { ...trimmed };
+        await secretariaService.criarSecretaria(payload);
+        toast.success('Secretaria criada com sucesso!');
+      }
       void queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
       onOpenChange(false);
     } catch (error) {
@@ -207,7 +232,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
             className="text-2xl font-bold text-center text-white drop-shadow-md relative z-10"
             data-test="create-secretaria-title"
           >
-            Adicionar Nova Secretaria
+            {secretaria ? 'Editar Secretaria' : 'Adicionar Nova Secretaria'}
           </DialogTitle>
         </DialogHeader>
 
@@ -376,12 +401,12 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Criando...
+                  {secretaria ? 'Salvando...' : 'Criando...'}
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Criar Secretaria
+                  {secretaria ? 'Salvar alterações' : 'Criar Secretaria'}
                 </>
               )}
             </Button>
