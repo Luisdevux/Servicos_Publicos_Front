@@ -23,6 +23,21 @@ export const usuarioService = {
     return getSecure<ApiResponse<PaginatedResponse<Usuarios>>>('/usuarios');
   },
 
+
+  async buscarUsuariosPaginado(filters: Record<string, any> = {}, limit: number = 10, page: number = 1): Promise<ApiResponse<PaginatedResponse<Usuarios>>> {
+    const params = new URLSearchParams();
+    for (const key in filters) {
+      const value = filters[key];
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, String(value));
+      }
+    }
+    params.append('limite', String(limit));
+    params.append('page', String(page));
+
+    return getSecure<ApiResponse<PaginatedResponse<Usuarios>>>(`/usuarios?${params.toString()}`);
+  },
+
   /**
    * Busca um usuário por ID
    * GET /usuarios/:id (requer AuthMiddleware + AuthPermission)

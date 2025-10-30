@@ -53,7 +53,7 @@ export interface CreateUsuariosData {
   ativo?: boolean;
   nome_social?: string;
   portaria_nomeacao?: string;
-  senha: string;
+  senha?: string;
   endereco: Endereco;
   secretarias?: string[];
 }

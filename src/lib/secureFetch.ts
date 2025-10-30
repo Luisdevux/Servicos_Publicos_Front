@@ -27,6 +27,7 @@ export async function secureFetch<T>(options: SecureFetchOptions): Promise<T> {
     const customError = new Error(errorMessage);
     // Add status to error object so we can check it
     (customError as any).status = response.status;
+    (customError as any).data = error;
     throw customError;
   }
 

@@ -75,13 +75,13 @@ export default function DashboardPage() {
     },
     {
       id: 2,
-      title: "Colaboradores",
+      title: "Colaboradores ativos",
       value: metricas.novosColaboradores.toLocaleString(),
       icon: <Users className="h-6 w-6" />
     },
     {
       id: 3,
-      title: "Operadores",
+      title: "Operadores ativos",
       value: metricas.novosOperadores.toLocaleString(),
       icon: <IdCardLanyard className="h-6 w-6" />
     },

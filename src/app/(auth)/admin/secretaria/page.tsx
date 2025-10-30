@@ -161,26 +161,26 @@ export default function SecretariaAdminPage() {
       </div>
 
       <div className="flex items-center justify-center gap-4 p-4">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={!hasPrevPage}
-                className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft size={20} />
-              </button>
+        <button
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={!hasPrevPage}
+          className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronLeft size={20} />
+        </button>
 
-              <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
-                <span>Página {Math.min(page, totalPages)} de {totalPages}</span>
-              </div>
+        <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
+          <span>Página {Math.min(page, totalPages)} de {totalPages}</span>
+        </div>
 
-              <button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={!hasNextPage}
-                className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
+        <button
+          onClick={() => setPage((p) => p + 1)}
+          disabled={!hasNextPage}
+          className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
 
       {openCreate && (
         <CreateSecretariaModal
@@ -226,7 +226,7 @@ export default function SecretariaAdminPage() {
           </DialogHeader>
           <div className="flex gap-3 justify-end">
             <Button
-              className="border-2 border-[var(--global-border)] bg-white text-[var(--global-text-primary)] hover:bg-[var(--global-bg-select)]"
+              className="border-2 border-[var(--global-bg-select)] bg-white hover:bg-[var(--global-bg-select)]"
               onClick={() => setOpenDelete(false)}
               disabled={isDeleting}
             >
