@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreateColaboradorModal } from "@/components/createColaboradorModal";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ColaboradorDetailsModal } from "@/components/ColaboradorDetailsModal";
 import { toast } from "sonner";
 
 export default function ColaboradorAdminPage() {
@@ -28,6 +29,8 @@ export default function ColaboradorAdminPage() {
   const [openDelete, setOpenDelete] = useState(false);
   const [usuarioToDelete, setUsuarioToDelete] = useState<Usuarios | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [openDetails, setOpenDetails] = useState(false);
+  const [usuarioDetails, setUsuarioDetails] = useState<Usuarios | null>(null);
 
   const handleConfirmDelete = async () => {
     if (!usuarioToDelete?._id) return;
@@ -171,7 +174,6 @@ export default function ColaboradorAdminPage() {
                     <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
                     <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Portaria</th>
                     <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Cargo</th>
-                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nível de acesso</th>
                     <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                     <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
@@ -193,14 +195,17 @@ export default function ColaboradorAdminPage() {
                       if (c?.nivel_acesso?.operador) niveis.push('Operador');
                       if (c?.nivel_acesso?.administrador) niveis.push('Administrador');
                       return (
-                        <tr key={c._id} className="hover:bg-gray-50">
+                        <tr
+                          key={c._id}
+                          className="hover:bg-gray-50 cursor-pointer"
+                          onClick={() => { setUsuarioDetails(c); setOpenDetails(true); }}
+                        >
                           <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">{c.nome}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">{c.email}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900 hidden md:table-cell">{c.cpf}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">{c.celular}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900 hidden md:table-cell">{c.portaria_nomeacao || '-'}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900 hidden md:table-cell">{c.cargo || '-'}</td>
-                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">{niveis.join(' / ')}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">
                             {c.ativo ? (
                               <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 px-2.5 py-0.5 text-xs font-medium">
@@ -213,7 +218,7 @@ export default function ColaboradorAdminPage() {
                             )}
                           </td>
                           <td className="px-3 md:px-6 py-3">
-                            <button type="button" className="p-1 hover:bg-gray-100 rounded" onClick={() => { setSelectedUsuario(c); setOpenEdit(true); }}>
+                            <button type="button" className="p-1 hover:bg-gray-100 rounded" onClick={(e) => { e.stopPropagation(); setSelectedUsuario(c); setOpenEdit(true); }}>
                               <Pencil className="h-4 w-4 text-[var(--global-text-primary)]" />
                             </button>
                           </td>
@@ -221,7 +226,7 @@ export default function ColaboradorAdminPage() {
                             <button
                               type="button"
                               className="p-1 hover:bg-gray-100 rounded"
-                              onClick={() => { setUsuarioToDelete(c); setOpenDelete(true); }}
+                              onClick={(e) => { e.stopPropagation(); setUsuarioToDelete(c); setOpenDelete(true); }}
                             >
                               <Trash className="h-4 w-4 text-[var(--global-text-primary)]" />
                             </button>
@@ -313,9 +318,16 @@ export default function ColaboradorAdminPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
 
-    
+      <ColaboradorDetailsModal
+        open={openDetails}
+        onOpenChange={(open) => {
+          setOpenDetails(open);
+          if (!open) setUsuarioDetails(null);
+        }}
+        usuario={usuarioDetails}
+      />
+    </div>
   );
 }
 
