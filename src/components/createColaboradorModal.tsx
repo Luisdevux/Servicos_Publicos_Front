@@ -18,6 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { secretariaService } from '@/services/secretariaService';
 import { usuarioService } from '@/services/usuarioService';
+import { viaCepService } from '@/services';
 import type { CreateUsuariosData, Secretaria, Usuarios, EstadoBrasil } from '@/types';
 import { ESTADOS_BRASIL } from '@/types';
 
@@ -48,6 +49,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
   const [cep, setCep] = useState('');
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
+  const [loadingCep, setLoadingCep] = useState(false);
 
   const [nivel, setNivel] = useState<'operador' | 'secretario' | 'administrador' | ''>('');
 
@@ -274,6 +276,40 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
     }
   };
 
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 8) value = value.slice(0, 8);
+
+    if (value.length > 5) {
+      value = `${value.slice(0, 5)}-${value.slice(5)}`;
+    }
+
+    setCep(value);
+
+    const apenasNumeros = value.replace(/\D/g, '');
+    if (apenasNumeros.length === 8) {
+      setLoadingCep(true);
+      try {
+        const endereco = await viaCepService.buscarEnderecoPorCep(apenasNumeros);
+        if (endereco) {
+          setBairro(endereco.bairro || '');
+          setCidade(endereco.localidade || 'Vilhena');
+          setEstado((endereco.uf as EstadoBrasil) || 'RO');
+          if (endereco.logradouro) {
+            setLogradouro(endereco.logradouro);
+          }
+          toast.success('CEP encontrado! Endereço preenchido automaticamente.');
+        } else {
+          toast.error('CEP não encontrado. Verifique o número digitado.');
+        }
+      } catch (error) {
+        toast.error('Erro ao buscar CEP. Tente novamente.');
+      } finally {
+        setLoadingCep(false);
+      }
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!isSubmitting) onOpenChange(o); }}>
       <DialogContent className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl">
@@ -367,7 +403,21 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
           <div className="space-y-3">
             <Label>Endereço</Label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Input placeholder="CEP" value={cep} onChange={(e) => setCep(e.target.value)} disabled={isSubmitting} />
+              <div className="relative">
+                <Input
+                  placeholder="00000-000"
+                  value={cep}
+                  onChange={handleCepChange}
+                  disabled={isSubmitting || loadingCep}
+                  maxLength={9}
+                  className="pr-10"
+                />
+                {loadingCep && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-[var(--global-accent)]" />
+                  </div>
+                )}
+              </div>
               <Input placeholder="Logradouro" value={logradouro} onChange={(e) => setLogradouro(e.target.value)} disabled={isSubmitting} />
               <Input placeholder="Número" value={numero} onChange={(e) => setNumero(e.target.value)} disabled={isSubmitting} />
             </div>
