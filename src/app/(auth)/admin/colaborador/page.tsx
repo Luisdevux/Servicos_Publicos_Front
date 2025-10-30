@@ -1,17 +1,25 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Pencil, Plus, Trash } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { usuarioService } from "@/services/usuarioService";
 import type { Usuarios } from "@/types";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CreateColaboradorModal } from "@/components/createColaboradorModal";
 
 export default function ColaboradorAdminPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasPrevPage, setHasPrevPage] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
+  const [pendingSearchText, setPendingSearchText] = useState("");
+  const [searchText, setSearchText] = useState("");
+  const [nivelFilter, setNivelFilter] = useState<string>(""); 
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [openCreate, setOpenCreate] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["usuarios"],
@@ -40,14 +48,78 @@ export default function ColaboradorAdminPage() {
   const colaboradores = usuarios.filter((u) =>
     u?.nivel_acesso?.operador || u?.nivel_acesso?.secretario || u?.nivel_acesso?.administrador
   );
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setSearchText(pendingSearchText);
+    }, 300);
+    return () => clearTimeout(id);
+  }, [pendingSearchText]);
+
+  const colaboradoresFiltrados = useMemo(() => {
+    const termo = searchText.trim().toLowerCase();
+    return colaboradores.filter((c) => {
+      const byTexto = termo
+        ? (c.nome?.toLowerCase().includes(termo) ||
+           c.cpf?.toLowerCase().includes(termo) ||
+           (c.portaria_nomeacao?.toLowerCase() ?? "").includes(termo))
+        : true;
+
+      const byNivel = nivelFilter === 'operador'
+        ? !!c?.nivel_acesso?.operador
+        : nivelFilter === 'secretario'
+          ? !!c?.nivel_acesso?.secretario
+          : true; 
+
+      const byStatus = statusFilter === 'ativo'
+        ? c.ativo === true
+        : statusFilter === 'inativo'
+          ? c.ativo === false
+          : true; 
+
+      return byTexto && byNivel && byStatus;
+    });
+  }, [colaboradores, searchText, nivelFilter, statusFilter]);
   return (
     <div className="min-h-screen bg-[var(--global-bg)]">
       <div className="px-6 sm:px-6 py-6 md:py-8">
         <div className="mx-auto space-y-6">
           <div className="flex flex-col md:flex-row gap-3 md:items-end md:justify-between">
+            <div className="relative flex gap-3 items-center flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Pesquisar por nome, CPF ou portaria"
+                  value={pendingSearchText}
+                  onChange={(e) => setPendingSearchText(e.target.value)}
+                  className="w-72 pl-9"
+                />
+              </div>
+              <Select value={nivelFilter} onValueChange={setNivelFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Nível de acesso" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="operador">Operador</SelectItem>
+                  <SelectItem value="secretario">Secretário</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="ativo">Ativo</SelectItem>
+                  <SelectItem value="inativo">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Button
                 className="bg-[var(--global-text-primary)] hover:bg-[var(--global-text-secondary)] text-white"
+                onClick={() => setOpenCreate(true)}
               >
                 <Plus className="h-4 w-4 mr-2" /> Adicionar colaborador
               </Button>
@@ -66,7 +138,7 @@ export default function ColaboradorAdminPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Portaria</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nível de acesso</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                   </tr>
@@ -76,12 +148,12 @@ export default function ColaboradorAdminPage() {
                     <tr>
                       <td colSpan={10} className="px-6 py-8 text-center text-gray-500">Carregando colaboradores...</td>
                     </tr>
-                  ) : colaboradores.length === 0 ? (
+                  ) : colaboradoresFiltrados.length === 0 ? (
                     <tr>
                       <td colSpan={10} className="px-6 py-8 text-center text-gray-500">Nenhum colaborador encontrado.</td>
                     </tr>
                   ) : (
-                    colaboradores.map((c) => {
+                    colaboradoresFiltrados.map((c) => {
                       const niveis: string[] = [];
                       if (c?.nivel_acesso?.secretario) niveis.push('Secretário');
                       if (c?.nivel_acesso?.operador) niveis.push('Operador');
@@ -147,6 +219,17 @@ export default function ColaboradorAdminPage() {
           <ChevronRight size={20} />
         </button>
       </div>
+      {openCreate && (
+        <CreateColaboradorModal
+          open={openCreate}
+          onOpenChange={(open) => {
+            setOpenCreate(open);
+            if (!open) {
+              // Lista usa queryKey ['usuarios'] e será recarregada quando necessário
+            }
+          }}
+        />
+      )}
     </div>
 
     
