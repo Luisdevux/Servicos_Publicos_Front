@@ -69,7 +69,9 @@ export default function ColaboradorAdminPage() {
         ? !!c?.nivel_acesso?.operador
         : nivelFilter === 'secretario'
           ? !!c?.nivel_acesso?.secretario
-          : true; 
+          : nivelFilter === 'administrador'
+            ? !!c?.nivel_acesso?.administrador
+            : true; 
 
       const byStatus = statusFilter === 'ativo'
         ? c.ativo === true
@@ -103,6 +105,7 @@ export default function ColaboradorAdminPage() {
                   <SelectItem value="todos">Todos</SelectItem>
                   <SelectItem value="operador">Operador</SelectItem>
                   <SelectItem value="secretario">Secretário</SelectItem>
+                  <SelectItem value="administrador">Administrador</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
