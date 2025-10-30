@@ -226,7 +226,7 @@ export default function SecretariaAdminPage() {
           </DialogHeader>
           <div className="flex gap-3 justify-end">
             <Button
-              className="border-2 border-[var(--global-border)] bg-white text-[var(--global-text-primary)] hover:bg-[var(--global-bg-select)]"
+              className="border-2 border-[var(--global-bg-select)] bg-white hover:bg-[var(--global-bg-select)]"
               onClick={() => setOpenDelete(false)}
               disabled={isDeleting}
             >

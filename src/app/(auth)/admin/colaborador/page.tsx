@@ -3,14 +3,17 @@
 import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usuarioService } from "@/services/usuarioService";
 import type { Usuarios } from "@/types";
 import { useEffect, useMemo, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreateColaboradorModal } from "@/components/createColaboradorModal";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 export default function ColaboradorAdminPage() {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasPrevPage, setHasPrevPage] = useState(false);
@@ -22,6 +25,32 @@ export default function ColaboradorAdminPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedUsuario, setSelectedUsuario] = useState<Usuarios | null>(null);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [usuarioToDelete, setUsuarioToDelete] = useState<Usuarios | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (!usuarioToDelete?._id) return;
+    setIsDeleting(true);
+    try {
+      await usuarioService.deletarUsuario(usuarioToDelete._id);
+      queryClient.setQueryData<Usuarios[] | undefined>(["usuarios"], (old) => {
+        if (!old) return old;
+        if (Array.isArray(old)) {
+          return old.filter((u) => u._id !== usuarioToDelete._id);
+        }
+        return old;
+      });
+      toast.success('Colaborador excluído com sucesso!');
+      setOpenDelete(false);
+      setUsuarioToDelete(null);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Erro ao excluir colaborador';
+      toast.error(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["usuarios"],
@@ -189,7 +218,11 @@ export default function ColaboradorAdminPage() {
                             </button>
                           </td>
                           <td className="px-3 md:px-6 py-3">
-                            <button type="button" className="p-1 hover:bg-gray-100 rounded">
+                            <button
+                              type="button"
+                              className="p-1 hover:bg-gray-100 rounded"
+                              onClick={() => { setUsuarioToDelete(c); setOpenDelete(true); }}
+                            >
                               <Trash className="h-4 w-4 text-[var(--global-text-primary)]" />
                             </button>
                           </td>
@@ -245,6 +278,41 @@ export default function ColaboradorAdminPage() {
           usuario={selectedUsuario}
         />
       )}
+
+      <Dialog
+        open={openDelete}
+        onOpenChange={(open) => {
+          if (!open && isDeleting) return;
+          setOpenDelete(open);
+          if (!open) setUsuarioToDelete(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader className="text-center mb-2 flex flex-col items-center justify-center">
+            <DialogTitle>Excluir colaborador</DialogTitle>
+            <DialogDescription className="text-center mt-2 ">
+              Você tem certeza que deseja excluir o colaborador{' '}
+              <strong className="text-black">{usuarioToDelete?.nome ?? ''}</strong> ?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 justify-end">
+            <Button
+              className="border-2 border-[var(--global-bg-select)] bg-white hover:bg-[var(--global-bg-select)]"
+              onClick={() => setOpenDelete(false)}
+              disabled={isDeleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={isDeleting}
+              onClick={() => { void handleConfirmDelete(); }}
+            >
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
 
     
