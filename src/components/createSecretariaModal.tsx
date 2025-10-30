@@ -24,15 +24,17 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { tipoDemandaService, secretariaService } from '@/services';
-import type { TipoDemandaModel, CreateSecretariaData } from '@/types';
+import { TIPOS_DEMANDA } from '@/types';
+import type { CreateSecretariaData, TipoDemandaModel, Secretaria, UpdateSecretariaData } from '@/types';
 import { CreateTipoDemandaModal } from '@/components/createTipoDemandaModal';
 
 interface CreateSecretariaModalProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;  
+  onOpenChange: (open: boolean) => void;
+  secretaria?: Secretaria | null;
 }
 
-export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaModalProps) {
+export function CreateSecretariaModal({ open, onOpenChange, secretaria }: CreateSecretariaModalProps) {
   const queryClient = useQueryClient();
   const [nome, setNome] = useState('');
   const [sigla, setSigla] = useState('');
@@ -51,13 +53,13 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
       let totalPages = 1;
 
       do {
-        const res = await tipoDemandaService.buscarTiposDemandaPorTipo({}, 10, page);
+        const res = await tipoDemandaService.buscarTiposDemandaPorTipo({}, 50, page);
         const data = res.data;
-        
+
         if (data?.docs) {
-          allDocs = [...allDocs, ...data.docs];
+          allDocs = allDocs.concat(data.docs);
         }
-        
+
         totalPages = data?.totalPages || 1;
         page++;
       } while (page <= totalPages);
@@ -65,33 +67,40 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
       return allDocs;
     },
     enabled: open,
-    staleTime: 5 * 60 * 1000, 
+    staleTime: 5 * 60 * 1000,
     retry: 1,
   });
 
   useEffect(() => {
-    if (tiposDemandaData) {
-      const tiposSet = new Set<string>();
+    const tiposSet = new Set<string>();
+    if (Array.isArray(tiposDemandaData) && tiposDemandaData.length > 0) {
       tiposDemandaData.forEach((item) => {
         if (item?.tipo && item.tipo.trim()) {
           tiposSet.add(item.tipo.trim());
         }
       });
-      setTiposUnicos(Array.from(tiposSet).sort());
     }
+    if (tiposSet.size === 0) {
+      TIPOS_DEMANDA.forEach((t) => tiposSet.add(t));
+    }
+    setTiposUnicos(Array.from(tiposSet).sort());
   }, [tiposDemandaData]);
 
-  const isFormValid = nome.trim() && sigla.trim() && email.trim() && telefone.trim() && tipo.trim();
-
   useEffect(() => {
-    if (!open) {
+    if (open && secretaria) {
+      setNome(secretaria.nome || '');
+      setSigla(secretaria.sigla || '');
+      setEmail(secretaria.email || '');
+      setTelefone(secretaria.telefone || '');
+      setTipo(secretaria.tipo || '');
+    } else if (!open) {
       setNome('');
       setSigla('');
       setEmail('');
       setTelefone('');
       setTipo('');
     }
-  }, [open]);
+  }, [open, secretaria]);
 
   const handleDialogOpenChange = (newOpen: boolean) => {
     if (!newOpen && isCreateTipoOpen) {
@@ -155,17 +164,35 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
 
     setIsSubmitting(true);
     try {
-      const payload: CreateSecretariaData = {
+      const trimmed = {
         nome: nome.trim(),
         sigla: sigla.trim(),
         email: email.trim(),
         telefone: telefone.trim(),
         tipo: tipo.trim(),
-      };
+      } as const;
 
-      await secretariaService.criarSecretaria(payload);
+      if (secretaria?._id) {
+        const updatePayload: UpdateSecretariaData = {};
+        if (trimmed.nome !== secretaria.nome) updatePayload.nome = trimmed.nome;
+        if (trimmed.sigla !== secretaria.sigla) updatePayload.sigla = trimmed.sigla;
+        if (trimmed.email !== secretaria.email) updatePayload.email = trimmed.email;
+        if (trimmed.telefone !== secretaria.telefone) updatePayload.telefone = trimmed.telefone;
+        if (trimmed.tipo !== secretaria.tipo) updatePayload.tipo = trimmed.tipo;
 
-      toast.success('Secretaria criada com sucesso!');
+        if (Object.keys(updatePayload).length === 0) {
+          toast.info('Nenhuma alteração para salvar.');
+          onOpenChange(false);
+          return;
+        }
+
+        await secretariaService.atualizarSecretaria(secretaria._id, updatePayload);
+        toast.success('Secretaria atualizada com sucesso!');
+      } else {
+        const payload: CreateSecretariaData = { ...trimmed };
+        await secretariaService.criarSecretaria(payload);
+        toast.success('Secretaria criada com sucesso!');
+      }
       void queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
       onOpenChange(false);
     } catch (error) {
@@ -205,7 +232,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
             className="text-2xl font-bold text-center text-white drop-shadow-md relative z-10"
             data-test="create-secretaria-title"
           >
-            Adicionar Nova Secretaria
+            {secretaria ? 'Editar Secretaria' : 'Adicionar Nova Secretaria'}
           </DialogTitle>
         </DialogHeader>
 
@@ -299,7 +326,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
               <div className="space-y-2">
                 <Label htmlFor="numero" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
                   <span className="text-red-500">*</span>
-                  Tipo de Secretaria
+                  Tipo de Demanda
                 </Label>
                 <Select
                   value={tipo || ''}
@@ -307,7 +334,7 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
                   disabled={isLoadingTipos || isSubmitting}
                 >
                   <SelectTrigger data-test="tipo-secretaria-select">
-                    <SelectValue placeholder={isLoadingTipos ? 'Carregando tipos...' : 'Selecione o tipo de secretaria'} />
+                    <SelectValue placeholder={isLoadingTipos ? 'Carregando tipos...' : 'Selecione o tipo de demanda'} />
                   </SelectTrigger>
                   <SelectContent data-test="tipo-secretaria-options">
                     {isLoadingTipos ? (
@@ -364,22 +391,22 @@ export function CreateSecretariaModal({ open, onOpenChange }: CreateSecretariaMo
             </Button>
             <Button
               type="submit"
-              disabled={!isFormValid || isSubmitting}
+              disabled={isSubmitting}
               className={cn(
                 "flex-1 bg-[var(--global-accent)] hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
-                (!isFormValid || isSubmitting) && "opacity-70 cursor-not-allowed"
+                isSubmitting && "opacity-70 cursor-not-allowed"
               )}
               data-test="submit-button"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Criando...
+                  {secretaria ? 'Salvando...' : 'Criando...'}
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Criar Secretaria
+                  {secretaria ? 'Salvar alterações' : 'Criar Secretaria'}
                 </>
               )}
             </Button>
