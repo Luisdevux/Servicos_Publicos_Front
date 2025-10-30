@@ -78,24 +78,6 @@ export function CreateColaboradorModal({ open, onOpenChange }: CreateColaborador
   useEffect(() => {
     if (!open) {
       setIsSubmitting(false);
-      setNome('');
-      setEmail('');
-      setCpf('');
-      setCelular('');
-      setCargo('');
-      setPortaria('');
-      setFormacao('');
-      setAtivo(true);
-      setCnh('');
-      setLogradouro('');
-      setNumero('');
-      setComplemento('');
-      setBairro('');
-      setCep('');
-      setCidade('');
-      setEstado('');
-      setNivel('');
-      setSecretariasSelecionadas([]);
     }
   }, [open]);
 
@@ -133,7 +115,7 @@ export function CreateColaboradorModal({ open, onOpenChange }: CreateColaborador
 
       const celularNumeros = (celular || '').replace(/\D/g, '');
       if (celularNumeros.length !== 11) {
-        toast.error('O celular deve conter 11 dígitos (ex: (69)999999999)');
+        toast.error('O celular deve conter 11 dígitos (69)999999999');
         setIsSubmitting(false);
         return;
       }
@@ -172,10 +154,37 @@ export function CreateColaboradorModal({ open, onOpenChange }: CreateColaborador
 
       toast.success('Colaborador criado com sucesso!');
       void queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      setNome('');
+      setEmail('');
+      setCpf('');
+      setCelular('');
+      setCargo('');
+      setPortaria('');
+      setFormacao('');
+      setAtivo(true);
+      setCnh('');
+      setLogradouro('');
+      setNumero('');
+      setComplemento('');
+      setBairro('');
+      setCep('');
+      setCidade('');
+      setEstado('');
+      setNivel('');
+      setSecretariasSelecionadas([]);
       onOpenChange(false);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao criar colaborador';
-      toast.error(message);
+      const defaultMsg = error instanceof Error ? error.message : 'Erro ao criar colaborador';
+      const data = (error as any)?.data;
+      const errors = Array.isArray(data?.errors) ? data.errors : [];
+      if (errors.length > 0) {
+        errors.forEach((err: any) => {
+          const msg = typeof err?.message === 'string' ? err.message : defaultMsg;
+          toast.error(msg);
+        });
+      } else {
+        toast.error(defaultMsg);
+      }
     } finally {
       setIsSubmitting(false);
     }

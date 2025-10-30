@@ -222,17 +222,15 @@ export default function ColaboradorAdminPage() {
           <ChevronRight size={20} />
         </button>
       </div>
-      {openCreate && (
-        <CreateColaboradorModal
-          open={openCreate}
-          onOpenChange={(open) => {
-            setOpenCreate(open);
-            if (!open) {
-              // Lista usa queryKey ['usuarios'] e será recarregada quando necessário
-            }
-          }}
-        />
-      )}
+      <CreateColaboradorModal
+        open={openCreate}
+        onOpenChange={(open) => {
+          setOpenCreate(open);
+          if (!open) {
+            // Lista usa queryKey ['usuarios'] e será recarregada quando necessário
+          }
+        }}
+      />
     </div>
 
     
