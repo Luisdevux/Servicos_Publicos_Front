@@ -24,9 +24,10 @@ import { ESTADOS_BRASIL } from '@/types';
 interface CreateColaboradorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  usuario?: Usuarios | null;
 }
 
-export function CreateColaboradorModal({ open, onOpenChange }: CreateColaboradorModalProps) {
+export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateColaboradorModalProps) {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -76,10 +77,47 @@ export function CreateColaboradorModal({ open, onOpenChange }: CreateColaborador
   const secretarias: Secretaria[] = useMemo(() => Array.isArray(secretariasAll) ? secretariasAll : [], [secretariasAll]);
 
   useEffect(() => {
+    if (open && usuario) {
+      setNome(usuario.nome || '');
+      setEmail(usuario.email || '');
+      setCpf(usuario.cpf || '');
+      setCelular(usuario.celular || '');
+      setCargo(usuario.cargo || '');
+      setPortaria(usuario.portaria_nomeacao || '');
+      setFormacao(usuario.formacao || '');
+      setAtivo(Boolean(usuario.ativo));
+      setCnh(usuario.cnh || '');
+      setLogradouro(usuario.endereco?.logradouro || '');
+      setNumero(String(usuario.endereco?.numero ?? ''));
+      setComplemento(usuario.endereco?.complemento || '');
+      setBairro(usuario.endereco?.bairro || '');
+      setCep(usuario.endereco?.cep || '');
+      setCidade(usuario.endereco?.cidade || '');
+      setEstado((usuario.endereco?.estado as string) || '');
+      setNivel(
+        usuario.nivel_acesso?.administrador
+          ? 'administrador'
+          : usuario.nivel_acesso?.secretario
+            ? 'secretario'
+            : usuario.nivel_acesso?.operador
+              ? 'operador'
+              : ''
+      );
+      let idsSecretarias: string[] = [];
+      const sec = usuario.secretarias as unknown as any[];
+      if (Array.isArray(sec)) {
+        if (sec.length > 0 && typeof sec[0] === 'string') {
+          idsSecretarias = sec as unknown as string[];
+        } else {
+          idsSecretarias = sec.map((x) => x?._id).filter(Boolean);
+        }
+      }
+      setSecretariasSelecionadas(idsSecretarias);
+    }
     if (!open) {
       setIsSubmitting(false);
     }
-  }, [open]);
+  }, [open, usuario]);
 
   const toggleSecretaria = (id: string) => {
     setSecretariasSelecionadas((prev) =>
@@ -150,28 +188,74 @@ export function CreateColaboradorModal({ open, onOpenChange }: CreateColaborador
         secretarias: secretariasSelecionadas.length ? secretariasSelecionadas : undefined,
       };
 
-      await usuarioService.criarUsuario(payload as unknown as Usuarios as any);
+      if (usuario?._id) {
+        const updatePayload: any = {};
+        if (payload.nome !== usuario.nome) updatePayload.nome = payload.nome;
+        if (payload.celular !== usuario.celular) updatePayload.celular = payload.celular;
+        if (payload.cargo !== usuario.cargo) updatePayload.cargo = payload.cargo;
+        if (payload.formacao !== usuario.formacao) updatePayload.formacao = payload.formacao;
+        if (payload.ativo !== usuario.ativo) updatePayload.ativo = payload.ativo;
+        if ((payload as any).portaria_nomeacao !== (usuario as any).portaria_nomeacao) updatePayload.portaria_nomeacao = (payload as any).portaria_nomeacao;
 
-      toast.success('Colaborador criado com sucesso!');
+        // endereço: se qualquer campo mudou, envia o objeto completo
+        const currentEnd: any = usuario.endereco || {};
+        const newEnd = payload.endereco;
+        const addressChanged = (
+          (newEnd?.logradouro || '') !== (currentEnd.logradouro || '') ||
+          (newEnd?.cep || '') !== (currentEnd.cep || '') ||
+          (newEnd?.bairro || '') !== (currentEnd.bairro || '') ||
+          (newEnd?.numero || 0) !== (currentEnd.numero || 0) ||
+          (newEnd?.complemento || '') !== (currentEnd.complemento || '') ||
+          (newEnd?.cidade || '') !== (currentEnd.cidade || '') ||
+          (newEnd?.estado || '') !== (currentEnd.estado || '')
+        );
+        if (addressChanged) {
+          updatePayload.endereco = newEnd;
+        }
+
+        // secretarias: compara ids
+        let currentSecIds: string[] = [];
+        const sec = usuario.secretarias as unknown as any[];
+        if (Array.isArray(sec)) {
+          if (sec.length > 0 && typeof sec[0] === 'string') currentSecIds = sec as unknown as string[];
+          else currentSecIds = sec.map((x) => x?._id).filter(Boolean);
+        }
+        const nextSecIds = secretariasSelecionadas;
+        const setsEqual = currentSecIds.length === nextSecIds.length && currentSecIds.every((id) => nextSecIds.includes(id));
+        if (!setsEqual) {
+          updatePayload.secretarias = nextSecIds;
+        }
+
+        if (Object.keys(updatePayload).length === 0) {
+          toast.info('Nenhuma alteração para salvar.');
+          onOpenChange(false);
+          return;
+        }
+        await usuarioService.atualizarUsuario(usuario._id!, updatePayload);
+        toast.success('Colaborador atualizado com sucesso!');
+      } else {
+        await usuarioService.criarUsuario(payload as unknown as Usuarios as any);
+        toast.success('Colaborador criado com sucesso!');
+        setNome('');
+        setEmail('');
+        setCpf('');
+        setCelular('');
+        setCargo('');
+        setPortaria('');
+        setFormacao('');
+        setAtivo(true);
+        setCnh('');
+        setLogradouro('');
+        setNumero('');
+        setComplemento('');
+        setBairro('');
+        setCep('');
+        setCidade('');
+        setEstado('');
+        setNivel('');
+        setSecretariasSelecionadas([]);
+      }
       void queryClient.invalidateQueries({ queryKey: ['usuarios'] });
-      setNome('');
-      setEmail('');
-      setCpf('');
-      setCelular('');
-      setCargo('');
-      setPortaria('');
-      setFormacao('');
-      setAtivo(true);
-      setCnh('');
-      setLogradouro('');
-      setNumero('');
-      setComplemento('');
-      setBairro('');
-      setCep('');
-      setCidade('');
-      setEstado('');
-      setNivel('');
-      setSecretariasSelecionadas([]);
       onOpenChange(false);
     } catch (error) {
       const defaultMsg = error instanceof Error ? error.message : 'Erro ao criar colaborador';
@@ -194,8 +278,7 @@ export function CreateColaboradorModal({ open, onOpenChange }: CreateColaborador
     <Dialog open={open} onOpenChange={(o) => { if (!isSubmitting) onOpenChange(o); }}>
       <DialogContent className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl">
         <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg">
-          <DialogTitle className="text-2xl font-bold text-center text-white">Adicionar Colaborador</DialogTitle>
-          <DialogDescription className="text-white/90 text-center">Preencha os dados do colaborador</DialogDescription>
+          <DialogTitle className="text-2xl font-bold text-center text-white">{usuario ? 'Editar Colaborador' : 'Adicionar Colaborador'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-2 p-6 max-h-[calc(95vh-140px)] overflow-y-auto">
@@ -324,7 +407,7 @@ export function CreateColaboradorModal({ open, onOpenChange }: CreateColaborador
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Criar Colaborador
+                  {usuario ? 'Salvar alterações' : 'Criar Colaborador'}
                 </>
               )}
             </Button>

@@ -20,6 +20,8 @@ export default function ColaboradorAdminPage() {
   const [nivelFilter, setNivelFilter] = useState<string>(""); 
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [openCreate, setOpenCreate] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [selectedUsuario, setSelectedUsuario] = useState<Usuarios | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["usuarios"],
@@ -134,16 +136,16 @@ export default function ColaboradorAdminPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPF</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Portaria</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nível de acesso</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">CPF</th>
+                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
+                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Portaria</th>
+                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Cargo</th>
+                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nível de acesso</th>
+                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -163,14 +165,14 @@ export default function ColaboradorAdminPage() {
                       if (c?.nivel_acesso?.administrador) niveis.push('Administrador');
                       return (
                         <tr key={c._id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{c.nome}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{c.email}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{c.cpf}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{c.celular}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{c.portaria_nomeacao || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{c.cargo || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{niveis.join(' / ')}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">{c.nome}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">{c.email}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900 hidden md:table-cell">{c.cpf}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">{c.celular}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900 hidden md:table-cell">{c.portaria_nomeacao || '-'}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900 hidden md:table-cell">{c.cargo || '-'}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">{niveis.join(' / ')}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">
                             {c.ativo ? (
                               <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 px-2.5 py-0.5 text-xs font-medium">
                                 Ativo
@@ -181,12 +183,12 @@ export default function ColaboradorAdminPage() {
                               </span>
                             )}
                           </td>
-                          <td>
-                            <button type="button" className="p-1 hover:bg-gray-100 rounded">
+                          <td className="px-3 md:px-6 py-3">
+                            <button type="button" className="p-1 hover:bg-gray-100 rounded" onClick={() => { setSelectedUsuario(c); setOpenEdit(true); }}>
                               <Pencil className="h-4 w-4 text-[var(--global-text-primary)]" />
                             </button>
                           </td>
-                          <td>
+                          <td className="px-3 md:px-6 py-3">
                             <button type="button" className="p-1 hover:bg-gray-100 rounded">
                               <Trash className="h-4 w-4 text-[var(--global-text-primary)]" />
                             </button>
@@ -231,6 +233,18 @@ export default function ColaboradorAdminPage() {
           }
         }}
       />
+      {openEdit && (
+        <CreateColaboradorModal
+          open={openEdit}
+          onOpenChange={(open) => {
+            setOpenEdit(open);
+            if (!open) {
+              setSelectedUsuario(null);
+            }
+          }}
+          usuario={selectedUsuario}
+        />
+      )}
     </div>
 
     
