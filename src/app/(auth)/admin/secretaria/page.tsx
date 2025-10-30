@@ -8,6 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { secretariaService } from "@/services/secretariaService";
 import type { Secretaria } from "@/types";
 import { CreateSecretariaModal } from "@/components/createSecretariaModal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 export default function SecretariaAdminPage() {
   const [page, setPage] = useState(1);
@@ -16,6 +18,9 @@ export default function SecretariaAdminPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedSecretaria, setSelectedSecretaria] = useState<Secretaria | null>(null);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [secretariaToDelete, setSecretariaToDelete] = useState<Secretaria | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
 
   const { data, isLoading, refetch } = useQuery({
@@ -132,7 +137,19 @@ export default function SecretariaAdminPage() {
                             <Pencil className="h-4 w-4 text-[var(--global-text-primary)]" />
                           </button>
                         </td>
-                        <td><Trash className="h-4 w-4 text-[var(--global-text-primary)]" /></td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSecretariaToDelete(s);
+                              setOpenDelete(true);
+                            }}
+                            className="p-1 hover:bg-gray-100 rounded"
+                            aria-label={`Excluir ${s.nome}`}
+                          >
+                            <Trash className="h-4 w-4 text-[var(--global-text-primary)]" />
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -190,6 +207,56 @@ export default function SecretariaAdminPage() {
           secretaria={selectedSecretaria}
         />
       )}
+ 
+      <Dialog
+        open={openDelete}
+        onOpenChange={(open) => {
+          if (!open && isDeleting) return;
+          setOpenDelete(open);
+          if (!open) setSecretariaToDelete(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader className="text-center mb-2 flex flex-col items-center justify-center">
+            <DialogTitle>Excluir secretaria</DialogTitle>
+            <DialogDescription className="text-center mt-2 ">
+              Você tem certeza que deseja excluir a secretaria{' '}
+              <strong className="text-black">{secretariaToDelete?.nome ?? ''}</strong> ?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 justify-end">
+            <Button
+              className="border-2 border-[var(--global-border)] bg-white text-[var(--global-text-primary)] hover:bg-[var(--global-bg-select)]"
+              onClick={() => setOpenDelete(false)}
+              disabled={isDeleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={isDeleting}
+              onClick={async () => {
+                if (!secretariaToDelete?._id) return;
+                setIsDeleting(true);
+                try {
+                  await secretariaService.deletarSecretaria(secretariaToDelete._id);
+                  toast.success('Secretaria excluída com sucesso!');
+                  setOpenDelete(false);
+                  setSecretariaToDelete(null);
+                  refetch();
+                } catch (e) {
+                  const message = e instanceof Error ? e.message : 'Erro ao excluir secretaria';
+                  toast.error(message);
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+            >
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

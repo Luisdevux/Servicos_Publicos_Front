@@ -1,6 +1,6 @@
 // src/services/secretariaService.ts
 
-import { getSecure, postSecure, patchSecure } from './api';
+import { getSecure, postSecure, patchSecure, delSecure } from './api';
 import type { ApiResponse, CreateSecretariaData, PaginatedResponse, Secretaria, UpdateSecretariaData } from '@/types';
 
 export const secretariaService = {
@@ -29,6 +29,9 @@ export const secretariaService = {
   },
   async atualizarSecretaria(id: string,data: UpdateSecretariaData): Promise<ApiResponse<Secretaria>> {
     return patchSecure<ApiResponse<Secretaria>>(`/secretaria/${id}`, data);
+  },
+  async deletarSecretaria(id: string): Promise<ApiResponse<null>> {
+    return delSecure<ApiResponse<null>>(`/secretaria/${id}`);
   },
 };
 
