@@ -8,7 +8,6 @@ import {
   Home as HomeIcon, 
   Building2,
   FolderKanban,
-  IdCardLanyard,
   Handshake,
   Briefcase,
   LogOut,
@@ -28,22 +27,6 @@ import {
   SidebarTrigger,
 } from "../../../components/ui/sidebar";
 
-import { CreateSecretariaModal } from "@/components/createSecretariaModal";
-
-type ModalType = 
-  | 'secretaria' 
-  | 'colaborador' 
-  | 'operador' 
-  | 'tipoDemanda' 
-  | null;
-
-interface NavItem {
-  title: string;
-  path: string;
-  icon: React.ComponentType;
-  modalType?: ModalType;
-  isAction?: boolean;
-}
 
 const data = {
   navMain: [
@@ -63,22 +46,14 @@ const data = {
       icon: Building2,
     },
     {
-      title: "Add Colaborador",
-      path: "#",
+      title: "Colaboradores",
+      path: "/admin/colaborador",
       icon: Handshake,
-      modalType: 'colaborador' as ModalType,
-    },
-    {
-      title: "Add Operador",
-      path: "#",
-      icon: IdCardLanyard,
-      modalType: 'operador' as ModalType,
     },
     {
       title: "Add Tipo Demanda",
       path: "#",
       icon: Briefcase,
-      modalType: 'tipoDemanda' as ModalType,
     },
     {
       title: "Sair",
@@ -86,23 +61,13 @@ const data = {
       icon: LogOut,
       isAction: true,
     }
-  ] as NavItem[]
+  ] 
 };
 
 export default function AdminLayout({children,}: {children: React.ReactNode;}) {
   const { logout } = useAuth();
   const pathname = usePathname();
   
-  const [openModal, setOpenModal] = useState<ModalType>(null);
-
-  const handleOpenModal = (modalType: ModalType) => {
-    setOpenModal(modalType);
-  };
-
-  const handleCloseModal = () => {
-    setOpenModal(null);
-  };
-
   return (
     <SidebarProvider>
       <Sidebar variant="inset">
@@ -121,17 +86,6 @@ export default function AdminLayout({children,}: {children: React.ReactNode;}) {
                       <SidebarMenuButton
                         asChild
                         onClick={() => logout()}
-                        className="cursor-pointer"
-                      >
-                        <button className="flex items-center gap-2 w-full text-left">
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </button>
-                      </SidebarMenuButton>
-                    ) : item.modalType ? (
-                      <SidebarMenuButton
-                        asChild
-                        onClick={() => handleOpenModal(item.modalType!)}
                         className="cursor-pointer"
                       >
                         <button className="flex items-center gap-2 w-full text-left">
@@ -171,25 +125,6 @@ export default function AdminLayout({children,}: {children: React.ReactNode;}) {
             </div>
           </div>
       </SidebarInset>
-      
-      {openModal === 'secretaria' && (
-        <CreateSecretariaModal 
-          open={true} 
-          onOpenChange={(open) => !open && handleCloseModal()}
-        />
-      )}
-
-      {openModal === 'colaborador' && (
-        null
-      )}
-      
-      {openModal === 'operador' && (
-        null
-      )}
-      
-      {openModal === 'tipoDemanda' && (
-        null
-      )}
     </SidebarProvider>
   );
 }
