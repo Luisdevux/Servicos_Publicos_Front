@@ -24,10 +24,9 @@ export async function secureFetch<T>(options: SecureFetchOptions): Promise<T> {
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Request failed' }));
     const errorMessage = error.message || error.error || 'Request failed';
-    const customError = new Error(errorMessage);
-    // Add status to error object so we can check it
-    (customError as any).status = response.status;
-    (customError as any).data = error;
+    const customError = new Error(errorMessage) as Error & { status: number; data: unknown };
+    customError.status = response.status;
+    customError.data = error;
     throw customError;
   }
 

@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreateColaboradorModal } from "@/components/createColaboradorModal";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ColaboradorDetailsModal } from "@/components/colaboradorDetailsModal";
+import { ColaboradorDetailsModal } from "@/components/ColaboradorDetailsModal";
 import { toast } from "sonner";
 
 export default function ColaboradorAdminPage() {

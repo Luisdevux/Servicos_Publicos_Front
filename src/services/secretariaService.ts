@@ -5,7 +5,7 @@ import type { ApiResponse, CreateSecretariaData, PaginatedResponse, Secretaria, 
 
 export const secretariaService = {
   async buscarSecretarias(
-    filters: Record<string, any> = {},
+    filters: Record<string, unknown> = {},
     limit: number = 10,
     page: number = 1
   ): Promise<ApiResponse<PaginatedResponse<Secretaria>>> {
