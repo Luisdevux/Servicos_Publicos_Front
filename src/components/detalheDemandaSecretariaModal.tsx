@@ -61,7 +61,7 @@ export default function DetalhesDemandaSecretariaModal({
   // Garantir que operadorId é uma string (pode vir como string ou objeto populado da API)
   const operadorIdString = typeof operadorRaw === 'string' 
     ? operadorRaw 
-    : (operadorRaw as any)?._id || '';
+    : (operadorRaw as { _id?: string })?._id || '';
   
   const { data: operadorData } = useQuery({
     queryKey: ['operador', operadorIdString],

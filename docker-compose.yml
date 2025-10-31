@@ -21,6 +21,8 @@ services:
       NODE_ENV: "production"
     ports:
       - 5011:5011
+    env_file:
+      - ../servicos-publicos-api/.env
     depends_on:
       - mongodb
     networks:
@@ -34,11 +36,12 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        API_URL_SERVER: "http://api-servicos:5011"
-        NEXT_PUBLIC_API_URL_CLIENT: "http://localhost:5011"
+        API_URL_SERVER_SIDED: "http://api-servicos:5011"
+        NEXT_PUBLIC_API_URL: "http://localhost:5011"
         PROXY_OAUTH_CALLBACK: "true"
     environment:
       NODE_ENV: "production"
+      NEXTAUTH_URL: "http://localhost:3000"
     ports:
       - 3000:3000
     depends_on:

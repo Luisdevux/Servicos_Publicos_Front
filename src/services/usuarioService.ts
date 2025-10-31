@@ -24,7 +24,7 @@ export const usuarioService = {
   },
 
 
-  async buscarUsuariosPaginado(filters: Record<string, any> = {}, limit: number = 10, page: number = 1): Promise<ApiResponse<PaginatedResponse<Usuarios>>> {
+  async buscarUsuariosPaginado(filters: Record<string, unknown> = {}, limit: number = 10, page: number = 1): Promise<ApiResponse<PaginatedResponse<Usuarios>>> {
     const params = new URLSearchParams();
     for (const key in filters) {
       const value = filters[key];

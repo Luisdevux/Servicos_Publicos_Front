@@ -1,16 +1,20 @@
 # https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
 FROM node:22-alpine AS base
 
-ARG API_URL_SERVER=http://api:5011
-ARG NEXT_PUBLIC_API_URL_CLIENT=http://localhost:5011
+ARG API_URL_SERVER_SIDED=http://api-servicos:5011
+ARG NEXT_PUBLIC_API_URL=http://localhost:5011
 ARG PROXY_OAUTH_CALLBACK=true
+ARG NEXTAUTH_SECRET=your-secret-key-change-this-in-production-min-32-characters-long
+ARG NEXTAUTH_URL=http://localhost:3000
 
 # Estágio 1: Builder - Instalar dependências e fazer build
 FROM base AS builder
 
-ENV API_URL_SERVER=${API_URL_SERVER}
-ENV NEXT_PUBLIC_API_URL_CLIENT=${NEXT_PUBLIC_API_URL_CLIENT}
+ENV API_URL_SERVER_SIDED=${API_URL_SERVER_SIDED}
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV PROXY_OAUTH_CALLBACK=${PROXY_OAUTH_CALLBACK}
+ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+ENV NEXTAUTH_URL=${NEXTAUTH_URL}
 
 # Libc6-compat necessário para compatibilidade
 RUN apk add --no-cache libc6-compat
@@ -33,9 +37,11 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV API_URL_SERVER=${API_URL_SERVER}
-ENV NEXT_PUBLIC_API_URL_CLIENT=${NEXT_PUBLIC_API_URL_CLIENT}
+ENV API_URL_SERVER_SIDED=${API_URL_SERVER_SIDED}
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV PROXY_OAUTH_CALLBACK=${PROXY_OAUTH_CALLBACK}
+ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+ENV NEXTAUTH_URL=${NEXTAUTH_URL}
 
 # Criar usuário não-root por segurança
 RUN addgroup --system --gid 1001 nodejs

@@ -26,7 +26,7 @@ export default function SecretariaAdminPage() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["secretarias", page, searchText],
     queryFn: async () => {
-      const filters: Record<string, any> = {};
+      const filters: Record<string, unknown> = {};
       if (searchText.trim()) {
         filters.nome = searchText.trim();
       }

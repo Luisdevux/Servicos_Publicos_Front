@@ -20,6 +20,7 @@ import { secretariaService } from '@/services/secretariaService';
 import { usuarioService } from '@/services/usuarioService';
 import { viaCepService } from '@/services';
 import type { CreateUsuariosData, Secretaria, Usuarios, EstadoBrasil } from '@/types';
+import type { Endereco } from '@/types/endereco';
 import { ESTADOS_BRASIL } from '@/types';
 
 interface CreateColaboradorModalProps {
@@ -106,7 +107,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
               : ''
       );
       let idsSecretarias: string[] = [];
-      const sec = usuario.secretarias as unknown as any[];
+      const sec = usuario.secretarias as unknown;
       if (Array.isArray(sec)) {
         if (sec.length > 0 && typeof sec[0] === 'string') {
           idsSecretarias = sec as unknown as string[];
@@ -191,16 +192,16 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
       };
 
       if (usuario?._id) {
-        const updatePayload: any = {};
+        const updatePayload: Record<string, unknown> = {};
         if (payload.nome !== usuario.nome) updatePayload.nome = payload.nome;
         if (payload.celular !== usuario.celular) updatePayload.celular = payload.celular;
         if (payload.cargo !== usuario.cargo) updatePayload.cargo = payload.cargo;
         if (payload.formacao !== usuario.formacao) updatePayload.formacao = payload.formacao;
         if (payload.ativo !== usuario.ativo) updatePayload.ativo = payload.ativo;
-        if ((payload as any).portaria_nomeacao !== (usuario as any).portaria_nomeacao) updatePayload.portaria_nomeacao = (payload as any).portaria_nomeacao;
+        if (payload.portaria_nomeacao !== usuario.portaria_nomeacao) updatePayload.portaria_nomeacao = payload.portaria_nomeacao;
 
         // endereço: se qualquer campo mudou, envia o objeto completo
-        const currentEnd: any = usuario.endereco || {};
+        const currentEnd: Partial<Endereco> = usuario.endereco || {};
         const newEnd = payload.endereco;
         const addressChanged = (
           (newEnd?.logradouro || '') !== (currentEnd.logradouro || '') ||
@@ -217,7 +218,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
 
         // secretarias: compara ids
         let currentSecIds: string[] = [];
-        const sec = usuario.secretarias as unknown as any[];
+        const sec = usuario.secretarias as unknown;
         if (Array.isArray(sec)) {
           if (sec.length > 0 && typeof sec[0] === 'string') currentSecIds = sec as unknown as string[];
           else currentSecIds = sec.map((x) => x?._id).filter(Boolean);
@@ -236,7 +237,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
         await usuarioService.atualizarUsuario(usuario._id!, updatePayload);
         toast.success('Colaborador atualizado com sucesso!');
       } else {
-        await usuarioService.criarUsuario(payload as unknown as Usuarios as any);
+        await usuarioService.criarUsuario(payload);
         toast.success('Colaborador criado com sucesso!');
         setNome('');
         setEmail('');
@@ -261,11 +262,11 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
       onOpenChange(false);
     } catch (error) {
       const defaultMsg = error instanceof Error ? error.message : 'Erro ao criar colaborador';
-      const data = (error as any)?.data;
-      const errors = Array.isArray(data?.errors) ? data.errors : [];
+      const data = (error as { data?: unknown })?.data;
+      const errors = Array.isArray((data as { errors?: unknown[] })?.errors) ? (data as { errors: unknown[] }).errors : [];
       if (errors.length > 0) {
-        errors.forEach((err: any) => {
-          const msg = typeof err?.message === 'string' ? err.message : defaultMsg;
+        errors.forEach((err: unknown) => {
+          const msg = typeof (err as { message?: unknown })?.message === 'string' ? (err as { message: string }).message : defaultMsg;
           toast.error(msg);
         });
       } else {
@@ -380,7 +381,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Nível de acesso</Label>
-              <Select value={nivel} onValueChange={(v) => setNivel(v as any)}>
+              <Select value={nivel} onValueChange={(v) => setNivel(v as 'operador' | 'secretario' | 'administrador' | '')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o nível" />
                 </SelectTrigger>

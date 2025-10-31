@@ -27,10 +27,11 @@ services:
       TERM: "xterm"
     ports:
       - 5011:5011
+    env_file:
+      - ../servicos-publicos-api/.env
     volumes:
       - ../servicos-publicos-api:/app:cached
-      - api-node-modules:/app/node_modules
-    command: ["run", "dev"]
+      - /app/node_modules
     depends_on:
       mongodb:
         condition: service_healthy
@@ -70,7 +71,7 @@ services:
       # Bind mount para hot reload
       - .:/app
       # Named volume para node_modules
-      - frontend-node-modules:/app/node_modules
+      - /app/node_modules
     depends_on:
       - api
     networks:
@@ -79,8 +80,6 @@ services:
 # Volumes - Persistência de dados
 volumes:
   vol-mongodb-servicos:
-  api-node-modules:
-  frontend-node-modules:
 
 # Networks - Rede compartilhada
 networks:

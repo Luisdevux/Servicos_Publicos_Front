@@ -42,7 +42,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorStatus = (error as any)?.status;
+      const errorStatus = (error as { status?: number })?.status;
       
       if (
         errorStatus === 498 ||

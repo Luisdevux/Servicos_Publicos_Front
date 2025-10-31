@@ -38,7 +38,7 @@ export function DonutChartCard({ title, data }: DonutChartCardProps) {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
               <Pie
-                data={data as any}
+                data={data as unknown as Array<{ categoria: string; quantidade: number; cor: string }> }
                 cx="50%"
                 cy="50%"
                 innerRadius={50}
@@ -56,9 +56,9 @@ export function DonutChartCard({ title, data }: DonutChartCardProps) {
                   border: "1px solid #e5e7eb",
                   borderRadius: "6px",
                 }}
-                formatter={(value: number, name: string, props: any) => [
+                formatter={(value: number, name: string, props: unknown) => [
                   `${value} demandas (${Math.round((value / totalDemandas) * 100)}%)`,
-                  props.payload.categoria
+                  (props as { payload: { categoria: string } }).payload.categoria
                 ]}
               />
             </PieChart>
