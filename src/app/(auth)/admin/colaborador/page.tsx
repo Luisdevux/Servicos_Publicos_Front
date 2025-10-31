@@ -63,7 +63,7 @@ export default function ColaboradorAdminPage() {
       let totalPages = 1;
 
       do {
-        const res = await usuarioService.buscarUsuariosPaginado({}, 50, page);
+        const res = await usuarioService.buscarUsuariosPaginado({}, 15, page);
         const payload = res.data;
         if (payload?.docs?.length) {
           allDocs = allDocs.concat(payload.docs);

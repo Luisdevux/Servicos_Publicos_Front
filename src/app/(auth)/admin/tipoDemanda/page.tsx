@@ -1,16 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, Pencil, Plus, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { tipoDemandaService } from "@/services/tipoDemandaService";
+import type { TipoDemandaModel } from "@/types";
 import { CreateTipoDemandaModal } from "@/components/createTipoDemandaModal";
 
 export default function TipoDemandaAdminPage() {
+  const [page, setPage] = useState(1);
   const [openCreate, setOpenCreate] = useState(false);
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["tipoDemanda", page],
+    queryFn: async () => {
+      return tipoDemandaService.buscarTiposDemandaPorTipo({}, 12, page);
+    },
+    placeholderData: (previousData) => previousData,
+    staleTime: 60_000,
+  });
+
+  const totalPages = data?.data?.totalPages ?? 1;
+  const hasNextPage = data?.data?.hasNextPage ?? false;
+  const hasPrevPage = data?.data?.hasPrevPage ?? false;
+  const tiposDemanda: TipoDemandaModel[] = data?.data?.docs ?? [];
 
   return (
     <div className="min-h-screen bg-[var(--global-bg)]">
-            
+      <div className="px-6 sm:px-6 py-6 md:py-8">
+        <div className="mx-auto space-y-6">
+          <div className="flex flex-col md:flex-row gap-3 md:items-end md:justify-between">
             <div>
               <Button
                 className="bg-[var(--global-text-primary)] hover:bg-[var(--global-text-secondary)] text-white"
@@ -19,21 +39,101 @@ export default function TipoDemandaAdminPage() {
                 <Plus className="h-4 w-4 mr-2" /> Adicionar tipo de demanda
               </Button>
             </div>
+          </div>
 
-        {openCreate && (
-            <CreateTipoDemandaModal
-                open={openCreate}
-                onOpenChange={(open) => {
-                    setOpenCreate(open);
-                    if (!open) {
-                        setOpenCreate(false);
-                    }
-                }}
-            />
-        )}            
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        Carregando tipos de demanda...
+                      </td>
+                    </tr>
+                  ) : tiposDemanda.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        Nenhum tipo de demanda encontrado.
+                      </td>
+                    </tr>
+                  ) : (
+                    tiposDemanda.map((tipoDemanda) => (
+                      <tr key={tipoDemanda._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tipoDemanda.titulo}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900 max-w-md truncate">{tipoDemanda.descricao}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tipoDemanda.tipo}</td>
+                        <td>
+                          <button
+                            type="button"
+                            className="p-1 hover:bg-gray-100 rounded"
+                            aria-label={`Editar ${tipoDemanda.titulo}`}
+                          >
+                            <Pencil className="h-4 w-4 text-[var(--global-text-primary)]" />
+                          </button>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="p-1 hover:bg-gray-100 rounded"
+                            aria-label={`Excluir ${tipoDemanda.titulo}`}
+                          >
+                            <Trash className="h-4 w-4 text-[var(--global-text-primary)]" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-4 p-4">
+        <button
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={!hasPrevPage}
+          className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronLeft size={20} />
+        </button>
+
+        <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
+          <span>Página {Math.min(page, totalPages)} de {totalPages}</span>
+        </div>
+
+        <button
+          onClick={() => setPage((p) => p + 1)}
+          disabled={!hasNextPage}
+          className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
+      {openCreate && (
+        <CreateTipoDemandaModal
+          open={openCreate}
+          onOpenChange={(open) => {
+            setOpenCreate(open);
+            if (!open) {
+              refetch();
+            }
+          }}
+        />
+      )}
     </div>
-
-    
   );
 }
 

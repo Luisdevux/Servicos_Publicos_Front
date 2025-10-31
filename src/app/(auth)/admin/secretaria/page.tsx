@@ -30,7 +30,7 @@ export default function SecretariaAdminPage() {
       if (searchText.trim()) {
         filters.nome = searchText.trim();
       }
-      return secretariaService.buscarSecretarias(filters, 9, page);
+      return secretariaService.buscarSecretarias(filters, 12, page);
     },
     placeholderData: (previousData) => previousData,
     staleTime: 60_000,
