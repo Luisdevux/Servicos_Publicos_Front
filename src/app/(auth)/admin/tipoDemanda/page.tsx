@@ -1,25 +1,49 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronLeft, ChevronRight, Pencil, Plus, Trash } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { tipoDemandaService } from "@/services/tipoDemandaService";
 import type { TipoDemandaModel } from "@/types";
+import { TIPOS_DEMANDA } from "@/types";
 import { CreateTipoDemandaModal } from "@/components/createTipoDemandaModal";
 
 export default function TipoDemandaAdminPage() {
   const [page, setPage] = useState(1);
   const [openCreate, setOpenCreate] = useState(false);
+  const [searchTitulo, setSearchTitulo] = useState("");
+  const [pendingSearchTitulo, setPendingSearchTitulo] = useState("");
+  const [selectedTipo, setSelectedTipo] = useState<string>("");
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["tipoDemanda", page],
+    queryKey: ["tipoDemanda", page, searchTitulo, selectedTipo],
     queryFn: async () => {
-      return tipoDemandaService.buscarTiposDemandaPorTipo({}, 12, page);
+      const filters: Record<string, any> = {};
+      if (searchTitulo.trim()) {
+        filters.titulo = searchTitulo.trim();
+      }
+      if (selectedTipo && selectedTipo !== "all") {
+        filters.tipo = selectedTipo;
+      }
+      return tipoDemandaService.buscarTiposDemandaPorTipo(filters, 12, page);
     },
     placeholderData: (previousData) => previousData,
     staleTime: 60_000,
   });
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTitulo, selectedTipo]);
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setSearchTitulo(pendingSearchTitulo);
+    }, 300);
+    return () => clearTimeout(id);
+  }, [pendingSearchTitulo]);
 
   const totalPages = data?.data?.totalPages ?? 1;
   const hasNextPage = data?.data?.hasNextPage ?? false;
@@ -31,6 +55,31 @@ export default function TipoDemandaAdminPage() {
       <div className="px-6 sm:px-6 py-6 md:py-8">
         <div className="mx-auto space-y-6">
           <div className="flex flex-col md:flex-row gap-3 md:items-end md:justify-between">
+            <div className="relative flex gap-2 items-center">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Pesquisar por título"
+                  value={pendingSearchTitulo}
+                  onChange={(e) => setPendingSearchTitulo(e.target.value)}
+                  className="w-64 pl-9"
+                />
+              </div>
+              <Select value={selectedTipo || "all"} onValueChange={(value) => setSelectedTipo(value === "all" ? "" : value)}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filtrar por tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {TIPOS_DEMANDA.map((tipo) => (
+                    <SelectItem key={tipo} value={tipo}>
+                      {tipo}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
             <div>
               <Button
                 className="bg-[var(--global-text-primary)] hover:bg-[var(--global-text-secondary)] text-white"
