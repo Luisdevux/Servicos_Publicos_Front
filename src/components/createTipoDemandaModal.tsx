@@ -116,13 +116,10 @@ export function CreateTipoDemandaModal({ open, onOpenChange }: CreateTipoDemanda
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange} modal={false}>
+    <Dialog open={open} onOpenChange={handleOpenChange} modal>
       <DialogContent
         className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl"
         data-test="create-tipo-demanda-dialog"
-        onInteractOutside={(e) => {
-          e.preventDefault();
-        }}
       >
         <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
