@@ -51,8 +51,8 @@ const data = {
       icon: Handshake,
     },
     {
-      title: "Add Tipo Demanda",
-      path: "#",
+      title: "Tipo Demandas",
+      path: "/admin/tipoDemanda",
       icon: Briefcase,
     },
     {
