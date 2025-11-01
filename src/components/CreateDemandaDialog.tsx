@@ -27,6 +27,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { 
+  isValidImageType, 
+  formatFileSize, 
+  validateImageMagicBytes,
+  getAllowedImageTypesDisplay
+} from '@/lib/imageUtils';
 import type { TipoDemanda, EstadoBrasil } from '@/types';
 
 interface CreateDemandaDialogProps {
@@ -65,6 +71,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
   const [loadingCep, setLoadingCep] = useState(false);
   const [imagens, setImagens] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; percentage: number } | null>(null);
 
   // Estados para autocomplete
   const [sugestoesLogradouro, setSugestoesLogradouro] = useState<Array<{ logradouro: string; bairro: string; cep: string }>>([]);
@@ -87,6 +94,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
       setEstado('RO');
       setCep('');
       setImagens([]);
+      setUploadProgress(null);
 
       setPreviewUrls(prev => {
         prev.forEach(url => {
@@ -256,11 +264,22 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
     const maxSize = 5 * 1024 * 1024; // 5MB
     const maxFiles = 3;
 
+    // Validar tipo de arquivo
+    const invalidTypes = newFiles.filter(file => !isValidImageType(file.type));
+    if (invalidTypes.length > 0) {
+      toast.error('Tipo de arquivo inválido', {
+        description: `Apenas imagens ${getAllowedImageTypesDisplay()} são aceitas`,
+      });
+      e.target.value = '';
+      return;
+    }
+
     // Validar tamanho
     const invalidFiles = newFiles.filter(file => file.size > maxSize);
     if (invalidFiles.length > 0) {
+      const sizesMsg = invalidFiles.map(f => `${f.name} (${formatFileSize(f.size)})`).join(', ');
       toast.error('Arquivo muito grande', {
-        description: 'Cada imagem deve ter no máximo 5MB',
+        description: `Arquivos acima do limite: ${sizesMsg}. Máximo permitido: ${formatFileSize(maxSize)}`,
       });
       e.target.value = '';
       return;
@@ -275,13 +294,33 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
       return;
     }
 
-    setImagens(prev => [...prev, ...newFiles]);
+    // Validar se é realmente uma imagem (verificando header do arquivo)
+    const validateImageFiles = async () => {
+      const validationPromises = newFiles.map(file => validateImageMagicBytes(file));
+      const results = await Promise.all(validationPromises);
+      
+      const invalidImages = results.filter(isValid => !isValid);
+      if (invalidImages.length > 0) {
+        toast.error('Arquivo corrompido ou inválido', {
+          description: 'Um ou mais arquivos não são imagens válidas',
+        });
+        e.target.value = '';
+        return false;
+      }
+      return true;
+    };
 
-    const newUrls = newFiles.map(file => URL.createObjectURL(file));
-    setPreviewUrls(prev => [...prev, ...newUrls]);
+    validateImageFiles().then(isValid => {
+      if (!isValid) return;
 
-    toast.success(`${newFiles.length} imagem${newFiles.length > 1 ? 'ns' : ''} adicionada${newFiles.length > 1 ? 's' : ''}`);
-    e.target.value = '';
+      setImagens(prev => [...prev, ...newFiles]);
+
+      const newUrls = newFiles.map(file => URL.createObjectURL(file));
+      setPreviewUrls(prev => [...prev, ...newUrls]);
+
+      toast.success(`${newFiles.length} imagem${newFiles.length > 1 ? 'ns' : ''} adicionada${newFiles.length > 1 ? 's' : ''}`);
+      e.target.value = '';
+    });
   };
 
   const handleRemoveImage = (index: number) => {
@@ -341,6 +380,14 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
       return;
     }
 
+    // Validação de imagens obrigatórias
+    if (imagens.length === 0) {
+      toast.error('Campo obrigatório: Imagens', {
+        description: 'Adicione pelo menos uma imagem da ocorrência para criar a demanda',
+      });
+      return;
+    }
+
     try {
       const logradouroCompleto = `${tipoLogradouro} ${logradouro}`.trim();
 
@@ -368,6 +415,9 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
           estado: estado as EstadoBrasil,
         },
         imagens: imagens.length > 0 ? imagens : undefined,
+        onUploadProgress: (progress) => {
+          setUploadProgress(progress);
+        },
       });
 
       toast.success('Demanda criada com sucesso!', {
@@ -376,9 +426,11 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
         duration: 5000,
       });
 
+      setUploadProgress(null);
       onOpenChange(false);
     } catch (error) {
       console.error('Erro ao criar demanda:', error);
+      setUploadProgress(null);
       toast.error('Erro ao criar demanda', {
         description: error instanceof Error ? error.message : 'Tente novamente mais tarde',
         icon: <AlertCircle className="w-5 h-5" />,
@@ -707,8 +759,9 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-[var(--global-text-secondary)] text-base font-semibold">
-                Imagens (Opcional)
+              <Label className="text-[var(--global-text-secondary)] text-base font-semibold flex items-center gap-2">
+                <span className="text-red-500">*</span>
+                Imagens
               </Label>
               <span className="text-xs text-[var(--global-text-primary)]">
                 {previewUrls.length}/3 imagens
@@ -759,7 +812,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                 <input
                   id="imagem"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png,image/svg+xml,.jpg,.jpeg,.png,.svg"
                   multiple
                   onChange={handleImageChange}
                   disabled={previewUrls.length >= 3}
@@ -774,7 +827,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
               )}
             </div>
             <p className="text-xs text-[var(--global-text-primary)]">
-              Máximo de 3 imagens • Tamanho máximo: 5MB por imagem
+              <span className="text-red-500 font-semibold">*</span> Obrigatório: mínimo 1 imagem • Máximo de 3 imagens • Tamanho máximo: 5MB por imagem
             </p>
           </div>
 
@@ -798,10 +851,24 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
               data-test="submit-button"
             >
               {createDemanda.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Enviando...
-                </>
+                <div className="flex flex-col items-center w-full">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>
+                      {uploadProgress 
+                        ? `Enviando imagens ${uploadProgress.current}/${uploadProgress.total}...` 
+                        : 'Criando demanda...'}
+                    </span>
+                  </div>
+                  {uploadProgress && (
+                    <div className="w-full bg-white/30 rounded-full h-1.5">
+                      <div 
+                        className="bg-white h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress.percentage}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-2" />

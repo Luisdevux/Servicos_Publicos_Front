@@ -130,26 +130,74 @@ export const demandaService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch('/api/auth/secure-fetch', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        endpoint: `/demandas/${id}/foto/${tipo}`,
+    try {
+      console.log('Iniciando upload de imagem:', {
+        demandaId: id,
+        tipo,
+        fileName: file.name,
+        fileSize: `${(file.size / 1024).toFixed(2)} KB`,
+        fileType: file.type
+      });
+
+      const response = await fetch('/api/auth/secure-fetch', {
         method: 'POST',
-        bodyType: 'formData',
-        formData: {
-          file: await fileToBase64(file)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          endpoint: `/demandas/${id}/foto/${tipo}`,
+          method: 'POST',
+          bodyType: 'formData',
+          formData: {
+            file: await fileToBase64(file)
+          }
+        }),
+        // Aumenta timeout para uploads grandes
+        signal: AbortSignal.timeout(60000), // 60 segundos
+      });
+
+      console.log('Resposta recebida:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const errorMessage = errorData?.message || errorData?.error || 'Erro ao fazer upload da foto';
+        console.error('Erro no upload:', errorData);
+        throw new Error(`Upload falhou (${response.status}): ${errorMessage}`);
+      }
+
+      const result = await response.json();
+      
+      console.log('Resposta completa do servidor:', result);
+      
+      // Validar se o resultado contém o link da imagem
+      // A API pode retornar em diferentes formatos, vamos aceitar todos
+      const linkImagem = result.data?.link_imagem || result.link_imagem || result.data?.url || result.url;
+      
+      if (!linkImagem) {
+        console.error('Resposta do servidor sem link da imagem:', result);
+        throw new Error('Resposta do servidor não contém o link da imagem');
+      }
+
+      console.log('Link da imagem recebido:', linkImagem);
+
+      // Normaliza a resposta para o formato esperado
+      return {
+        ...result,
+        data: {
+          link_imagem: linkImagem,
+          tipo: result.data?.tipo || tipo
         }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao fazer upload da foto');
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Erro desconhecido ao fazer upload da foto');
     }
-
-    return response.json();
   },
 
   /**
@@ -163,26 +211,59 @@ export const demandaService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch('/api/auth/secure-fetch', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        endpoint: `/demandas/${id}/foto/resolucao`,
+    try {
+      const response = await fetch('/api/auth/secure-fetch', {
         method: 'POST',
-        bodyType: 'formData',
-        formData: {
-          file: await fileToBase64(file)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          endpoint: `/demandas/${id}/foto/resolucao`,
+          method: 'POST',
+          bodyType: 'formData',
+          formData: {
+            file: await fileToBase64(file)
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const errorMessage = errorData?.message || errorData?.error || 'Erro ao fazer upload da foto de resolução';
+        throw new Error(`Upload falhou (${response.status}): ${errorMessage}`);
+      }
+
+      const result = await response.json();
+      
+      // Validar se o resultado contém o link da imagem
+      // A API pode retornar em diferentes formatos, vamos aceitar todos
+      const linkImagem = result.data?.link_imagem_resolucao || 
+                         result.link_imagem_resolucao || 
+                         result.data?.link_imagem || 
+                         result.link_imagem ||
+                         result.data?.url || 
+                         result.url;
+      
+      if (!linkImagem) {
+        console.error('Resposta do servidor sem link da imagem de resolução:', result);
+        throw new Error('Resposta do servidor não contém o link da imagem de resolução');
+      }
+
+      console.log('Link da imagem de resolução recebido:', linkImagem);
+
+      // Normaliza a resposta para o formato esperado
+      return {
+        ...result,
+        data: {
+          link_imagem_resolucao: linkImagem
         }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao fazer upload da foto de resolução');
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Erro desconhecido ao fazer upload da foto de resolução');
     }
-
-    return response.json();
   },
 };
 
