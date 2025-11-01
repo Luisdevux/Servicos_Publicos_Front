@@ -76,29 +76,6 @@ export const tipoDemandaService = {
   },
 
   /**
-   * Busca foto de um tipo de demanda
-   * GET /tipoDemanda/:id/foto
-   */
-  async buscarFotoTipoDemanda(id: string): Promise<Blob> {
-    const response = await fetch('/api/auth/secure-fetch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        endpoint: `/tipoDemanda/${id}/foto`,
-        method: 'GET'
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Erro ao buscar foto: ${response.status} ${response.statusText}`);
-    }
-
-    const blob = await response.blob();
-    return blob;
-  },
-
-  /**
    * Faz upload de foto do tipo de demanda
    * POST /tipoDemanda/:id/foto
    */
@@ -127,4 +104,14 @@ export const tipoDemandaService = {
 
     return response.json();
   },
+
+  /**
+   * Deleta uma foto de tipo de demanda
+   *  DELETE /tipoDemanda/:id/foto
+   */
+  async deletarFotoTipoDemanda(id: string): Promise<ApiResponse<void>> {
+    return delSecure<ApiResponse<void>>(`/tipoDemanda/${id}/foto`);
+  }
+
+  
 };

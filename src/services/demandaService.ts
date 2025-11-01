@@ -123,8 +123,9 @@ export const demandaService = {
    */
   async uploadFotoDemanda(
     id: string,
-    file: File
-  ): Promise<ApiResponse<{ link_imagem: string }>> {
+    file: File,
+    tipo: 'solicitacao' | 'resolucao'
+  ): Promise<ApiResponse<{ link_imagem: string, tipo: string }>> {
     
     const formData = new FormData();
     formData.append('file', file);
@@ -135,7 +136,7 @@ export const demandaService = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        endpoint: `/demandas/${id}/foto/demanda`,
+        endpoint: `/demandas/${id}/foto/${tipo}`,
         method: 'POST',
         bodyType: 'formData',
         formData: {

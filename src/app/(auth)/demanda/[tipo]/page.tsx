@@ -101,86 +101,6 @@ export default function DemandaPage() {
   const cardsFiltrados = demandasData?.docs || [];
   const bannerData = cardsFiltrados[0] || null;
 
-  // Use query para buscar as imagens dos tipoDemandas
-  const {
-    data: imageBlobs,
-    isLoading: imagesIsLoading,
-    isError: imagesIsError,
-    error: imagesError,
-    refetch: imagesRefetch,
-  } = useQuery({
-    queryKey: ['tipoDemandaImages', currentTipo, debouncedSearchTerm, page],
-    queryFn: async () => {
-      if (!cardsFiltrados.length) return {};
-
-      const imagePromises = cardsFiltrados.map(async (card) => {
-        try {
-          const blob = await tipoDemandaService.buscarFotoTipoDemanda(card._id);
-          if (blob.size > 0) {
-            return { id: card._id, blob };
-          }
-          return { id: card._id, blob: null };
-        } catch (error) {
-          console.warn(`Erro ao buscar imagem para demanda ${card._id}: ${error}`);
-          return { id: card._id, blob: null };
-        }
-      });
-
-      const results = await Promise.all(imagePromises);
-      const blobMap: Record<string, Blob | null> = {};
-
-      results.forEach(({ id, blob }) => {
-        blobMap[id] = blob;
-      });
-
-      return blobMap;
-    },
-  enabled: !!cardsFiltrados.length && !!currentTipo,
-    staleTime: 10 * 60 * 1000, // Cache aumentado para 10 minutos
-    gcTime: 15 * 60 * 1000, // Garbage collection aumentado
-  });
-
-  // Criar URLs das imagens apenas quando necessário
-  const imageUrls = useMemo(() => {
-    if (!imageBlobs) return {};
-
-    const urls: Record<string, string> = {};
-    Object.entries(imageBlobs).forEach(([id, blob]) => {
-      if (blob) {
-        urls[id] = URL.createObjectURL(blob);
-      } else {
-        urls[id] = '';
-      }
-    });
-
-    return urls;
-  }, [imageBlobs]);
-
-  // Limpar URLs das imagens ao desmontar ou quando as imagens mudam
-  useEffect(() => {
-    return () => {
-      Object.values(imageUrls).forEach((url) => {
-        if (url && url.startsWith('blob:')) {
-          URL.revokeObjectURL(url);
-        }
-      });
-    };
-  }, [imageUrls]);
-
-  // Cleanup adicional ao desmontar o componente
-  useEffect(() => {
-    return () => {
-      // Cleanup de qualquer blob URL restante
-      if (imageUrls) {
-        Object.values(imageUrls).forEach((url) => {
-          if (url.startsWith('blob:')) {
-            URL.revokeObjectURL(url);
-          }
-        });
-      }
-    };
-  }, [imageUrls]);
-
   return (
     <div data-test="demanda-page">
       <Banner
@@ -274,7 +194,7 @@ export default function DemandaPage() {
           </div>
         </div>
 
-        {(demandasIsLoading || imagesIsLoading) && (
+        {(demandasIsLoading) && (
           <div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-stretch"
             data-test="demanda-skeleton-grid"
@@ -323,7 +243,6 @@ export default function DemandaPage() {
             data-test="demanda-cards-grid"
           >
             {cardsFiltrados.map((card, index) => {
-              const imagemFinal = imageUrls?.[card._id] || '';
               return (
                 <div 
                   key={card._id} 
@@ -334,7 +253,7 @@ export default function DemandaPage() {
                   <CardDemanda
                     titulo={card.titulo}
                     descricao={card.descricao}
-                    imagem={imagemFinal}
+                    imagem={card.link_imagem || ''}
                     onCreateClick={() => {
                       setSelectedTipo(card.tipo);
                       setIsDialogOpen(true);

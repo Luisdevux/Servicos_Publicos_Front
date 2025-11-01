@@ -11,6 +11,7 @@ interface CreateDemandaInput {
   descricao: string;
   endereco: Endereco;
   imagens?: File[];
+  tipoImagem?: 'solicitacao' | 'resolucao';
 }
 
 export function useCreateDemanda() {
@@ -23,6 +24,7 @@ export function useCreateDemanda() {
         tipo: input.tipo,
         descricao: input.descricao,
         endereco: input.endereco,
+        tipoImagem: 'solicitacao',
         status: 'Em aberto',
       };
 
@@ -39,7 +41,8 @@ export function useCreateDemanda() {
           // Upload da primeira imagem (principal)
           const uploadResult = await demandaService.uploadFotoDemanda(
             demandaCriada._id,
-            input.imagens[0]
+            input.imagens[0],
+            'solicitacao'
           );
 
           console.log('Upload da primeira imagem realizado com sucesso:', uploadResult);
@@ -54,11 +57,13 @@ export function useCreateDemanda() {
             try {
               await demandaService.uploadFotoDemanda(
                 demandaCriada._id,
-                input.imagens[i]
+                input.imagens[i], 
+                'solicitacao'
               );
               console.log(`Upload da imagem ${i + 1} realizado com sucesso`);
             } catch (err) {
               console.error(`Erro no upload da imagem ${i + 1}:`, err);
+              throw err;
             }
           }
         } catch (uploadError) {
