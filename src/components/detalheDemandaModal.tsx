@@ -21,7 +21,6 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
   const [avaliacao, setAvaliacao] = useState(pedido?.avaliacao?.avaliacao_resolucao || "");
   const isConcluido = pedido?.progresso?.concluido;
   
-  // Update state when pedido changes
   useEffect(() => {
     setRating(pedido?.avaliacao?.feedback || 0);
     setAvaliacao(pedido?.avaliacao?.avaliacao_resolucao || "");
@@ -60,7 +59,6 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
         </div>
 
         <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg flex-shrink-0 relative overflow-hidden">
-          {/* Grid de pontos decorativos */}
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -76,7 +74,6 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
             </svg>
           </div>
 
-          {/* Elementos decorativos geométricos */}
           <div className="absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12"></div>
           <div className="absolute bottom-4 right-8 w-10 h-10 border-2 border-white/20 rounded-full"></div>
 
@@ -113,7 +110,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
             </div>
           )}
 
-          {/* {pedido.link_imagem && (
+          {pedido.link_imagem && (
             <div className="space-y-2" data-test="imagens-demanda-section">
               <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
                 {Array.isArray(pedido.link_imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
@@ -121,10 +118,9 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
               <ImageCarousel
                 images={Array.isArray(pedido.link_imagem) ? pedido.link_imagem : [pedido.link_imagem]}
                 alt="Imagem da demanda"
-                className="h-48"
               />
             </div>
-          )} */}
+          )}
 
         {pedido.endereco && (
             <div className="space-y-2" data-test="endereco-section">
@@ -178,7 +174,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
             </div>
         )}
 
-         {/* {isConcluido && pedido.conclusao?.imagem && (
+         {isConcluido && pedido.conclusao?.imagem && (
              <div className="space-y-2" data-test="imagens-conclusao-section">
                <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
                  {Array.isArray(pedido.conclusao.imagem) ? 'Imagens da conclusão' : 'Imagem da conclusão'}
@@ -195,10 +191,9 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                        ]
                  }
                  alt="Imagem da conclusão"
-                 className="h-48"
                />
              </div>
-           )} */}
+           )}
 
         {isConcluido && (
             <div className="space-y-4" data-test="avaliacao-section">
