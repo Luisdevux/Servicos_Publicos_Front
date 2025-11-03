@@ -5,7 +5,6 @@ import { useMemo, useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Upload, X, Loader2, CheckCircle2 } from 'lucide-react';
-import Image from 'next/image';
 import {
   Dialog,
   DialogContent,
@@ -22,14 +21,17 @@ import { tipoDemandaService } from '@/services/tipoDemandaService';
 import { usuarioService } from '@/services/usuarioService';
 import { TIPOS_DEMANDA } from '@/types';
 import type { Usuarios } from '@/types';
-import type { CreateTipoDemandaData } from '@/types/tipoDemanda';
+import type { CreateTipoDemandaData, UpdateTipoDemandaData } from '@/types/tipoDemanda';
+import type { TipoDemandaModel } from '@/types';
 
 interface CreateTipoDemandaModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  tipoDemanda?: TipoDemandaModel | null;
+  onSaved?: (updatedTipoDemanda: TipoDemandaModel) => void;
 }
 
-export function CreateTipoDemandaModal({ open, onOpenChange }: CreateTipoDemandaModalProps) {
+export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSaved }: CreateTipoDemandaModalProps) {
   const queryClient = useQueryClient();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,6 +67,33 @@ export function CreateTipoDemandaModal({ open, onOpenChange }: CreateTipoDemanda
   });
 
   const usuarios: Usuarios[] = useMemo(() => Array.isArray(usuariosAll) ? usuariosAll : [], [usuariosAll]);
+
+  useEffect(() => {
+    if (open && tipoDemanda) {
+      setTitulo(tipoDemanda.titulo || '');
+      setDescricao(tipoDemanda.descricao || '');
+      setSubdescricao(tipoDemanda.subdescricao || '');
+      setIcone(tipoDemanda.icone || '');
+      setLinkImagem(tipoDemanda.link_imagem || '');
+      setTipo(tipoDemanda.tipo || '');
+      setUsuariosSelecionados(Array.isArray(tipoDemanda.usuarios) ? tipoDemanda.usuarios : []);
+      setImagem(null);
+      if (tipoDemanda.link_imagem && (tipoDemanda.link_imagem.startsWith('http://') || tipoDemanda.link_imagem.startsWith('https://') || tipoDemanda.link_imagem.startsWith('data:'))) {
+        setPreviewUrl(tipoDemanda.link_imagem);
+      } else {
+        setPreviewUrl(null);
+      }
+    }
+  }, [open, tipoDemanda]);
+
+  useEffect(() => {
+    const currentPreview = previewUrl;
+    return () => {
+      if (currentPreview?.startsWith('blob:')) {
+        URL.revokeObjectURL(currentPreview);
+      }
+    };
+  }, [previewUrl]);
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
@@ -107,12 +136,94 @@ export function CreateTipoDemandaModal({ open, onOpenChange }: CreateTipoDemanda
   };
 
   const handleRemoveImage = () => {
-    if (previewUrl?.startsWith('blob:')) {
-      URL.revokeObjectURL(previewUrl);
-    }
+    const currentPreview = previewUrl;
     setImagem(null);
     setPreviewUrl(null);
+    if (currentPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(currentPreview);
+    }
     toast.info('Imagem removida');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    if (!titulo.trim()) {
+      toast.error('Campo obrigatório: Título', {
+        description: 'Preencha o título da demanda',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (tipoDemanda?._id) {
+        const updatePayload: UpdateTipoDemandaData = {};
+        
+        if (titulo.trim() !== tipoDemanda.titulo) updatePayload.titulo = titulo.trim();
+        if (descricao.trim() !== tipoDemanda.descricao) updatePayload.descricao = descricao.trim();
+        if (subdescricao.trim() !== (tipoDemanda.subdescricao || '')) updatePayload.subdescricao = subdescricao.trim();
+        if ((icone.trim() || '') !== (tipoDemanda.icone || '')) updatePayload.icone = icone.trim() || '';
+        if ((linkImagem.trim() || '') !== (tipoDemanda.link_imagem || '')) updatePayload.link_imagem = linkImagem.trim() || '';
+        if (tipo.trim() !== tipoDemanda.tipo) updatePayload.tipo = tipo.trim();
+
+        if (Object.keys(updatePayload).length === 0 && !imagem) {
+          toast.info('Nenhuma alteração para salvar.');
+          onOpenChange(false);
+          return;
+        }
+
+        if (Object.keys(updatePayload).length > 0) {
+          await tipoDemandaService.atualizarTipoDemanda(tipoDemanda._id, updatePayload);
+        }
+
+        if (imagem) {
+          await tipoDemandaService.uploadFotoTipoDemanda(tipoDemanda._id, imagem);
+          const updatedResponse = await tipoDemandaService.buscarTipoDemandaPorId(tipoDemanda._id);
+          if (updatedResponse.data && onSaved) {
+            onSaved(updatedResponse.data);
+          }
+        }
+
+        toast.success('Tipo de demanda atualizado com sucesso!');
+      } else {
+        const payload: CreateTipoDemandaData = {
+          titulo: titulo.trim(),
+          descricao: descricao.trim(),
+          subdescricao: subdescricao.trim(),
+          icone: icone.trim() || '',
+          link_imagem: linkImagem.trim() || '',
+          tipo: tipo.trim(),
+        };
+
+        const response = await tipoDemandaService.criarTipoDemanda(payload);
+        
+        if (response.data?._id && imagem) {
+          await tipoDemandaService.uploadFotoTipoDemanda(response.data._id, imagem);
+        }
+
+        toast.success('Tipo de demanda criado com sucesso!');
+        
+        setTitulo('');
+        setDescricao('');
+        setSubdescricao('');
+        setIcone('');
+        setLinkImagem('');
+        setTipo('');
+        setImagem(null);
+        setPreviewUrl(null);
+      }
+      
+      void queryClient.invalidateQueries({ queryKey: ['tipoDemanda'] });
+      
+      onOpenChange(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : (tipoDemanda ? 'Erro ao atualizar tipo de demanda' : 'Erro ao criar tipo de demanda');
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -144,11 +255,11 @@ export function CreateTipoDemandaModal({ open, onOpenChange }: CreateTipoDemanda
             className="text-2xl font-bold text-center text-white drop-shadow-md relative z-10"
             data-test="create-tipo-demanda-title"
           >
-            Adicionar Novo Tipo de Demanda
+            {tipoDemanda ? 'Editar Tipo de Demanda' : 'Adicionar Novo Tipo de Demanda'}
           </DialogTitle>
         </DialogHeader>
 
-        <form className="space-y-3 p-6 max-h-[calc(95vh-140px)] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="space-y-3 p-6 max-h-[calc(95vh-140px)] overflow-y-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Título</Label>
@@ -181,12 +292,16 @@ export function CreateTipoDemandaModal({ open, onOpenChange }: CreateTipoDemanda
 
             {previewUrl && (
               <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-[var(--global-border)] group">
-                <Image
+                <img
                   src={previewUrl}
                   alt="Preview"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 400px"
+                  className="w-full h-full object-cover"
+                  onError={() => {
+                    if (previewUrl?.startsWith('blob:')) {
+                      URL.revokeObjectURL(previewUrl);
+                    }
+                    setPreviewUrl(null);
+                  }}
                 />
                 <button
                   type="button"
@@ -250,7 +365,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange }: CreateTipoDemanda
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Criar Tipo de Demanda
+                  {tipoDemanda ? 'Salvar alterações' : 'Criar Tipo de Demanda'}
                 </>
               )}
             </Button>

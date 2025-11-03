@@ -14,6 +14,7 @@ import { CreateTipoDemandaModal } from "@/components/createTipoDemandaModal";
 export default function TipoDemandaAdminPage() {
   const [page, setPage] = useState(1);
   const [openCreate, setOpenCreate] = useState(false);
+  const [tipoDemandaEditando, setTipoDemandaEditando] = useState<TipoDemandaModel | null>(null);
   const [searchTitulo, setSearchTitulo] = useState("");
   const [pendingSearchTitulo, setPendingSearchTitulo] = useState("");
   const [selectedTipo, setSelectedTipo] = useState<string>("");
@@ -124,6 +125,7 @@ export default function TipoDemandaAdminPage() {
                         <td>
                           <button
                             type="button"
+                            onClick={() => setTipoDemandaEditando(tipoDemanda)}
                             className="p-1 hover:bg-gray-100 rounded"
                             aria-label={`Editar ${tipoDemanda.titulo}`}
                           >
@@ -177,6 +179,19 @@ export default function TipoDemandaAdminPage() {
           onOpenChange={(open) => {
             setOpenCreate(open);
             if (!open) {
+              refetch();
+            }
+          }}
+        />
+      )}
+
+      {tipoDemandaEditando && (
+        <CreateTipoDemandaModal
+          open={!!tipoDemandaEditando}
+          tipoDemanda={tipoDemandaEditando}
+          onOpenChange={(open) => {
+            if (!open) {
+              setTipoDemandaEditando(null);
               refetch();
             }
           }}
