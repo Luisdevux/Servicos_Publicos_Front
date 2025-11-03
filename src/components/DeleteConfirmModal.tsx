@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -10,44 +9,33 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { tipoDemandaService } from '@/services/tipoDemandaService';
-import type { TipoDemandaModel } from '@/types';
 
-interface DeleteTipoDemandaModalProps {
+interface DeleteConfirmModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  tipoDemanda: TipoDemandaModel | null;
-  onSuccess?: () => void;
+  onConfirm: () => Promise<void>;
+  title: string;
+  description: string;
+  itemName: string;
 }
 
-export function DeleteTipoDemandaModal({
+export function DeleteConfirmModal({
   open,
   onOpenChange,
-  tipoDemanda,
-  onSuccess,
-}: DeleteTipoDemandaModalProps) {
+  onConfirm,
+  title,
+  description,
+  itemName,
+}: DeleteConfirmModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!tipoDemanda?._id) return;
-    
     setIsDeleting(true);
     try {
-      if (tipoDemanda.link_imagem) {
-        try {
-          await tipoDemandaService.deletarFotoTipoDemanda(tipoDemanda._id);
-        } catch (error) {
-          console.warn('Erro ao deletar foto, continuando com exclusão do tipo de demanda:', error);
-        }
-      }
-
-      await tipoDemandaService.deletarTipoDemanda(tipoDemanda._id);
-      toast.success('Tipo de demanda excluído com sucesso!');
+      await onConfirm();
       onOpenChange(false);
-      onSuccess?.();
-    } catch (e) {
-      const message = e instanceof Error ? e.message : 'Erro ao excluir tipo de demanda';
-      toast.error(message);
+    } catch (error) {
+      throw error;
     } finally {
       setIsDeleting(false);
     }
@@ -62,10 +50,10 @@ export function DeleteTipoDemandaModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader className="text-center mb-2 flex flex-col items-center justify-center">
-          <DialogTitle>Excluir tipo de demanda</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription className="text-center mt-2">
-            Você tem certeza que deseja excluir o tipo de demanda{' '}
-            <strong className="text-black">{tipoDemanda?.titulo ?? ''}</strong> ?
+            {description}{' '}
+            <strong className="text-black">{itemName}</strong> ?
           </DialogDescription>
         </DialogHeader>
         <div className="flex gap-3 justify-end">

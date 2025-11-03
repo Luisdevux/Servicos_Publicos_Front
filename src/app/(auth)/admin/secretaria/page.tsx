@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { secretariaService } from "@/services/secretariaService";
 import type { Secretaria } from "@/types";
 import { CreateSecretariaModal } from "@/components/createSecretariaModal";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 import { toast } from "sonner";
 
 export default function SecretariaAdminPage() {
@@ -20,7 +20,6 @@ export default function SecretariaAdminPage() {
   const [selectedSecretaria, setSelectedSecretaria] = useState<Secretaria | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
   const [secretariaToDelete, setSecretariaToDelete] = useState<Secretaria | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
 
   const { data, isLoading, refetch } = useQuery({
@@ -208,55 +207,22 @@ export default function SecretariaAdminPage() {
         />
       )}
  
-      <Dialog
+      <DeleteConfirmModal
         open={openDelete}
         onOpenChange={(open) => {
-          if (!open && isDeleting) return;
           setOpenDelete(open);
           if (!open) setSecretariaToDelete(null);
         }}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader className="text-center mb-2 flex flex-col items-center justify-center">
-            <DialogTitle>Excluir secretaria</DialogTitle>
-            <DialogDescription className="text-center mt-2 ">
-              Você tem certeza que deseja excluir a secretaria{' '}
-              <strong className="text-black">{secretariaToDelete?.nome ?? ''}</strong> ?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex gap-3 justify-end">
-            <Button
-              className="border-2 border-[var(--global-bg-select)] bg-white hover:bg-[var(--global-bg-select)]"
-              onClick={() => setOpenDelete(false)}
-              disabled={isDeleting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              className="bg-red-600 hover:bg-red-700 text-white"
-              disabled={isDeleting}
-              onClick={async () => {
-                if (!secretariaToDelete?._id) return;
-                setIsDeleting(true);
-                try {
-                  await secretariaService.deletarSecretaria(secretariaToDelete._id);
-                  toast.success('Secretaria excluída com sucesso!');
-                  setOpenDelete(false);
-                  setSecretariaToDelete(null);
-                  refetch();
-                } catch (e) {
-                  const message = e instanceof Error ? e.message : 'Erro ao excluir secretaria';
-                  toast.error(message);
-                } finally {
-                  setIsDeleting(false);
-                }
-              }}
-            >
-              {isDeleting ? 'Excluindo...' : 'Excluir'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        onConfirm={async () => {
+          if (!secretariaToDelete?._id) return;
+          await secretariaService.deletarSecretaria(secretariaToDelete._id);
+          toast.success('Secretaria excluída com sucesso!');
+          refetch();
+        }}
+        title="Excluir secretaria"
+        description="Você tem certeza que deseja excluir a secretaria"
+        itemName={secretariaToDelete?.nome ?? ''}
+      />
     </div>
   );
 }

@@ -10,7 +10,8 @@ import { tipoDemandaService } from "@/services/tipoDemandaService";
 import type { TipoDemandaModel } from "@/types";
 import { TIPOS_DEMANDA } from "@/types";
 import { CreateTipoDemandaModal } from "@/components/createTipoDemandaModal";
-import { DeleteTipoDemandaModal } from "@/components/deleteTipoDemandaModal";
+import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
+import { toast } from "sonner";
 
 export default function TipoDemandaAdminPage() {
   const [page, setPage] = useState(1);
@@ -205,14 +206,30 @@ export default function TipoDemandaAdminPage() {
         />
       )}
 
-      <DeleteTipoDemandaModal
+      <DeleteConfirmModal
         open={openDelete}
         onOpenChange={(open) => {
           setOpenDelete(open);
           if (!open) setTipoDemandaToDelete(null);
         }}
-        tipoDemanda={tipoDemandaToDelete}
-        onSuccess={() => refetch()}
+        onConfirm={async () => {
+          if (!tipoDemandaToDelete?._id) return;
+          
+          if (tipoDemandaToDelete.link_imagem) {
+            try {
+              await tipoDemandaService.deletarFotoTipoDemanda(tipoDemandaToDelete._id);
+            } catch (error) {
+              console.warn('Erro ao deletar foto, continuando com exclusão do tipo de demanda:', error);
+            }
+          }
+
+          await tipoDemandaService.deletarTipoDemanda(tipoDemandaToDelete._id);
+          toast.success('Tipo de demanda excluído com sucesso!');
+          refetch();
+        }}
+        title="Excluir tipo de demanda"
+        description="Você tem certeza que deseja excluir o tipo de demanda"
+        itemName={tipoDemandaToDelete?.titulo ?? ''}
       />
     </div>
   );
