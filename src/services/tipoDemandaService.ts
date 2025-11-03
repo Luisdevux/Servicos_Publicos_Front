@@ -24,7 +24,7 @@ export const tipoDemandaService = {
    * Busca tipos de demanda filtrados por tipo com limite customizado
    */
   async buscarTiposDemandaPorTipo(
-    filters: Record<string, any> = {},
+    filters: Record<string, unknown> = {},
     limite: number = 10,
     page: number = 1
   ): Promise<ApiResponse<PaginatedResponse<TipoDemandaModel>>> {
@@ -33,7 +33,7 @@ export const tipoDemandaService = {
     for (const key in filters) {
       const value = filters[key];
       if (value) {
-        params.append(key, value);
+        params.append(key, String(value));
       }
     }
     params.append('limite', String(limite));

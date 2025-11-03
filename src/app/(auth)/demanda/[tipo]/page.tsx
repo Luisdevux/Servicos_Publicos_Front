@@ -48,7 +48,7 @@ export default function DemandaPage() {
   useEffect(() => {
     if (tiposData) {
       const setTipos = new Set<string>();
-      tiposData.forEach((d: any) => {
+      tiposData.forEach((d: { tipo?: string }) => {
         if (d?.tipo) setTipos.add(d.tipo);
       });
       setTiposUnicos(Array.from(setTipos));
@@ -179,7 +179,7 @@ export default function DemandaPage() {
         });
       }
     };
-  }, []);
+  }, [imageUrls]);
 
   return (
     <div data-test="demanda-page">
@@ -310,8 +310,8 @@ export default function DemandaPage() {
               Nenhum serviço encontrado
             </h3>
             <p className="text-gray-500 max-w-md">
-              Não encontramos serviços para "{tipoFiltro}"
-              {debouncedSearchTerm && ` com o termo "${debouncedSearchTerm}"`}. 
+              Não encontramos serviços para &quot;{tipoFiltro}&quot;
+              {debouncedSearchTerm && ` com o termo &quot;${debouncedSearchTerm}&quot;`}. 
               Por favor, tente uma busca diferente.
             </p>
           </div>

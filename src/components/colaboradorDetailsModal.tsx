@@ -60,13 +60,13 @@ export function ColaboradorDetailsModal({ open, onOpenChange, usuario }: Colabor
             </div>
             <div>
               <div className="text-gray-500">Portaria</div>
-              <div className="font-medium">{(usuario as any).portaria_nomeacao || '-'}</div>
+              <div className="font-medium">{usuario.portaria_nomeacao || '-'}</div>
             </div>
             <div>
               <div className="text-gray-500">Secretarias</div>
               <div className="font-medium">
                 {Array.isArray(usuario.secretarias) && usuario.secretarias.length > 0 ? (
-                  (usuario.secretarias as any[]).map((s) => typeof s === 'string' ? s : s?.nome).filter(Boolean).join(', ')
+                  usuario.secretarias.map((s) => s).filter(Boolean).join(', ')
                 ) : '-'}
               </div>
             </div>

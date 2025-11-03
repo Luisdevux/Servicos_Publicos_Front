@@ -7,6 +7,7 @@ import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@
 import { Button } from "@/components/ui/button";
 import CardPedido from "@/components/cardPedido";
 import type { Pedido } from "@/types";
+import type { Demanda } from "@/types/demanda";
 import DetalhesDemandaModal from "@/components/detalheDemandaModal";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,7 +41,7 @@ export default function MeusPedidosPage() {
     }
   }, [response?.data?.page, paginaAtual]);
 
-  const transformDemandaToPedido = (demanda: any): Pedido => {
+  const transformDemandaToPedido = (demanda: Demanda): Pedido => {
     const statusMapping: Record<string, "Em aberto" | "Em andamento" | "Concluída" | "Recusada"> = {
       "Em aberto": "Em aberto",
       "Em andamento": "Em andamento", 
@@ -57,7 +58,7 @@ export default function MeusPedidosPage() {
       endereco: demanda.endereco ? {
         bairro: demanda.endereco.bairro || "",
         logradouro: demanda.endereco.logradouro || "",
-        numero: demanda.endereco.numero || "",
+        numero: String(demanda.endereco.numero) || "",
         cep: demanda.endereco.cep || "",
         complemento: demanda.endereco.complemento || "",
       } : undefined,
