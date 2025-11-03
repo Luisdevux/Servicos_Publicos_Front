@@ -123,6 +123,14 @@ export const tipoDemandaService = {
 
     return response.json();
   },
+
+  /**
+   * Deleta a foto de um tipo de demanda
+   * DELETE /tipoDemanda/:id/foto
+   */
+  async deletarFotoTipoDemanda(id: string): Promise<ApiResponse<void>> {
+    return delSecure<ApiResponse<void>>(`/tipoDemanda/${id}/foto`);
+  },
 };
 
 

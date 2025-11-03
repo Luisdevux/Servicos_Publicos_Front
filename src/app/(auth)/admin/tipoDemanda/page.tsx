@@ -10,6 +10,7 @@ import { tipoDemandaService } from "@/services/tipoDemandaService";
 import type { TipoDemandaModel } from "@/types";
 import { TIPOS_DEMANDA } from "@/types";
 import { CreateTipoDemandaModal } from "@/components/createTipoDemandaModal";
+import { DeleteTipoDemandaModal } from "@/components/deleteTipoDemandaModal";
 
 export default function TipoDemandaAdminPage() {
   const [page, setPage] = useState(1);
@@ -18,6 +19,8 @@ export default function TipoDemandaAdminPage() {
   const [searchTitulo, setSearchTitulo] = useState("");
   const [pendingSearchTitulo, setPendingSearchTitulo] = useState("");
   const [selectedTipo, setSelectedTipo] = useState<string>("");
+  const [openDelete, setOpenDelete] = useState(false);
+  const [tipoDemandaToDelete, setTipoDemandaToDelete] = useState<TipoDemandaModel | null>(null);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["tipoDemanda", page, searchTitulo, selectedTipo],
@@ -135,6 +138,10 @@ export default function TipoDemandaAdminPage() {
                         <td>
                           <button
                             type="button"
+                            onClick={() => {
+                              setTipoDemandaToDelete(tipoDemanda);
+                              setOpenDelete(true);
+                            }}
                             className="p-1 hover:bg-gray-100 rounded"
                             aria-label={`Excluir ${tipoDemanda.titulo}`}
                           >
@@ -197,6 +204,16 @@ export default function TipoDemandaAdminPage() {
           }}
         />
       )}
+
+      <DeleteTipoDemandaModal
+        open={openDelete}
+        onOpenChange={(open) => {
+          setOpenDelete(open);
+          if (!open) setTipoDemandaToDelete(null);
+        }}
+        tipoDemanda={tipoDemandaToDelete}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }
