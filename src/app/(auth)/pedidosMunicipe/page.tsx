@@ -23,12 +23,91 @@ export default function MeusPedidosPage() {
   const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 
+  const getStatusFilters = (filtro: string): string[] | undefined => {
+    if (filtro === "todos") return undefined;
+    if (filtro === "aceito") return ["Em andamento", "Concluída"]; 
+    if (filtro === "recusado") return ["Recusada"];
+    if (filtro === "aguardando") return ["Em aberto"];
+    return [filtro];
+  };
+
   const {data: response, isLoading, error } = useQuery ({
-    queryKey: ['demandas', paginaAtual],
+    queryKey: ['demandas', paginaAtual, filtroSelecionado],
     queryFn: async () => {
-  const result = await demandaService.buscarDemandas({ page: paginaAtual });
-      console.log(result);
-      return result;
+      const statusFilters = getStatusFilters(filtroSelecionado);
+      const limit = 10;
+      
+      if (filtroSelecionado === "aceito" && statusFilters) {
+        const buscarTodasPaginas = async (status: string) => {
+          let todasPaginas: any[] = [];
+          let paginaAtual = 1;
+          let temMaisPaginas = true;
+
+          while (temMaisPaginas) {
+            const resultado = await demandaService.buscarDemandas({ 
+              page: paginaAtual, 
+              limit: 100,
+              status: status 
+            });
+            
+            if (resultado.data?.docs) {
+              todasPaginas = [...todasPaginas, ...resultado.data.docs];
+            }
+
+            temMaisPaginas = resultado.data?.hasNextPage || false;
+            paginaAtual++;
+          }
+
+          return todasPaginas;
+        };
+
+        const [docsEmAndamento, docsConcluida] = await Promise.all([
+          buscarTodasPaginas(statusFilters[0]),
+          buscarTodasPaginas(statusFilters[1])
+        ]);
+
+        const allDocs = [...docsEmAndamento, ...docsConcluida];
+
+        allDocs.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA;
+        });
+
+        const totalDocs = allDocs.length;
+        const totalPages = Math.ceil(totalDocs / limit);
+        const startIndex = (paginaAtual - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedDocs = allDocs.slice(startIndex, endIndex);
+
+        return {
+          message: "Demandas buscadas com sucesso",
+          errors: [],
+          data: {
+            docs: paginatedDocs,
+            totalDocs,
+            totalPages,
+            page: paginaAtual,
+            limit,
+            hasNextPage: paginaAtual < totalPages,
+            hasPrevPage: paginaAtual > 1,
+            nextPage: paginaAtual < totalPages ? paginaAtual + 1 : null,
+            prevPage: paginaAtual > 1 ? paginaAtual - 1 : null,
+            pagingCounter: startIndex + 1,
+          }
+        };
+      } else {
+        const params: { page: number; limit?: number; status?: string } = { 
+          page: paginaAtual,
+          limit: limit
+        };
+        if (statusFilters && statusFilters.length > 0) {
+          params.status = statusFilters[0];
+        }
+        const result = await demandaService.buscarDemandas(params);
+        console.log(result);
+        return result;
+      }
     },
     enabled: !isAuthLoading && isAuthenticated,
     staleTime: 5 * 60 * 1000,
@@ -111,26 +190,7 @@ export default function MeusPedidosPage() {
     setPedidoSelecionado(null);
   };
 
-  const pedidosFiltrados = pedidos.filter(pedido => {
-    if (filtroSelecionado === "todos") return true;
-
-    const isAceito = pedido.status === "Em andamento" || pedido.status === "Concluída";
-
-    if (filtroSelecionado === "aceito") {
-      return isAceito;
-    }
-
-    if (filtroSelecionado === "recusado") {
-      return pedido.status === "Recusada";
-    }
-
-    if (filtroSelecionado === "aguardando") {
-      return pedido.status === "Em aberto";
-    }
-
-    return pedido.status === filtroSelecionado;
-  });
-
+  const pedidosFiltrados = pedidos;
   const totalPaginas = response?.data?.totalPages || 1;
   const totalDocs = response?.data?.totalDocs || 0;
   const pedidosPaginados = pedidosFiltrados;
@@ -175,10 +235,8 @@ export default function MeusPedidosPage() {
               <span className="text-sm text-[var(--global-text-primary)] ml-2">
                 {isLoading ? (
                   "Carregando..."
-                ) : filtroSelecionado === 'todos' ? (
-                  `${response?.data?.totalDocs ?? 0} ${(response?.data?.totalDocs ?? 0) === 1 ? 'pedido' : 'pedidos'} no total`
                 ) : (
-                  `${pedidosFiltrados.length} ${pedidosFiltrados.length === 1 ? 'pedido' : 'pedidos'} encontrado(s)`
+                  `${response?.data?.totalDocs ?? 0} ${(response?.data?.totalDocs ?? 0) === 1 ? 'pedido' : 'pedidos'} ${filtroSelecionado === 'todos' ? 'no total' : 'encontrado(s)'}`
                 )}
               </span>
             </div>

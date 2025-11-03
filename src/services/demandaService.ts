@@ -32,6 +32,14 @@ export const demandaService = {
       if (params.limit !== undefined) search.set('limit', String(params.limit));
       if (params.sort) search.set('sort', params.sort);
       if (params.select) search.set('select', params.select);
+      if (params.status) {
+        if (params.status.includes(',')) {
+          const statuses = params.status.split(',');
+          statuses.forEach(status => search.append('status', status.trim()));
+        } else {
+          search.set('status', params.status);
+        }
+      }
       const qs = search.toString();
       if (qs) endpoint += `?${qs}`;
     }

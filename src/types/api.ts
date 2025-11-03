@@ -42,6 +42,7 @@ export interface PaginationParams {
   limit?: number;
   sort?: string;
   select?: string;
+  status?: string;
 }
 
 /**

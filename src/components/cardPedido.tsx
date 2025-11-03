@@ -70,7 +70,11 @@ export default function CardPedido({ pedido, onVerMais }: CardPedidoProps) {
       <div className="flex-1 flex flex-col justify-center" data-test="card-pedido-progresso-section">
         {pedido.status !== "Recusada" && pedido.progresso && (
           <div className="mb-10 mt-10"> 
-            <ProgressoPedido progresso={pedido.progresso} size="sm" />
+            <ProgressoPedido 
+              progresso={pedido.progresso} 
+              size="sm" 
+              variant={pedido.status === "Em aberto" ? "warning" : "default"}
+            />
           </div>
         )}
 
