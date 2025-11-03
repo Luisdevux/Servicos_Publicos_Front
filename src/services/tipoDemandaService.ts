@@ -76,27 +76,46 @@ export const tipoDemandaService = {
   },
 
   /**
-   * Faz upload de foto do tipo de demanda
-   * POST /tipoDemanda/:id/foto
+   * Busca foto de um tipo de demanda
+   * GET /tipoDemanda/:id/foto
    */
+  async buscarFotoTipoDemanda(id: string): Promise<Blob> {
+    const response = await fetch('/api/auth/secure-fetch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endpoint: `/tipoDemanda/${id}/foto`,
+        method: 'GET'
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Erro ao buscar foto: ${response.status} ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    return blob;
+  },
+
   async uploadFotoTipoDemanda(
     id: string,
-    file: File,
-    token: string
+    file: File
   ): Promise<ApiResponse<{ link_imagem: string }>> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/tipoDemanda/${id}/foto`,
-      {
+    const response = await fetch('/api/auth/secure-fetch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        endpoint: `/tipoDemanda/${id}/foto`,
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      }
-    );
+        bodyType: 'formData',
+        formData: {
+          file: await fileToBase64(file)
+        }
+      })
+    });
 
     if (!response.ok) {
       throw new Error('Erro ao fazer upload da foto');
@@ -106,12 +125,20 @@ export const tipoDemandaService = {
   },
 
   /**
-   * Deleta uma foto de tipo de demanda
-   *  DELETE /tipoDemanda/:id/foto
+   * Deleta a foto de um tipo de demanda
+   * DELETE /tipoDemanda/:id/foto
    */
   async deletarFotoTipoDemanda(id: string): Promise<ApiResponse<void>> {
     return delSecure<ApiResponse<void>>(`/tipoDemanda/${id}/foto`);
-  }
-
-  
+  },
 };
+
+
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+}
