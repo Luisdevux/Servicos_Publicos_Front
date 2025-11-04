@@ -12,7 +12,7 @@ interface ProgressoPedidoProps {
     concluido: boolean;
   };
   size?: "sm" | "md";
-  variant?: "default" | "error";
+  variant?: "default" | "error" | "warning";
 }
 
 export default function ProgressoPedido({ progresso, size = "md", variant = "default" }: ProgressoPedidoProps) {
@@ -35,6 +35,13 @@ export default function ProgressoPedido({ progresso, size = "md", variant = "def
         active: "bg-red-500 text-white",
         inactive: "bg-red-500 text-white",
         progress: "bg-red-500"
+      };
+    }
+    if (variant === "warning") {
+      return {
+        active: "bg-yellow-400 text-white",
+        inactive: "bg-gray-200",
+        progress: "bg-yellow-400"
       };
     }
     return {
@@ -61,7 +68,7 @@ export default function ProgressoPedido({ progresso, size = "md", variant = "def
               }`}
             />
           </div>
-          <span className="text-sm text-[var(--global-text-primary)]">Aguardando aprovação</span>
+          <span className="text-sm text-global-text-primary">Aguardando aprovação</span>
         </div>
         <div className="flex flex-col items-center gap-1">
           <div className={`${getCircleSize()} rounded-full flex items-center justify-center transition-all duration-500 ease-in-out ${
@@ -74,7 +81,7 @@ export default function ProgressoPedido({ progresso, size = "md", variant = "def
               }`}
             />
           </div>
-          <span className="text-sm text-[var(--global-text-primary)]">Em progresso</span>
+          <span className="text-sm text-global-text-primary">Em progresso</span>
         </div>
         <div className="flex flex-col items-center gap-1">
           <div className={`${getCircleSize()} rounded-full flex items-center justify-center transition-all duration-500 ease-in-out ${
@@ -87,7 +94,7 @@ export default function ProgressoPedido({ progresso, size = "md", variant = "def
               }`}
             />
           </div>
-          <span className="text-sm text-[var(--global-text-primary)]">Concluído</span>
+          <span className="text-sm text-global-text-primary">Concluído</span>
         </div>
       </div>
       

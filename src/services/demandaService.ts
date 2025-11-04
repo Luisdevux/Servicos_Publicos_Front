@@ -32,6 +32,14 @@ export const demandaService = {
       if (params.limit !== undefined) search.set('limit', String(params.limit));
       if (params.sort) search.set('sort', params.sort);
       if (params.select) search.set('select', params.select);
+      if (params.status) {
+        if (params.status.includes(',')) {
+          const statuses = params.status.split(',');
+          statuses.forEach(status => search.append('status', status.trim()));
+        } else {
+          search.set('status', params.status);
+        }
+      }
       const qs = search.toString();
       if (qs) endpoint += `?${qs}`;
     }
@@ -118,72 +126,52 @@ export const demandaService = {
     return delSecure<ApiResponse<void>>(`/demandas/${id}`);
   },
 
-  /**
-   * Faz upload de foto da demanda
-   */
+  async uploadFoto(
+    id: string,
+    file: File,
+    tipo: 'solicitacao' | 'resolucao'
+  ): Promise<ApiResponse<{ link_imagem?: string; link_imagem_resolucao?: string }>> {
+    const response = await fetch('/api/auth/secure-fetch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        endpoint: `/demandas/${id}/foto/${tipo}`,
+        method: 'POST',
+        bodyType: 'formData',
+        formData: {
+          file: await fileToBase64(file)
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        tipo === 'solicitacao' 
+          ? 'Erro ao fazer upload da foto' 
+          : 'Erro ao fazer upload da foto de resolução'
+      );
+    }
+
+    return response.json();
+  },
+
   async uploadFotoDemanda(
     id: string,
     file: File
   ): Promise<ApiResponse<{ link_imagem: string }>> {
-    
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch('/api/auth/secure-fetch', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        endpoint: `/demandas/${id}/foto/demanda`,
-        method: 'POST',
-        bodyType: 'formData',
-        formData: {
-          file: await fileToBase64(file)
-        }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao fazer upload da foto');
-    }
-
-    return response.json();
+    return this.uploadFoto(id, file, 'solicitacao') as Promise<ApiResponse<{ link_imagem: string }>>;
   },
 
-  /**
-   * Faz upload de foto da resolução da demanda
-   */
   async uploadFotoResolucao(
     id: string,
     file: File
   ): Promise<ApiResponse<{ link_imagem_resolucao: string }>> {
-    
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch('/api/auth/secure-fetch', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        endpoint: `/demandas/${id}/foto/resolucao`,
-        method: 'POST',
-        bodyType: 'formData',
-        formData: {
-          file: await fileToBase64(file)
-        }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao fazer upload da foto de resolução');
-    }
-
-    return response.json();
+    return this.uploadFoto(id, file, 'resolucao') as Promise<ApiResponse<{ link_imagem_resolucao: string }>>;
   },
 };
+
 
 /**
  * Helper para converter File para Base64

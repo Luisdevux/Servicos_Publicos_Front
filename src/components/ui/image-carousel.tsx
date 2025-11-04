@@ -14,6 +14,8 @@ interface ImageCarouselProps {
 export function ImageCarousel({ images, alt = "Imagem", className }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
+  const [isHovering, setIsHovering] = useState(false);
 
   const nextImage = () => {
   setCurrentIndex((prev) => (prev + 1) % images.length);
@@ -25,16 +27,44 @@ export function ImageCarousel({ images, alt = "Imagem", className }: ImageCarous
   setIsLoading(true);
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setMousePosition({ x, y });
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovering(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+  };
+
   if (!images || images.length === 0) return null;
 
+  const zoomScale = isHovering ? 2 : 1;
+
   return (
-    <div className={cn("relative w-full h-60 rounded-md overflow-hidden border bg-gray-100", className)}>
+    <div 
+      className={cn("relative w-full h-80 rounded-md overflow-hidden border bg-gray-100 flex items-center justify-center", className)}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <Image
         src={images[currentIndex]}
         alt={`${alt} ${currentIndex + 1}`}
         fill
-        className="object-cover"
-  onLoadingComplete={() => setIsLoading(false)}
+        className="object-contain cursor-zoom-in"
+        style={{ 
+          transform: `scale(${zoomScale})`,
+          transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`,
+          transition: isHovering ? 'transform-origin 0.1s ease-out' : 'transform 0.3s ease-out, transform-origin 0.3s ease-out'
+        }}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        onLoadingComplete={() => setIsLoading(false)}
       />
 
       {isLoading && (

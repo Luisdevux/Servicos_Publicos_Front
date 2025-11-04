@@ -95,7 +95,7 @@ export default function Banner({
         <div className="relative z-10 h-full flex items-center px-6 sm:px-6 lg:px-40 pt-8 pb-20 md:pt-10 md:pb-28 lg:pt-12 lg:pb-32">
           <div className="flex items-center gap-6 md:gap-10 w-full">
             {/* Ícone circular - maior e mais elegante */}
-            <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-2xl border-4 border-white/20">
+            <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full flex items-center justify-center shrink-0 shadow-2xl border-4 border-white/20">
               {typeof iconeUrl === 'string' ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img

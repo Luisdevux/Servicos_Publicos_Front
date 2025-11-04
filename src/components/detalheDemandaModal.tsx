@@ -9,6 +9,9 @@ import { Button } from "./ui/button";
 import { ImageCarousel } from "./ui/image-carousel";
 import { useState, useEffect } from "react";
 import type { Pedido } from "@/types";
+import { demandaService } from "@/services/demandaService";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface DetalhesDemandaModalProps {
   pedido: Pedido | null;
@@ -17,24 +20,41 @@ interface DetalhesDemandaModalProps {
 }
 
 export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: DetalhesDemandaModalProps) {
-  const [rating, setRating] = useState(pedido?.avaliacao?.feedback || 0);
-  const [avaliacao, setAvaliacao] = useState(pedido?.avaliacao?.avaliacao_resolucao || "");
+  const [rating, setRating] = useState(0);
+  const [avaliacao, setAvaliacao] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   const isConcluido = pedido?.progresso?.concluido;
   
-  // Update state when pedido changes
   useEffect(() => {
-    setRating(pedido?.avaliacao?.feedback || 0);
-    setAvaliacao(pedido?.avaliacao?.avaliacao_resolucao || "");
-  }, [pedido?.avaliacao]);
+    if (pedido) {
+      setRating(pedido.avaliacao?.feedback || 0);
+      setAvaliacao(pedido.avaliacao?.avaliacao_resolucao || "");
+    } else {
+      setRating(0);
+      setAvaliacao("");
+    }
+  }, [pedido?.id, isOpen]);
 
   if (!pedido) return null;
 
-  const handleEnviarAvaliacao = () => {
+  const handleEnviarAvaliacao = async () => {
     if (rating > 0 && avaliacao.trim()) {
-      console.log("Avaliação enviada:", { rating, avaliacao, pedidoId: pedido.id });
-      setRating(0);
-      setAvaliacao("");
-      onClose();
+      setIsLoading(true);
+      try {
+        await demandaService.atualizarDemanda(pedido.id, {
+          feedback: rating,
+          avaliacao_resolucao: avaliacao.trim(),
+        });
+        queryClient.invalidateQueries({ queryKey: ['demandas'] });
+        toast.success("Avaliação enviada com sucesso!");
+        onClose();
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Erro ao enviar avaliação";
+        toast.error(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -60,7 +80,6 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
         </div>
 
         <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg flex-shrink-0 relative overflow-hidden">
-          {/* Grid de pontos decorativos */}
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -76,7 +95,6 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
             </svg>
           </div>
 
-          {/* Elementos decorativos geométricos */}
           <div className="absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12"></div>
           <div className="absolute bottom-4 right-8 w-10 h-10 border-2 border-white/20 rounded-full"></div>
 
@@ -91,7 +109,10 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
         <div className="flex-1 overflow-y-auto px-6 pt-4 pb-6 min-h-0 scrollbar-hide relative z-10">
           <div className="mb-4" data-test="progresso-section">
             {pedido.status !== "Recusada" && pedido.progresso && (
-              <ProgressoPedido progresso={pedido.progresso} />
+              <ProgressoPedido 
+                progresso={pedido.progresso}
+                variant={pedido.status === "Em aberto" ? "warning" : "default"}
+              />
             )}
             {pedido.status === "Recusada" && (
               <ProgressoPedido 
@@ -104,55 +125,54 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
           <div className="space-y-6">
           {pedido.descricao && (
             <div className="space-y-4" data-test="descricao-section">
-              <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+              <h3 className="text-lg font-medium text-global-text-primary">
                 Descrição da demanda
               </h3>
-              <div className="bg-[var(--global-bg-select)] p-4 rounded-md">
+              <div className="bg-global-bg-select p-4 rounded-md">
                 <p data-test="descricao-texto">{pedido.descricao}</p>
               </div>
             </div>
           )}
 
-          {/* {pedido.link_imagem && (
+          {pedido.link_imagem && (
             <div className="space-y-2" data-test="imagens-demanda-section">
-              <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+              <h3 className="text-lg font-medium text-global-text-primary">
                 {Array.isArray(pedido.link_imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
               </h3>
               <ImageCarousel
                 images={Array.isArray(pedido.link_imagem) ? pedido.link_imagem : [pedido.link_imagem]}
                 alt="Imagem da demanda"
-                className="h-48"
               />
             </div>
-          )} */}
+          )}
 
         {pedido.endereco && (
             <div className="space-y-2" data-test="endereco-section">
-              <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+              <h3 className="text-lg font-medium text-global-text-primary">
                 Endereço do ocorrido
               </h3>
               <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                   <label className="text-sm text-gray-600">CEP</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-tipo-logradouro">
+                  <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="endereco-tipo-logradouro">
                     {pedido.endereco.cep}
                   </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm text-gray-600">Bairro</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-bairro">
+                  <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="endereco-bairro">
                     {pedido.endereco.bairro}
                   </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm text-gray-600">Logradouro</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-logradouro">
+                  <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="endereco-logradouro">
                     {pedido.endereco.logradouro}
                   </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm text-gray-600">Número</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-numero">
+                  <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="endereco-numero">
                     {pedido.endereco.numero}
                   </div>
                 </div>
@@ -160,7 +180,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
               {pedido.endereco.complemento && (
               <div className="space-y-1">
                   <label className="text-sm text-gray-600">Complemento</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-complemento">
+                  <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="endereco-complemento">
                     {pedido.endereco.complemento}
                   </div>
               </div>)}
@@ -169,40 +189,38 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
 
         {isConcluido && pedido.conclusao && (
             <div className="space-y-2" data-test="conclusao-section">
-              <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+              <h3 className="text-lg font-medium text-global-text-primary">
                 Descrição da conclusão da demanda
               </h3>
               <div className="bg-green-50 p-4 rounded-md border border-green-200">
-                <p className="text-[var(--global-text-primary)]" data-test="conclusao-descricao">{pedido.conclusao.descricao}</p>
+                <p className="text-global-text-primary" data-test="conclusao-descricao">{pedido.conclusao.descricao}</p>
               </div>
             </div>
         )}
 
-         {/* {isConcluido && pedido.conclusao?.imagem && (
-             <div className="space-y-2" data-test="imagens-conclusao-section">
-               <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
-                 {Array.isArray(pedido.conclusao.imagem) ? 'Imagens da conclusão' : 'Imagem da conclusão'}
-               </h3>
-               <ImageCarousel 
-                 images={
-                   Array.isArray(pedido.conclusao.imagem)
-                     ? pedido.conclusao.imagem.map(img =>
-                         img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011'}/demandas/${pedido.id}/foto/resolucao`
-                       )
-                     : [pedido.conclusao.imagem.startsWith('http')
-                         ? pedido.conclusao.imagem
-                         : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011'}/demandas/${pedido.id}/foto/resolucao`
-                       ]
-                 }
-                 alt="Imagem da conclusão"
-                 className="h-48"
-               />
-             </div>
-           )} */}
+         {(() => {
+             const imagensResolucao = Array.isArray(pedido.link_imagem_resolucao)
+               ? pedido.link_imagem_resolucao.filter((img): img is string => Boolean(img && typeof img === 'string' && img.trim() !== ''))
+               : (pedido.link_imagem_resolucao && typeof pedido.link_imagem_resolucao === 'string' && pedido.link_imagem_resolucao.trim() !== '')
+                 ? [pedido.link_imagem_resolucao]
+                 : [];
+             
+             return isConcluido && imagensResolucao.length > 0 ? (
+               <div className="space-y-2" data-test="imagens-conclusao-section">
+                 <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+                   {imagensResolucao.length > 1 ? 'Imagens da conclusão' : 'Imagem da conclusão'}
+                 </h3>
+                 <ImageCarousel 
+                   images={imagensResolucao}
+                   alt="Imagem da conclusão"
+                 />
+               </div>
+             ) : null;
+           })()}
 
         {isConcluido && (
             <div className="space-y-4" data-test="avaliacao-section">
-              <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+              <h3 className="text-lg font-medium text-global-text-primary">
                 {pedido.avaliacao ? "Sua avaliação" : "Avalie esse serviço"}
               </h3>
               <div className="space-y-4">
@@ -211,7 +229,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                   onChange={(e) => setAvaliacao(e.target.value)}
                   placeholder="Escreva a sua avaliação"
                   disabled={!!pedido.avaliacao}
-                  className="w-full p-3 border rounded-md resize-none h-24 focus:outline-none focus:ring-2 focus:ring-[var(--global-accent)] disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full p-3 border rounded-md resize-none h-24 focus:outline-none focus:ring-2 focus:ring-global-accent disabled:bg-gray-100 disabled:cursor-not-allowed"
                   data-test="avaliacao-textarea"
                 />
                 <div className="flex items-center gap-4">
@@ -227,11 +245,11 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                   <div className="flex justify-end">
                     <Button
                       onClick={handleEnviarAvaliacao}
-                      disabled={rating === 0 || !avaliacao.trim()}
-                      className="bg-[var(--global-accent)] hover:bg-[var(--global-accent-hover)] text-white"
+                      disabled={rating === 0 || !avaliacao.trim() || isLoading}
+                      className="bg-global-accent hover:bg-global-accent-hover text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       data-test="enviar-avaliacao-btn"
                     >
-                      Enviar Avaliação
+                      {isLoading ? "Enviando..." : "Enviar Avaliação"}
                     </Button>
                   </div>
                 )}

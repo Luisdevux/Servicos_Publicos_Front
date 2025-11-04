@@ -26,7 +26,7 @@ export default function CardPedido({ pedido, onVerMais }: CardPedidoProps) {
     >
       <div className="flex items-center justify-between mb-4">
         <h3 
-          className="text-md font-medium text-[var(--global-text-primary)]"
+          className="text-md font-medium text-global-text-primary"
           data-test="card-pedido-titulo"
         >
           {pedido.titulo}
@@ -70,7 +70,11 @@ export default function CardPedido({ pedido, onVerMais }: CardPedidoProps) {
       <div className="flex-1 flex flex-col justify-center" data-test="card-pedido-progresso-section">
         {pedido.status !== "Recusada" && pedido.progresso && (
           <div className="mb-10 mt-10"> 
-            <ProgressoPedido progresso={pedido.progresso} size="sm" />
+            <ProgressoPedido 
+              progresso={pedido.progresso} 
+              size="sm" 
+              variant={pedido.status === "Em aberto" ? "warning" : "default"}
+            />
           </div>
         )}
 
@@ -86,7 +90,7 @@ export default function CardPedido({ pedido, onVerMais }: CardPedidoProps) {
       </div>
 
       <Button 
-        className="w-full flex items-center justify-center gap-1 text-[var(--global-accent)] hover:text-[var(--global-accent-hover)] text-sm cursor-pointer" 
+        className="w-full flex items-center justify-center gap-1 text-global-accent hover:text-global-accent-hover text-sm cursor-pointer" 
         onClick={handleVerMais}
         data-test="card-pedido-ver-mais-btn"
       >

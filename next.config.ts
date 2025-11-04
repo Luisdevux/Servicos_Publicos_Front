@@ -49,6 +49,7 @@ const nextConfig: NextConfig = {
     ],
     // Configurações para otimização de imagens
     formats: ['image/webp', 'image/avif'],
+    qualities: [75, 85, 90, 95, 100],
     // Permitir blob URLs para preview de imagens
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',

@@ -6,29 +6,44 @@ import type { NextAuthOptions } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
 // Função auxiliar para renovar o access token usando o refresh token.
-
 async function refreshAccessToken(token: JWT, retryCount = 0): Promise<JWT> {
   const MAX_RETRIES = 2;
 
   try {
+    console.log(`[NextAuth] Tentando renovar token (tentativa ${retryCount + 1}/${MAX_RETRIES + 1})...`);
+    
+    if (!token.refreshtoken) {
+      console.error('[NextAuth] Refresh token não disponível no JWT');
+      throw new Error("Refresh token não disponível");
+    }
+
     const res = await fetch(`${process.env.API_URL_SERVER_SIDED}/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ refresh_token: token.refreshtoken }),
+      // Adiciona timeout
+      signal: AbortSignal.timeout(10000), // 10 segundos
     });
 
     if (!res.ok) {
+      const errorText = await res.text().catch(() => 'Sem detalhes');
+      console.error(`[NextAuth] Erro ${res.status} ao renovar token:`, errorText);
+      
       if (res.status === 401 || res.status === 403) {
+        console.error('[NextAuth] Refresh token inválido ou expirado');
         throw new Error("Refresh token inválido ou expirado");
       }
 
       if (retryCount < MAX_RETRIES) {
-        console.warn(`Tentativa ${retryCount + 1} de refresh falhou, tentando novamente...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+        const backoffDelay = 1000 * Math.pow(2, retryCount); // Backoff exponencial
+        console.warn(`[NextAuth] Tentando novamente em ${backoffDelay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, backoffDelay));
         return refreshAccessToken(token, retryCount + 1);
       }
 
-      throw new Error("Falha ao renovar token após múltiplas tentativas");
+      throw new Error(`Falha ao renovar token após ${MAX_RETRIES + 1} tentativas`);
     }
 
     const json = await res.json();
@@ -37,18 +52,21 @@ async function refreshAccessToken(token: JWT, retryCount = 0): Promise<JWT> {
     // Backend retorna tokens sob data.user
     const userData = data?.user || data || null;
 
-    if (!userData) {
+    if (!userData || !userData.accessToken) {
+      console.error('[NextAuth] Formato de resposta inesperado:', json);
       throw new Error('Formato de resposta inesperado ao renovar token');
     }
 
     console.log('[NextAuth] Token renovado com sucesso');
+    console.log('[NextAuth] Novo expiry em:', new Date(Date.now() + 60 * 60 * 1000).toISOString());
 
     return {
       ...token,
-      accesstoken: userData.accessToken ?? token.accesstoken,
+      accesstoken: userData.accessToken,
       refreshtoken: userData.refreshtoken ?? token.refreshtoken,
       accessTokenExpires: Date.now() + 60 * 60 * 1000, // 1 hora
       error: undefined,
+      errorDetails: undefined,
     };
   } catch (err) {
     console.error("[NextAuth] Erro ao renovar token:", err);
@@ -168,18 +186,29 @@ export const authOptions: NextAuthOptions = {
 
       // Force refresh on update trigger
       if (trigger === "update") {
-        console.log('[NextAuth] JWT callback - Forçando refresh do token');
+        console.log('[NextAuth] JWT callback - Forçando refresh do token (trigger: update)');
         return await refreshAccessToken(token);
       }
 
-      // Token ainda válido
+      // Verifica se já há erro no token
+      if (token.error === "RefreshAccessTokenError") {
+        console.error('[NextAuth] JWT callback - Token já está em erro, não tentando refresh');
+        return token;
+      }
+
+      // Token ainda válido - buffer de 10 minutos para renovar
       const timeUntilExpiry = Number(token.accessTokenExpires ?? 0) - Date.now();
-      if (timeUntilExpiry > 5 * 60 * 1000) { // Mais de 5 minutos restantes
+      const REFRESH_THRESHOLD = 10 * 60 * 1000; // 10 minutos
+      
+      if (timeUntilExpiry > REFRESH_THRESHOLD) {
+        const minutesRemaining = Math.floor(timeUntilExpiry / (60 * 1000));
+        console.log(`[NextAuth] Token ainda válido (${minutesRemaining} minutos restantes)`);
         return token;
       }
 
       // Token próximo de expirar ou expirado → tenta renovar
-      console.log('[NextAuth] JWT callback - Token expirando, renovando...');
+      const minutesRemaining = Math.floor(timeUntilExpiry / (60 * 1000));
+      console.log(`[NextAuth] Token expirando em ${minutesRemaining} minutos, renovando...`);
       return await refreshAccessToken(token);
     },
 
@@ -187,6 +216,7 @@ export const authOptions: NextAuthOptions = {
       // Se há erro no token, força logout
       if (token?.error === "RefreshAccessTokenError") {
         console.error('[NextAuth] Session callback - Erro no refresh do token');
+        console.error('[NextAuth] Detalhes do erro:', token.errorDetails);
         return {
           ...session,
           error: "RefreshAccessTokenError"
@@ -205,6 +235,8 @@ export const authOptions: NextAuthOptions = {
           nivel_acesso: token.nivel_acesso,
           ativo: token.ativo,
         };
+        
+        console.log('[NextAuth] Session atualizada para usuário:', token.id);
       }
 
       return session;
