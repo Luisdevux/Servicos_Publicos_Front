@@ -4,7 +4,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { demandaService } from '@/services';
-import type { Endereco, Demanda, TipoDemanda } from '@/types';
+import type { Endereco, Demanda, TipoDemanda, UpdateDemandaData } from '@/types';
 
 interface CreateDemandaInput {
   tipo: TipoDemanda;
@@ -129,6 +129,25 @@ export function useCreateDemanda() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['demandas'] });
       queryClient.invalidateQueries({ queryKey: ['tipoDemanda'] });
+    },
+  });
+}
+
+export function useUpdateDemanda() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateDemandaData }): Promise<Demanda> => {
+      const response = await demandaService.atualizarDemanda(id, data);
+      
+      if (!response.data) {
+        throw new Error('Erro ao atualizar demanda - dados não retornados');
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['demandas'] });
     },
   });
 }
