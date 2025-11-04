@@ -260,7 +260,7 @@ export default function PedidosSecretariaPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[var(--global-bg)]">
+      <div className="min-h-screen bg-global-bg">
         <Banner
           icone={ClipboardList}
           titulo="Pedidos recebidos"
@@ -281,7 +281,7 @@ export default function PedidosSecretariaPage() {
     const isTokenExpired = error instanceof ApiError && error.status === 498;
     
     return (
-      <div className="min-h-screen bg-[var(--global-bg)]">
+      <div className="min-h-screen bg-global-bg">
         <Banner
           icone={ClipboardList}
           titulo="Pedidos recebidos"
@@ -315,7 +315,7 @@ export default function PedidosSecretariaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--global-bg)]">
+    <div className="min-h-screen bg-global-bg">
       <Banner
         icone={ClipboardList}
         titulo="Pedidos recebidos"
@@ -450,7 +450,7 @@ export default function PedidosSecretariaPage() {
         ) : (
           <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12">
             <ClipboardList className="h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-[var(--global-text-primary)] mb-2">
+            <h3 className="text-lg font-medium text-global-text-primary mb-2">
               Nenhum pedido encontrado
             </h3>
             <div className="text-sm text-gray-500 text-center">
@@ -470,7 +470,7 @@ export default function PedidosSecretariaPage() {
               <ChevronLeft size={20} />
             </button>
             
-            <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
+            <div className="flex items-center gap-2 text-sm text-global-text-primary">
               <span>Página {paginaAtual} de {totalPaginas}</span>
             </div>
             

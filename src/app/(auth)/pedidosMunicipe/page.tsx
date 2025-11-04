@@ -209,7 +209,7 @@ export default function MeusPedidosPage() {
   const pedidosPaginados = pedidosFiltrados;
 
   return (
-    <div className="min-h-screen bg-[var(--global-bg)]">
+    <div className="min-h-screen bg-global-bg">
       <Banner
         icone={ClipboardList}
         titulo="Meus Pedidos"
@@ -222,7 +222,7 @@ export default function MeusPedidosPage() {
             <div className="flex items-center gap-4 mb-2">
               <Button
                 onClick={() => router.push('/')}
-                className="h-10 px-3 rounded-md bg-transparent border border-gray-200 text-[var(--global-text-primary)] hover:bg-gray-50"
+                className="h-10 px-3 rounded-md bg-transparent border border-gray-200 text-global-text-primary hover:bg-gray-50"
               >
                 <ChevronLeft className="w-5 h-5" />
                 <span className="font-medium">Voltar</span>
@@ -232,8 +232,8 @@ export default function MeusPedidosPage() {
 
           <div className="mb-6">
             <div className="flex items-center gap-4">
-              <Filter className="h-4 w-4 text-[var(--global-text-primary)]" />
-              <span className="text-sm text-[var(--global-text-primary)]">Filtrar por:</span>
+              <Filter className="h-4 w-4 text-global-text-primary" />
+              <span className="text-sm text-global-text-primary">Filtrar por:</span>
               <Select value={filtroSelecionado} onValueChange={handleFiltroChange}>
                 <SelectTrigger className="w-64">
                   <SelectValue placeholder="Todos os pedidos" />
@@ -245,7 +245,7 @@ export default function MeusPedidosPage() {
                   <SelectItem value="aguardando">Aguardando aprovação</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-sm text-[var(--global-text-primary)] ml-2">
+              <span className="text-sm text-global-text-primary ml-2">
                 {isLoading ? (
                   "Carregando..."
                 ) : (
@@ -258,7 +258,7 @@ export default function MeusPedidosPage() {
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-[var(--global-accent)] border-t-transparent mx-auto"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-global-accent border-t-transparent mx-auto"></div>
             <p className="text-sm text-gray-500">Carregando seus pedidos...</p>
           </div>
         ) : pedidosFiltrados.length > 0 ? (
@@ -274,7 +274,7 @@ export default function MeusPedidosPage() {
         ) : (
           <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12">
             <ClipboardList className="h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-[var(--global-text-primary)] mb-2">
+            <h3 className="text-lg font-medium text-global-text-primary mb-2">
               Nenhum pedido encontrado
             </h3>
             <p className="text-sm text-gray-500 text-center">
@@ -296,7 +296,7 @@ export default function MeusPedidosPage() {
                 <ChevronLeft size={20} />
               </button>
               
-              <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
+              <div className="flex items-center gap-2 text-sm text-global-text-primary">
                 <span>Página {paginaAtual} de {totalPaginas}</span>
               </div>
               

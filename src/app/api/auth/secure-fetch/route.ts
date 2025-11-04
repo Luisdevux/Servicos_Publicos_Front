@@ -16,10 +16,29 @@ export async function POST(request: NextRequest) {
     });
 
     if (!token || !token.accesstoken) {
+      console.error('[SecureFetch] Token não disponível');
       return NextResponse.json(
         { error: 'Unauthorized - No active session' },
         { status: 401 }
       );
+    }
+
+    // Verifica se o token tem erro
+    if (token.error === "RefreshAccessTokenError") {
+      console.error('[SecureFetch] Token em estado de erro');
+      return NextResponse.json(
+        { error: 'Session expired - Please login again' },
+        { status: 401 }
+      );
+    }
+
+    // Verifica se o token está próximo de expirar
+    const timeUntilExpiry = Number(token.accessTokenExpires ?? 0) - Date.now();
+    if (timeUntilExpiry < 0) {
+      console.warn('[SecureFetch] Token expirado, mas tentando usar mesmo assim (NextAuth deve ter renovado)');
+    } else {
+      const minutesRemaining = Math.floor(timeUntilExpiry / (60 * 1000));
+      console.log(`[SecureFetch] Token válido por mais ${minutesRemaining} minutos`);
     }
 
     const body = await request.json();
@@ -93,6 +112,7 @@ export async function POST(request: NextRequest) {
         errorData = { error: await response.text() || 'Request failed' };
       }
 
+      console.error(`[SecureFetch] Erro ${response.status}:`, errorData);
       return NextResponse.json(errorData, { status: response.status });
     }
 

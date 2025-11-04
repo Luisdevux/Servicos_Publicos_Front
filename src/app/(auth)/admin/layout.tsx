@@ -73,8 +73,8 @@ export default function AdminLayout({children,}: {children: React.ReactNode;}) {
       <Sidebar variant="inset">
         <SidebarContent>
           <div className="p-4">
-            <h1 className="text-xl font-bold text-[var(--global-text-primary)]">VILHENA+PÚBLICA</h1>
-            <p className="text-xs text-[var(--global-text-secondary)]">Dashboard Administrativo</p>
+            <h1 className="text-xl font-bold text-global-text-primary">VILHENA+PÚBLICA</h1>
+            <p className="text-xs text-global-text-secondary">Dashboard Administrativo</p>
           </div>
           <SidebarGroup>
             <SidebarGroupLabel>Menu</SidebarGroupLabel>
@@ -116,7 +116,7 @@ export default function AdminLayout({children,}: {children: React.ReactNode;}) {
             <header className="flex h-16 shrink-0 items-center gap-2 px-4">
               <SidebarTrigger className="-ml-1" />
               <div className="flex-1">
-                <h1 className="text-lg text-[var(--global-text-secondary)] font-semibold">Dados</h1>
+                <h1 className="text-lg text-global-text-secondary font-semibold">Dados</h1>
               </div>
             </header>
             

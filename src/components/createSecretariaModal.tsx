@@ -201,7 +201,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
         className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl"
         data-test="create-secretaria-dialog"
       >
-        <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg relative overflow-hidden">
+        <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -232,7 +232,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="cep" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                <Label htmlFor="cep" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                 <span className="text-red-500">*</span>
                   Nome
                 </Label>
@@ -242,7 +242,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     placeholder="Secretaria Municipal de Iluminação Pública"
-                    className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)] pr-10"
+                    className="border-global-border focus:border-global-accent focus:ring-global-accent pr-10"
                     type='text'
                     required
                     data-test="nome-secretaria-input"
@@ -252,7 +252,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bairro" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                <Label htmlFor="bairro" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Sigla
                 </Label>
@@ -262,7 +262,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
                     value={sigla}
                     onChange={(e) => setSigla(e.target.value)}
                     placeholder="SEMILU"
-                    className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
+                    className="border-global-border focus:border-global-accent focus:ring-global-accent"
                     required
                     type='text'
                     data-test="sigla-secretaria-input"
@@ -274,7 +274,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="emailSecretaria" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                <Label htmlFor="emailSecretaria" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Email
                 </Label>
@@ -284,7 +284,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="iluminacao@prefeitura.gov.br"
-                    className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
+                    className="border-global-border focus:border-global-accent focus:ring-global-accent"
                     type='email'
                     required
                     data-test="email-secretaria-input"
@@ -294,7 +294,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="telefoneSecretaria" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                <Label htmlFor="telefoneSecretaria" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Telefone
                 </Label>
@@ -305,7 +305,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
                     onChange={(e) => setTelefone(e.target.value)}
                     placeholder="(69) 99999-9999"
                     type='tel'
-                    className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
+                    className="border-global-border focus:border-global-accent focus:ring-global-accent"
                     required
                     data-test="telefone-secretaria-input"
                     disabled={isSubmitting}
@@ -316,7 +316,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="numero" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                <Label htmlFor="numero" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Tipo de Demanda
                 </Label>
@@ -331,7 +331,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
                   <SelectContent data-test="tipo-secretaria-options">
                     {isLoadingTipos ? (
                       <div className="flex items-center justify-center p-4" data-test="tipo-secretaria-loading">
-                        <Loader2 className="h-4 w-4 animate-spin text-[var(--global-accent)]" />
+                        <Loader2 className="h-4 w-4 animate-spin text-global-accent" />
                       </div>
                     ) : (
                       <>
@@ -357,7 +357,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
             <Button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="flex-1 border-2 border-[var(--global-border)] bg-white text-[var(--global-text-primary)] hover:bg-[var(--global-bg-select)] font-medium"
+              className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
               disabled={isSubmitting}
               data-test="cancel-button"
             >
@@ -367,7 +367,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
               type="submit"
               disabled={isSubmitting}
               className={cn(
-                "flex-1 bg-[var(--global-accent)] hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
+                "flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
                 isSubmitting && "opacity-70 cursor-not-allowed"
               )}
               data-test="submit-button"

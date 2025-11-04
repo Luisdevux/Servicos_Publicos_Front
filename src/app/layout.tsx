@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/providers/queryProvider";
 import { SessionWrapper } from "@/components/SessionWrapper";
+import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Toaster } from 'sonner';
 import "./globals.css";
@@ -52,6 +53,7 @@ export default function RootLayout({
         <NuqsAdapter>
           <SessionWrapper>
             <QueryProvider>
+              <GlobalErrorHandler />
               <ConditionalLayout dadosFooter={dadosFooter}>
                 {children}
               </ConditionalLayout>

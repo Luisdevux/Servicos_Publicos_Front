@@ -9,6 +9,9 @@ import { Button } from "./ui/button";
 import { ImageCarousel } from "./ui/image-carousel";
 import { useState, useEffect } from "react";
 import type { Pedido } from "@/types";
+import { demandaService } from "@/services/demandaService";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface DetalhesDemandaModalProps {
   pedido: Pedido | null;
@@ -17,23 +20,41 @@ interface DetalhesDemandaModalProps {
 }
 
 export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: DetalhesDemandaModalProps) {
-  const [rating, setRating] = useState(pedido?.avaliacao?.feedback || 0);
-  const [avaliacao, setAvaliacao] = useState(pedido?.avaliacao?.avaliacao_resolucao || "");
+  const [rating, setRating] = useState(0);
+  const [avaliacao, setAvaliacao] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   const isConcluido = pedido?.progresso?.concluido;
   
   useEffect(() => {
-    setRating(pedido?.avaliacao?.feedback || 0);
-    setAvaliacao(pedido?.avaliacao?.avaliacao_resolucao || "");
-  }, [pedido?.avaliacao]);
+    if (pedido) {
+      setRating(pedido.avaliacao?.feedback || 0);
+      setAvaliacao(pedido.avaliacao?.avaliacao_resolucao || "");
+    } else {
+      setRating(0);
+      setAvaliacao("");
+    }
+  }, [pedido?.id, isOpen]);
 
   if (!pedido) return null;
 
-  const handleEnviarAvaliacao = () => {
+  const handleEnviarAvaliacao = async () => {
     if (rating > 0 && avaliacao.trim()) {
-      console.log("Avaliação enviada:", { rating, avaliacao, pedidoId: pedido.id });
-      setRating(0);
-      setAvaliacao("");
-      onClose();
+      setIsLoading(true);
+      try {
+        await demandaService.atualizarDemanda(pedido.id, {
+          feedback: rating,
+          avaliacao_resolucao: avaliacao.trim(),
+        });
+        queryClient.invalidateQueries({ queryKey: ['demandas'] });
+        toast.success("Avaliação enviada com sucesso!");
+        onClose();
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Erro ao enviar avaliação";
+        toast.error(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -104,10 +125,10 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
           <div className="space-y-6">
           {pedido.descricao && (
             <div className="space-y-4" data-test="descricao-section">
-              <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+              <h3 className="text-lg font-medium text-global-text-primary">
                 Descrição da demanda
               </h3>
-              <div className="bg-[var(--global-bg-select)] p-4 rounded-md">
+              <div className="bg-global-bg-select p-4 rounded-md">
                 <p data-test="descricao-texto">{pedido.descricao}</p>
               </div>
             </div>
@@ -115,7 +136,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
 
           {pedido.link_imagem && (
             <div className="space-y-2" data-test="imagens-demanda-section">
-              <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+              <h3 className="text-lg font-medium text-global-text-primary">
                 {Array.isArray(pedido.link_imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
               </h3>
               <ImageCarousel
@@ -127,31 +148,31 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
 
         {pedido.endereco && (
             <div className="space-y-2" data-test="endereco-section">
-              <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+              <h3 className="text-lg font-medium text-global-text-primary">
                 Endereço do ocorrido
               </h3>
               <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                   <label className="text-sm text-gray-600">CEP</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-tipo-logradouro">
+                  <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="endereco-tipo-logradouro">
                     {pedido.endereco.cep}
                   </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm text-gray-600">Bairro</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-bairro">
+                  <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="endereco-bairro">
                     {pedido.endereco.bairro}
                   </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm text-gray-600">Logradouro</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-logradouro">
+                  <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="endereco-logradouro">
                     {pedido.endereco.logradouro}
                   </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm text-gray-600">Número</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-numero">
+                  <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="endereco-numero">
                     {pedido.endereco.numero}
                   </div>
                 </div>
@@ -159,7 +180,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
               {pedido.endereco.complemento && (
               <div className="space-y-1">
                   <label className="text-sm text-gray-600">Complemento</label>
-                  <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm" data-test="endereco-complemento">
+                  <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="endereco-complemento">
                     {pedido.endereco.complemento}
                   </div>
               </div>)}
@@ -168,11 +189,11 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
 
         {isConcluido && pedido.conclusao && (
             <div className="space-y-2" data-test="conclusao-section">
-              <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+              <h3 className="text-lg font-medium text-global-text-primary">
                 Descrição da conclusão da demanda
               </h3>
               <div className="bg-green-50 p-4 rounded-md border border-green-200">
-                <p className="text-[var(--global-text-primary)]" data-test="conclusao-descricao">{pedido.conclusao.descricao}</p>
+                <p className="text-global-text-primary" data-test="conclusao-descricao">{pedido.conclusao.descricao}</p>
               </div>
             </div>
         )}
@@ -199,7 +220,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
 
         {isConcluido && (
             <div className="space-y-4" data-test="avaliacao-section">
-              <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+              <h3 className="text-lg font-medium text-global-text-primary">
                 {pedido.avaliacao ? "Sua avaliação" : "Avalie esse serviço"}
               </h3>
               <div className="space-y-4">
@@ -208,7 +229,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                   onChange={(e) => setAvaliacao(e.target.value)}
                   placeholder="Escreva a sua avaliação"
                   disabled={!!pedido.avaliacao}
-                  className="w-full p-3 border rounded-md resize-none h-24 focus:outline-none focus:ring-2 focus:ring-[var(--global-accent)] disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full p-3 border rounded-md resize-none h-24 focus:outline-none focus:ring-2 focus:ring-global-accent disabled:bg-gray-100 disabled:cursor-not-allowed"
                   data-test="avaliacao-textarea"
                 />
                 <div className="flex items-center gap-4">
@@ -224,11 +245,11 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                   <div className="flex justify-end">
                     <Button
                       onClick={handleEnviarAvaliacao}
-                      disabled={rating === 0 || !avaliacao.trim()}
-                      className="bg-[var(--global-accent)] hover:bg-[var(--global-accent-hover)] text-white"
+                      disabled={rating === 0 || !avaliacao.trim() || isLoading}
+                      className="bg-global-accent hover:bg-global-accent-hover text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       data-test="enviar-avaliacao-btn"
                     >
-                      Enviar Avaliação
+                      {isLoading ? "Enviando..." : "Enviar Avaliação"}
                     </Button>
                   </div>
                 )}

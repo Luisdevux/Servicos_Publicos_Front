@@ -19,10 +19,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   // Não renderiza nada até verificar a sessão
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-cyan-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[var(--global-accent)] border-t-transparent mx-auto"></div>
-          <p className="mt-6 text-[var(--global-text-primary)] font-medium">Carregando...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-global-accent border-t-transparent mx-auto"></div>
+          <p className="mt-6 text-global-text-primary font-medium">Carregando...</p>
         </div>
       </div>
     );

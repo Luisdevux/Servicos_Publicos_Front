@@ -172,6 +172,7 @@ export const demandaService = {
   },
 };
 
+
 /**
  * Helper para converter File para Base64
  */

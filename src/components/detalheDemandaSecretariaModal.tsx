@@ -117,7 +117,7 @@ export default function DetalhesDemandaSecretariaModal({
             <div className="absolute top-1/2 right-8 w-8 h-8 border-2 border-current rotate-45 opacity-30"></div>
           </div>
 
-          <DialogHeader className="bg-purple-600 py-6 px-6 rounded-t-lg relative overflow-hidden flex-shrink-0 z-10">
+          <DialogHeader className="bg-purple-600 py-6 px-6 rounded-t-lg relative overflow-hidden shrink-0 z-10">
             {/* Grid de pontos decorativos */}
             <div className="absolute inset-0 opacity-10">
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -150,7 +150,7 @@ export default function DetalhesDemandaSecretariaModal({
                   <h3 className="text-lg font-medium text-purple-600">
                     Descrição da demanda
                   </h3>
-                  <div className="bg-[var(--global-bg-select)] p-4 rounded-md">
+                  <div className="bg-global-bg-select p-4 rounded-md">
                     <p>{demanda.descricao}</p>
                   </div>
                 </div>
@@ -177,25 +177,25 @@ export default function DetalhesDemandaSecretariaModal({
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Bairro</label>
-                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
                         {demanda.endereco.bairro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Tipo de logradouro</label>
-                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
                         {demanda.endereco.tipoLogradouro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Logradouro</label>
-                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
                         {demanda.endereco.logradouro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Número</label>
-                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
                         {demanda.endereco.numero}
                       </div>
                     </div>
@@ -240,8 +240,8 @@ export default function DetalhesDemandaSecretariaModal({
                       <h3 className="text-lg font-medium text-purple-600">
                         Operador Responsável
                       </h3>
-                      <div className="bg-[var(--global-bg-select)] rounded-md p-3">
-                        <p className="font-medium text-[var(--global-text-primary)]">{nomeOperador}</p>
+                      <div className="bg-global-bg-select rounded-md p-3">
+                        <p className="font-medium text-global-text-primary">{nomeOperador}</p>
                       </div>
                     </div>
                   )}
@@ -252,7 +252,7 @@ export default function DetalhesDemandaSecretariaModal({
                         Descrição da conclusão da demanda
                       </h3>
                       <div className="bg-green-50 p-4 rounded-md border border-green-200">
-                        <p className="text-[var(--global-text-primary)]">{demanda.resolucao}</p>
+                        <p className="text-global-text-primary">{demanda.resolucao}</p>
                       </div>
                     </div>
                   )}
@@ -284,7 +284,7 @@ export default function DetalhesDemandaSecretariaModal({
           </div>
 
           {demanda.status === "Em aberto" && (
-            <div className="flex gap-3 px-6 pb-6 flex-shrink-0">
+            <div className="flex gap-3 px-6 pb-6 shrink-0">
               <Button
                 onClick={() => setShowRejeitarModal(true)}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white"

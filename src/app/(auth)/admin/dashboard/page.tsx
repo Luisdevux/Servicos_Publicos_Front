@@ -98,7 +98,7 @@ export default function DashboardPage() {
       <div className="space-y-6 pt-3">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-4 border-[var(--global-accent)] border-t-transparent mx-auto"></div>
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-global-accent border-t-transparent mx-auto"></div>
             <p className="text-gray-600">Carregando métricas...</p>
           </div>
         </div>
