@@ -9,6 +9,9 @@ import { Button } from "./ui/button";
 import { ImageCarousel } from "./ui/image-carousel";
 import { useState, useEffect } from "react";
 import type { Pedido } from "@/types";
+import { demandaService } from "@/services/demandaService";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface DetalhesDemandaModalProps {
   pedido: Pedido | null;
@@ -17,24 +20,41 @@ interface DetalhesDemandaModalProps {
 }
 
 export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: DetalhesDemandaModalProps) {
-  const [rating, setRating] = useState(pedido?.avaliacao?.feedback || 0);
-  const [avaliacao, setAvaliacao] = useState(pedido?.avaliacao?.avaliacao_resolucao || "");
+  const [rating, setRating] = useState(0);
+  const [avaliacao, setAvaliacao] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   const isConcluido = pedido?.progresso?.concluido;
   
-  // Update state when pedido changes
   useEffect(() => {
-    setRating(pedido?.avaliacao?.feedback || 0);
-    setAvaliacao(pedido?.avaliacao?.avaliacao_resolucao || "");
-  }, [pedido?.avaliacao]);
+    if (pedido) {
+      setRating(pedido.avaliacao?.feedback || 0);
+      setAvaliacao(pedido.avaliacao?.avaliacao_resolucao || "");
+    } else {
+      setRating(0);
+      setAvaliacao("");
+    }
+  }, [pedido?.id, isOpen]);
 
   if (!pedido) return null;
 
-  const handleEnviarAvaliacao = () => {
+  const handleEnviarAvaliacao = async () => {
     if (rating > 0 && avaliacao.trim()) {
-      console.log("Avaliação enviada:", { rating, avaliacao, pedidoId: pedido.id });
-      setRating(0);
-      setAvaliacao("");
-      onClose();
+      setIsLoading(true);
+      try {
+        await demandaService.atualizarDemanda(pedido.id, {
+          feedback: rating,
+          avaliacao_resolucao: avaliacao.trim(),
+        });
+        queryClient.invalidateQueries({ queryKey: ['demandas'] });
+        toast.success("Avaliação enviada com sucesso!");
+        onClose();
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Erro ao enviar avaliação";
+        toast.error(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -227,11 +247,11 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
                   <div className="flex justify-end">
                     <Button
                       onClick={handleEnviarAvaliacao}
-                      disabled={rating === 0 || !avaliacao.trim()}
-                      className="bg-global-accent hover:bg-global-accent-hover text-white"
+                      disabled={rating === 0 || !avaliacao.trim() || isLoading}
+                      className="bg-global-accent hover:bg-global-accent-hover text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       data-test="enviar-avaliacao-btn"
                     >
-                      Enviar Avaliação
+                      {isLoading ? "Enviando..." : "Enviar Avaliação"}
                     </Button>
                   </div>
                 )}
