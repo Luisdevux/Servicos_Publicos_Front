@@ -255,11 +255,10 @@ export default function PedidosOperadorPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="linear-gradient(135deg, #10b981 0%, #059669 80%)"
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#337695] mx-auto mb-4"></div>
             <p className="text-gray-600">Carregando demandas...</p>
           </div>
         </div>
@@ -276,7 +275,6 @@ export default function PedidosOperadorPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="linear-gradient(135deg, #10b981 0%, #059669 80%)"
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-center max-w-md mx-auto px-4">
@@ -293,7 +291,7 @@ export default function PedidosOperadorPage() {
             {!isTokenExpired && (
               <Button 
                 onClick={() => window.location.reload()}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-[#337695] hover:bg-[#2c5f7a] text-white"
               >
                 Recarregar página
               </Button>
@@ -310,7 +308,6 @@ export default function PedidosOperadorPage() {
         icone={ClipboardList}
         titulo="Pedidos recebidos"
         className="mb-6 md:mb-8"
-        backgroundColor="linear-gradient(135deg, #10b981 0%, #059669 80%)"
       />
 
       <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
@@ -325,14 +322,14 @@ export default function PedidosOperadorPage() {
                 }}
                 className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                   abaAtiva === "aguardando-resolucao"
-                    ? "border-green-600 text-green-600"
+                    ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Aguardando Resolução
                 {contadorAguardandoResolucao > 0 && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                    abaAtiva === "aguardando-resolucao" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600"
+                    abaAtiva === "aguardando-resolucao" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
                   }`}>
                     {contadorAguardandoResolucao}
                   </span>
@@ -346,14 +343,14 @@ export default function PedidosOperadorPage() {
                 }}
                 className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                   abaAtiva === "concluidas"
-                    ? "border-green-600 text-green-600"
+                    ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Concluídas
                 {contadorConcluidas > 0 && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                    abaAtiva === "concluidas" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600"
+                    abaAtiva === "concluidas" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
                   }`}>
                     {contadorConcluidas}
                   </span>
@@ -407,7 +404,7 @@ export default function PedidosOperadorPage() {
                   
                   <Button 
                     onClick={() => handleAnalisarDemanda(demanda.id)}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white"
                   >
                     {demanda.status === "Concluída" ? "Analisar Resolução" : "Analisar Demanda"}
                   </Button>

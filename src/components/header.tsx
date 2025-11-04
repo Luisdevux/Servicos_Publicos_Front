@@ -66,13 +66,13 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
       { href: "/secretaria", label: "Pedidos recebidos" },
       { href: "/perfil", label: "Perfil" },
     ];
-    effectiveTheme = 'purple';
+    effectiveTheme = 'default';
   } else if (isOperadorArea) {
     links = [
       { href: "/operador", label: "Pedidos recebidos" },
       { href: "/perfil", label: "Perfil" },
     ];
-    effectiveTheme = 'green';
+    effectiveTheme = 'default';
   } else {
     links = [
       { href: "/", label: "Home" },
