@@ -131,14 +131,6 @@ export const demandaService = {
     formData.append('file', file);
 
     try {
-      console.log('Iniciando upload de imagem:', {
-        demandaId: id,
-        tipo,
-        fileName: file.name,
-        fileSize: `${(file.size / 1024).toFixed(2)} KB`,
-        fileType: file.type
-      });
-
       const response = await fetch('/api/auth/secure-fetch', {
         method: 'POST',
         headers: {
@@ -152,39 +144,29 @@ export const demandaService = {
             file: await fileToBase64(file)
           }
         }),
-        // Aumenta timeout para uploads grandes
         signal: AbortSignal.timeout(60000), // 60 segundos
-      });
-
-      console.log('Resposta recebida:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
         const errorMessage = errorData?.message || errorData?.error || 'Erro ao fazer upload da foto';
-        console.error('Erro no upload:', errorData);
         throw new Error(`Upload falhou (${response.status}): ${errorMessage}`);
       }
 
       const result = await response.json();
       
-      console.log('Resposta completa do servidor:', result);
-      
-      // Validar se o resultado contém o link da imagem
-      // A API pode retornar em diferentes formatos, vamos aceitar todos
-      const linkImagem = result.data?.link_imagem || result.link_imagem || result.data?.url || result.url;
+      // A API retorna o link em: data.dados.link_imagem
+      const linkImagem = 
+        result.data?.dados?.link_imagem || 
+        result.data?.link_imagem || 
+        result.link_imagem || 
+        result.data?.url || 
+        result.url;
       
       if (!linkImagem) {
-        console.error('Resposta do servidor sem link da imagem:', result);
         throw new Error('Resposta do servidor não contém o link da imagem');
       }
 
-      console.log('Link da imagem recebido:', linkImagem);
-
-      // Normaliza a resposta para o formato esperado
       return {
         ...result,
         data: {
@@ -235,23 +217,20 @@ export const demandaService = {
 
       const result = await response.json();
       
-      // Validar se o resultado contém o link da imagem
-      // A API pode retornar em diferentes formatos, vamos aceitar todos
-      const linkImagem = result.data?.link_imagem_resolucao || 
-                         result.link_imagem_resolucao || 
-                         result.data?.link_imagem || 
-                         result.link_imagem ||
-                         result.data?.url || 
-                         result.url;
+      // A API retorna o link em: data.dados.link_imagem
+      const linkImagem = 
+        result.data?.dados?.link_imagem ||
+        result.data?.link_imagem_resolucao || 
+        result.link_imagem_resolucao || 
+        result.data?.link_imagem || 
+        result.link_imagem ||
+        result.data?.url || 
+        result.url;
       
       if (!linkImagem) {
-        console.error('Resposta do servidor sem link da imagem de resolução:', result);
         throw new Error('Resposta do servidor não contém o link da imagem de resolução');
       }
 
-      console.log('Link da imagem de resolução recebido:', linkImagem);
-
-      // Normaliza a resposta para o formato esperado
       return {
         ...result,
         data: {

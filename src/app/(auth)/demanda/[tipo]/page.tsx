@@ -9,7 +9,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
-import { Search, ChevronLeft, ChevronRight, SearchX } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, SearchX, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { tipoDemandaService } from "@/services";
@@ -92,7 +92,7 @@ export default function DemandaPage() {
       const result = await tipoDemandaService.buscarTiposDemandaPorTipo(filters, 10, page);
       return result.data; // Retorna o objeto de paginação completo
     },
-  enabled: !!currentTipo,
+    enabled: !!currentTipo,
     staleTime: 5 * 60 * 1000, // Cache por 5 minutos
     retry: 1,
   });
@@ -114,7 +114,7 @@ export default function DemandaPage() {
           <div className="flex items-center gap-4 mb-2">
             <Button
               onClick={() => router.back()}
-              className="h-10 px-3 rounded-md bg-transparent border border-gray-200 text-[var(--global-text-primary)] hover:bg-gray-50"
+              className="h-10 px-3 rounded-md bg-transparent border border-gray-200 text-global-text-primary hover:bg-gray-50"
             >
               <ChevronLeft className="w-5 h-5" />
               <span className="font-medium">Voltar</span>
@@ -124,19 +124,19 @@ export default function DemandaPage() {
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <h3 className="text-2xl font-medium text-[var(--global-text-secondary)]">Explore os serviços</h3>
+                  <h3 className="text-2xl font-medium text-global-text-secondary">Explore os serviços</h3>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <Button
                     onClick={() => setShowFilters((s) => !s)}
-                    className="h-9 px-3 rounded-md bg-transparent border border-gray-200 text-[var(--global-text-primary)] hover:bg-gray-50"
+                    className="h-9 px-3 rounded-md bg-transparent border border-gray-200 text-global-text-primary hover:bg-gray-50"
                   >
                     Filtros
                   </Button>
                   <Button
                     onClick={() => setDebouncedSearchTerm(searchTerm)}
-                    className="hidden md:inline h-9 px-3 rounded-md bg-[var(--global-accent)] text-[var(--global-bg)] hover:bg-[var(--global-link-hover)]/90"
+                    className="hidden md:inline h-9 px-3 rounded-md bg-global-accent text-global-bg hover:bg-global-link-hover/90"
                   >
                     Buscar
                   </Button>
@@ -182,7 +182,7 @@ export default function DemandaPage() {
                           setSearchTerm('');
                         }}
                         aria-pressed={active}
-                        className={`px-3 py-1.5 rounded-full text-sm ${active ? 'bg-[var(--global-accent)] text-[var(--global-bg)]' : 'bg-gray-100 text-gray-700'}`}
+                        className={`px-3 py-1.5 rounded-full text-sm ${active ? 'bg-global-accent text-global-bg' : 'bg-gray-100 text-gray-700'}`}
                       >
                         {t}
                       </button>
@@ -207,14 +207,29 @@ export default function DemandaPage() {
 
         {demandasIsError && (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="text-center">
-              <p className="text-lg text-red-600 mb-2">
-                Erro ao carregar serviços
+            <div className="text-center max-w-md space-y-3">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-50 mb-3">
+                <AlertCircle className="h-7 w-7 text-red-500" strokeWidth={2} />
+              </div>
+              
+              <h3 className="text-lg font-semibold text-gray-800">
+                Não foi possível carregar os serviços
+              </h3>
+              
+              <p className="text-sm text-gray-600">
+                Ocorreu um erro ao buscar as informações. 
+                {demandasError?.message && (
+                  <span className="block mt-1 text-xs text-gray-500">
+                    {demandasError.message}
+                  </span>
+                )}
               </p>
-              <p className="text-sm text-gray-500 mb-4">
-                {demandasError?.message || 'Ocorreu um erro inesperado'}
-              </p>
-              <Button onClick={() => demandasRefetch()}>
+              
+              <Button 
+                onClick={() => demandasRefetch()}
+                className="mt-4 bg-global-accent hover:bg-global-link-hover text-white px-6 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 group"
+              >
+                <RefreshCw className="mr-2 h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
                 Tentar novamente
               </Button>
             </div>
@@ -275,7 +290,7 @@ export default function DemandaPage() {
               <ChevronLeft size={20} />
             </button>
             
-            <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
+            <div className="flex items-center gap-2 text-sm text-global-text-primary">
               <span>Página {demandasData?.page} de {demandasData?.totalPages}</span>
             </div>
             

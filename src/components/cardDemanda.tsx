@@ -17,7 +17,7 @@ export default function CardDemanda({ titulo, descricao, imagem, theme = 'defaul
 
   return (
     <div className={`w-full h-[400px] rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 hover:scale-105 transform flex flex-col ${themeClass}`} data-test="card-demanda-container">
-      <div className="h-48 overflow-hidden flex-shrink-0 bg-gray-100 flex items-center justify-center relative" data-test="card-demanda-image-container">
+      <div className="h-48 overflow-hidden shrink-0 bg-gray-100 flex items-center justify-center relative" data-test="card-demanda-image-container">
         <OptimizedImage
           src={imagem}
           alt={titulo}
@@ -39,7 +39,7 @@ export default function CardDemanda({ titulo, descricao, imagem, theme = 'defaul
         </div>
         <Button
           size="lg"
-          colorClass="w-full font-medium py-2 px-3 bg-[var(--global-text-primary)] text-[var(--global-bg)] hover:bg-[var(--global-text-secondary)]"
+          colorClass="w-full font-medium py-2 px-3 bg-global-text-primary text-global-bg hover:bg-global-text-secondary"
           onClick={onCreateClick}
           data-test="card-demanda-botao-criar"
         >

@@ -57,7 +57,7 @@ export function OptimizedImage({
   if (!isValid || imageError) {
     return (
       fallbackComponent || (
-        <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="flex flex-col items-center justify-center w-full h-full bg-linear-to-br from-slate-50 to-slate-100">
           <div className="w-16 h-16 mb-3 rounded-full bg-slate-200/80 flex items-center justify-center shadow-sm">
             <ImageOff className="w-8 h-8 text-slate-400" />
           </div>
@@ -72,7 +72,7 @@ export function OptimizedImage({
   return (
     <div className="relative w-full h-full">
       {imageLoading && showLoader && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 z-10">
           <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
         </div>
       )}

@@ -232,7 +232,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
         className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl"
         data-test="create-tipo-demanda-dialog"
       >
-        <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg relative overflow-hidden">
+        <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -286,12 +286,12 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
           </div>
 
           <div className="space-y-3">
-            <Label className="text-[var(--global-text-secondary)] text-base font-semibold">
+            <Label className="text-global-text-secondary text-base font-semibold">
               Imagem do card
             </Label>
 
             {previewUrl && (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-[var(--global-border)] group">
+              <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-global-border group">
                 <img
                   src={previewUrl}
                   alt="Preview"
@@ -321,7 +321,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
                   "flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-all mt-3",
                   isSubmitting
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-[var(--global-accent)] hover:shadow-lg hover:brightness-110 text-white"
+                    : "bg-global-accent hover:shadow-lg hover:brightness-110 text-white"
                 )}
               >
                 <Upload className="w-4 h-4" />
@@ -338,7 +338,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
                 />
               </label>
             </div>
-            <p className="text-xs text-[var(--global-text-primary)]">
+            <p className="text-xs text-global-text-primary">
               Tamanho máximo: 5MB
             </p>
           </div>
@@ -347,7 +347,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
             <Button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="flex-1 border-2 border-[var(--global-border)] bg-white text-[var(--global-text-primary)] hover:bg-[var(--global-bg-select)] font-medium"
+              className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
               disabled={isSubmitting}
             >
               Cancelar
@@ -355,7 +355,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-[var(--global-accent)] hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all"
+              className="flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all"
             >
               {isSubmitting ? (
                 <>

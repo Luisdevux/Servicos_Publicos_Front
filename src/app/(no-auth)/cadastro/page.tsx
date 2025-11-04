@@ -46,7 +46,7 @@ export default function CadastroPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--global-bg)]">
+    <div className="min-h-screen bg-global-bg">
       <Banner
         icone={User}
         titulo="Cadastro do Residente de Vilhena-RO"
@@ -67,12 +67,12 @@ export default function CadastroPage() {
         </div>
         <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit} data-test="form-cadastro">
             <div className="space-y-4 md:space-y-6">
-                <h2 className="text-xl md:text-2xl font-semibold text-[var(--global-text-primary)] mb-4 md:mb-6">
+                <h2 className="text-xl md:text-2xl font-semibold text-global-text-primary mb-4 md:mb-6">
                     Dados Pessoais
                 </h2>
 
                 <div className="space-y-2">
-                    <label htmlFor="nomeCivil" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                    <label htmlFor="nomeCivil" className="block text-sm font-medium text-global-text-primary">
                         Nome civil completo
                     </label>
                     <Input
@@ -86,7 +86,7 @@ export default function CadastroPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
-                    <label htmlFor="cpf" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                    <label htmlFor="cpf" className="block text-sm font-medium text-global-text-primary">
                         CPF
                     </label>
                     <Input
@@ -100,7 +100,7 @@ export default function CadastroPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <label htmlFor="email" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                    <label htmlFor="email" className="block text-sm font-medium text-global-text-primary">
                         E-mail
                     </label>
                     <Input
@@ -114,7 +114,7 @@ export default function CadastroPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <label htmlFor="dataNascimento" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                    <label htmlFor="dataNascimento" className="block text-sm font-medium text-global-text-primary">
                         Data de nascimento
                     </label>
                     <Input
@@ -128,7 +128,7 @@ export default function CadastroPage() {
                 </div>
                 
                 <div className="space-y-2">
-                    <label htmlFor="celular" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                    <label htmlFor="celular" className="block text-sm font-medium text-global-text-primary">
                         Celular
                     </label>
                     <Input
@@ -145,13 +145,13 @@ export default function CadastroPage() {
             </div>
 
             <div className="space-y-4 md:space-y-6">
-                <h2 className="text-xl md:text-2xl font-semibold text-[var(--global-text-primary)] mb-4 md:mb-6">
+                <h2 className="text-xl md:text-2xl font-semibold text-global-text-primary mb-4 md:mb-6">
                     Endereço
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-2">
-                        <label htmlFor="cep" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                        <label htmlFor="cep" className="block text-sm font-medium text-global-text-primary">
                             CEP
                         </label>
                         <Input
@@ -166,7 +166,7 @@ export default function CadastroPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="rua" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                        <label htmlFor="rua" className="block text-sm font-medium text-global-text-primary">
                             Rua
                         </label>
                         <Input
@@ -181,7 +181,7 @@ export default function CadastroPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="bairro" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                        <label htmlFor="bairro" className="block text-sm font-medium text-global-text-primary">
                             Bairro
                         </label>
                         <Input
@@ -196,7 +196,7 @@ export default function CadastroPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="numero" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                        <label htmlFor="numero" className="block text-sm font-medium text-global-text-primary">
                             Número
                         </label>
                         <Input
@@ -214,7 +214,7 @@ export default function CadastroPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
                     <div className="space-y-2 md:col-span-2">
-                        <label htmlFor="complemento" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                        <label htmlFor="complemento" className="block text-sm font-medium text-global-text-primary">
                             Complemento
                         </label>
                         <Input
@@ -229,7 +229,7 @@ export default function CadastroPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="cidade" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                        <label htmlFor="cidade" className="block text-sm font-medium text-global-text-primary">
                             Cidade
                         </label>
                         <Input
@@ -243,7 +243,7 @@ export default function CadastroPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="estado" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                        <label htmlFor="estado" className="block text-sm font-medium text-global-text-primary">
                             Estado
                         </label>
                         <Input
@@ -259,12 +259,12 @@ export default function CadastroPage() {
             </div>
 
             <div className="space-y-4 md:space-y-6">
-                <h2 className="text-xl md:text-2xl font-semibold text-[var(--global-text-primary)] mb-4 md:mb-6">
+                <h2 className="text-xl md:text-2xl font-semibold text-global-text-primary mb-4 md:mb-6">
                     Senha
                 </h2>
 
                 <div className="space-y-2">
-                        <label htmlFor="confirmarEmail" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                        <label htmlFor="confirmarEmail" className="block text-sm font-medium text-global-text-primary">
                             Confirmar e-mail
                         </label>
                         <Input
@@ -280,7 +280,7 @@ export default function CadastroPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-2">
-                        <label htmlFor="senha" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                        <label htmlFor="senha" className="block text-sm font-medium text-global-text-primary">
                             Senha
                         </label>
                         <div className="relative">
@@ -296,7 +296,7 @@ export default function CadastroPage() {
                             <button
                                 type="button"
                                 onClick={() => setMostrarSenha(!mostrarSenha)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--global-text-primary)] cursor-pointer"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-global-text-primary cursor-pointer"
                                 data-test="toggle-mostrar-senha"
                             >
                                 {mostrarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -305,7 +305,7 @@ export default function CadastroPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="confirmarSenha" className="block text-sm font-medium text-[var(--global-text-primary)]">
+                        <label htmlFor="confirmarSenha" className="block text-sm font-medium text-global-text-primary">
                             Confirmar senha
                         </label>
                         <div className="relative">
@@ -321,7 +321,7 @@ export default function CadastroPage() {
                             <button
                                 type="button"
                                 onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--global-text-primary)] cursor-pointer"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-global-text-primary cursor-pointer"
                                 data-test="toggle-mostrar-confirmar-senha"
                             >
                                 {mostrarConfirmarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -335,7 +335,7 @@ export default function CadastroPage() {
                 <Button 
                     type="submit"
                     size="lg" 
-                    colorClass="w-full md:w-auto font-medium py-2 px-8 md:px-12 bg-[var(--global-text-primary)] text-[var(--global-bg)] hover:bg-[var(--global-text-secondary)]" 
+                    colorClass="w-full md:w-auto font-medium py-2 px-8 md:px-12 bg-global-text-primary text-global-bg hover:bg-global-text-secondary" 
                     data-test="button-cadastrar"
                 >
                     Cadastrar
