@@ -37,9 +37,10 @@ export function useCreateDemanda() {
       if (input.imagens && input.imagens.length > 0 && demandaCriada._id) {
         try {
           // Upload da primeira imagem (principal)
-          const uploadResult = await demandaService.uploadFotoDemanda(
+          const uploadResult = await demandaService.uploadFoto(
             demandaCriada._id,
-            input.imagens[0]
+            input.imagens[0],
+            'solicitacao'
           );
 
           console.log('Upload da primeira imagem realizado com sucesso:', uploadResult);
@@ -52,9 +53,10 @@ export function useCreateDemanda() {
           // Upload das imagens adicionais (se houver)
           for (let i = 1; i < input.imagens.length; i++) {
             try {
-              await demandaService.uploadFotoDemanda(
+              await demandaService.uploadFoto(
                 demandaCriada._id,
-                input.imagens[i]
+                input.imagens[i],
+                'solicitacao'
               );
               console.log(`Upload da imagem ${i + 1} realizado com sucesso`);
             } catch (err) {

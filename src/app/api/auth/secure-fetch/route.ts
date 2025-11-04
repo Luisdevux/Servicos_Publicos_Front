@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
           const file = new File([blob], 'upload.jpg', { type: blob.type });
           form.append('file', file);
         }
+
       }
       finalBody = form;
       // Não define Content-Type para FormData - deixa o browser definir
@@ -129,3 +130,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

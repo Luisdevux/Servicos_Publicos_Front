@@ -88,7 +88,10 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
         <div className="flex-1 overflow-y-auto px-6 pt-4 pb-6 min-h-0 scrollbar-hide relative z-10">
           <div className="mb-4" data-test="progresso-section">
             {pedido.status !== "Recusada" && pedido.progresso && (
-              <ProgressoPedido progresso={pedido.progresso} />
+              <ProgressoPedido 
+                progresso={pedido.progresso}
+                variant={pedido.status === "Em aberto" ? "warning" : "default"}
+              />
             )}
             {pedido.status === "Recusada" && (
               <ProgressoPedido 
@@ -174,26 +177,25 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
             </div>
         )}
 
-         {isConcluido && pedido.conclusao?.imagem && (
-             <div className="space-y-2" data-test="imagens-conclusao-section">
-               <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
-                 {Array.isArray(pedido.conclusao.imagem) ? 'Imagens da conclusão' : 'Imagem da conclusão'}
-               </h3>
-               <ImageCarousel 
-                 images={
-                   Array.isArray(pedido.conclusao.imagem)
-                     ? pedido.conclusao.imagem.map(img =>
-                         img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011'}/demandas/${pedido.id}/foto/resolucao`
-                       )
-                     : [pedido.conclusao.imagem.startsWith('http')
-                         ? pedido.conclusao.imagem
-                         : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011'}/demandas/${pedido.id}/foto/resolucao`
-                       ]
-                 }
-                 alt="Imagem da conclusão"
-               />
-             </div>
-           )}
+         {(() => {
+             const imagensResolucao = Array.isArray(pedido.link_imagem_resolucao)
+               ? pedido.link_imagem_resolucao.filter((img): img is string => Boolean(img && typeof img === 'string' && img.trim() !== ''))
+               : (pedido.link_imagem_resolucao && typeof pedido.link_imagem_resolucao === 'string' && pedido.link_imagem_resolucao.trim() !== '')
+                 ? [pedido.link_imagem_resolucao]
+                 : [];
+             
+             return isConcluido && imagensResolucao.length > 0 ? (
+               <div className="space-y-2" data-test="imagens-conclusao-section">
+                 <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+                   {imagensResolucao.length > 1 ? 'Imagens da conclusão' : 'Imagem da conclusão'}
+                 </h3>
+                 <ImageCarousel 
+                   images={imagensResolucao}
+                   alt="Imagem da conclusão"
+                 />
+               </div>
+             ) : null;
+           })()}
 
         {isConcluido && (
             <div className="space-y-4" data-test="avaliacao-section">

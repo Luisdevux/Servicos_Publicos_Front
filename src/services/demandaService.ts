@@ -126,24 +126,18 @@ export const demandaService = {
     return delSecure<ApiResponse<void>>(`/demandas/${id}`);
   },
 
-  /**
-   * Faz upload de foto da demanda
-   */
-  async uploadFotoDemanda(
+  async uploadFoto(
     id: string,
-    file: File
-  ): Promise<ApiResponse<{ link_imagem: string }>> {
-    
-    const formData = new FormData();
-    formData.append('file', file);
-
+    file: File,
+    tipo: 'solicitacao' | 'resolucao'
+  ): Promise<ApiResponse<{ link_imagem?: string; link_imagem_resolucao?: string }>> {
     const response = await fetch('/api/auth/secure-fetch', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        endpoint: `/demandas/${id}/foto/demanda`,
+        endpoint: `/demandas/${id}/foto/${tipo}`,
         method: 'POST',
         bodyType: 'formData',
         formData: {
@@ -153,43 +147,28 @@ export const demandaService = {
     });
 
     if (!response.ok) {
-      throw new Error('Erro ao fazer upload da foto');
+      throw new Error(
+        tipo === 'solicitacao' 
+          ? 'Erro ao fazer upload da foto' 
+          : 'Erro ao fazer upload da foto de resolução'
+      );
     }
 
     return response.json();
   },
 
-  /**
-   * Faz upload de foto da resolução da demanda
-   */
+  async uploadFotoDemanda(
+    id: string,
+    file: File
+  ): Promise<ApiResponse<{ link_imagem: string }>> {
+    return this.uploadFoto(id, file, 'solicitacao') as Promise<ApiResponse<{ link_imagem: string }>>;
+  },
+
   async uploadFotoResolucao(
     id: string,
     file: File
   ): Promise<ApiResponse<{ link_imagem_resolucao: string }>> {
-    
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch('/api/auth/secure-fetch', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        endpoint: `/demandas/${id}/foto/resolucao`,
-        method: 'POST',
-        bodyType: 'formData',
-        formData: {
-          file: await fileToBase64(file)
-        }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao fazer upload da foto de resolução');
-    }
-
-    return response.json();
+    return this.uploadFoto(id, file, 'resolucao') as Promise<ApiResponse<{ link_imagem_resolucao: string }>>;
   },
 };
 

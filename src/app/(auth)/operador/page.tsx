@@ -139,7 +139,7 @@ export default function PedidosOperadorPage() {
       // Depois, faz upload das imagens de resolução
       if (imagens && imagens.length > 0) {
         for (const imagem of imagens) {
-          await demandaService.uploadFotoResolucao(demandaId, imagem);
+          await demandaService.uploadFoto(demandaId, imagem, 'resolucao');
         }
       }
 

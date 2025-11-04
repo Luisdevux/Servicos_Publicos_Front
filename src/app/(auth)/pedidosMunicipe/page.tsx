@@ -133,7 +133,16 @@ export default function MeusPedidosPage() {
       titulo: `Demanda sobre ${demanda.tipo}`,
       status: statusMapping[demanda.status] || "Em aberto",
       descricao: demanda.descricao,
-      link_imagem: demanda.link_imagem ? [demanda.link_imagem] : undefined,
+      link_imagem: demanda.link_imagem 
+        ? (Array.isArray(demanda.link_imagem) 
+            ? demanda.link_imagem 
+            : [demanda.link_imagem])
+        : undefined,
+      link_imagem_resolucao: demanda.link_imagem_resolucao 
+        ? (Array.isArray(demanda.link_imagem_resolucao) 
+            ? demanda.link_imagem_resolucao 
+            : [demanda.link_imagem_resolucao])
+        : undefined,
       endereco: demanda.endereco ? {
         bairro: demanda.endereco.bairro || "",
         logradouro: demanda.endereco.logradouro || "",
@@ -148,7 +157,11 @@ export default function MeusPedidosPage() {
       },
       conclusao: demanda.status === "Concluída" && demanda.resolucao ? {
         descricao: demanda.resolucao,
-        imagem: demanda.link_imagem_resolucao ? [demanda.link_imagem_resolucao] : undefined,
+        imagem: demanda.link_imagem_resolucao 
+          ? (Array.isArray(demanda.link_imagem_resolucao) 
+              ? demanda.link_imagem_resolucao 
+              : [demanda.link_imagem_resolucao])
+          : undefined,
         dataConclusao: demanda.updatedAt ? new Date(demanda.updatedAt).toLocaleDateString('pt-BR') : ""
       } : undefined,
       avaliacao: demanda.status === "Concluída" && demanda.feedback && demanda.avaliacao_resolucao ? {
