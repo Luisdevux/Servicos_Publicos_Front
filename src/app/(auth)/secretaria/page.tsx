@@ -92,7 +92,11 @@ export default function PedidosSecretariaPage() {
       descricao: demanda.descricao,
       tipo: demanda.tipo.toLowerCase(),
       status: demanda.status || 'Em aberto',
-      imagem: demanda.link_imagem,
+      imagem: demanda.link_imagem 
+        ? (Array.isArray(demanda.link_imagem) 
+            ? demanda.link_imagem 
+            : [demanda.link_imagem])
+        : undefined,
       endereco: demanda.endereco ? {
         bairro: demanda.endereco.bairro,
         tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
@@ -102,7 +106,11 @@ export default function PedidosSecretariaPage() {
       usuarios: demanda.usuarios,
       resolucao: demanda.resolucao,
       motivo_devolucao: demanda.motivo_devolucao,
-      link_imagem_resolucao: demanda.link_imagem_resolucao,
+      link_imagem_resolucao: demanda.link_imagem_resolucao 
+        ? (Array.isArray(demanda.link_imagem_resolucao) 
+            ? demanda.link_imagem_resolucao 
+            : [demanda.link_imagem_resolucao])
+        : undefined,
     };
   }) || [];
 
@@ -260,7 +268,7 @@ export default function PedidosSecretariaPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-global-bg">
+      <div className="min-h-screen bg-[var(--global-bg)]">
         <Banner
           icone={ClipboardList}
           titulo="Pedidos recebidos"
@@ -280,7 +288,7 @@ export default function PedidosSecretariaPage() {
     const isTokenExpired = error instanceof ApiError && error.status === 498;
     
     return (
-      <div className="min-h-screen bg-global-bg">
+      <div className="min-h-screen bg-[var(--global-bg)]">
         <Banner
           icone={ClipboardList}
           titulo="Pedidos recebidos"
@@ -313,7 +321,7 @@ export default function PedidosSecretariaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-global-bg">
+    <div className="min-h-screen bg-[var(--global-bg)]">
       <Banner
         icone={ClipboardList}
         titulo="Pedidos recebidos"
@@ -447,7 +455,7 @@ export default function PedidosSecretariaPage() {
         ) : (
           <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12">
             <ClipboardList className="h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-global-text-primary mb-2">
+            <h3 className="text-lg font-medium text-[var(--global-text-primary)] mb-2">
               Nenhum pedido encontrado
             </h3>
             <div className="text-sm text-gray-500 text-center">
@@ -467,7 +475,7 @@ export default function PedidosSecretariaPage() {
               <ChevronLeft size={20} />
             </button>
             
-            <div className="flex items-center gap-2 text-sm text-global-text-primary">
+            <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
               <span>Página {paginaAtual} de {totalPaginas}</span>
             </div>
             

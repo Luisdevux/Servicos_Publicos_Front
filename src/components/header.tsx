@@ -88,17 +88,17 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
     return true;
   }) : links.filter(link => !link.requiresAuth);
 
-  const cls = `site-header bg-global-bg border-b ${inverted ? 'site-header--inverted' : ''}`;
+  const cls = `site-header bg-[var(--global-bg)] border-b ${inverted ? 'site-header--inverted' : ''}`;
   const themeClass = effectiveTheme === 'green' ? 'global-theme-green' : effectiveTheme === 'purple' ? 'global-theme-purple' : '';
 
   return (
     <header 
-      className={`border-b border-global-separator/30 ${cls} ${themeClass}`}
+      className={`border-b border-[var(--global-separator)]/30 ${cls} ${themeClass}`}
       data-test="header"
     >
       <div className="px-6 sm:px-6 lg:px-40">
         <div className="flex items-center justify-between" style={{ height: 64 }}>
-          <div className="shrink-0">
+          <div className="flex-shrink-0">
             {mounted && (isSecretariaArea || isOperadorArea) ? (
               <span
                 className="font-semibold tracking-wide text-[18px] md:text-[20px] cursor-default"
@@ -135,7 +135,7 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
               {mounted && (isAuthenticated || isSecretariaArea || isOperadorArea) && (
                 <button
                   onClick={logout}
-                  className="ml-2 px-4 py-2 bg-global-text-primary/90 text-white text-sm font-medium rounded-lg hover:bg-global-text-secondary transition-colors cursor-pointer"
+                  className="ml-2 px-4 py-2 bg-[var(--global-text-primary)]/90 text-white text-sm font-medium rounded-lg hover:bg-[var(--global-text-secondary)] transition-colors cursor-pointer"
                   data-test="header-logout-button"
                 >
                   Sair
@@ -174,9 +174,9 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
         data-test="header-nav-mobile"
       >
         <div
-          className={`transform-origin-top transition-all duration-200 ease-in-out ${open ? 'opacity-100 scale-100 max-h-96' : 'opacity-0 scale-95 max-h-0'} overflow-hidden border-t border-global-separator/30`}
+          className={`transform-origin-top transition-all duration-200 ease-in-out ${open ? 'opacity-100 scale-100 max-h-96' : 'opacity-0 scale-95 max-h-0'} overflow-hidden border-t border-[var(--global-separator)]/30`}
         >
-          <div className="px-4 pt-2 pb-4 bg-global-bg shadow-sm">
+          <div className="px-4 pt-2 pb-4 bg-[var(--global-bg)] shadow-sm">
             <Navigation vertical>
               {visibleLinks.map((link) => (
                 <NavLink 
@@ -191,7 +191,7 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
             {mounted && (isAuthenticated || isSecretariaArea || isOperadorArea) && (
               <button
                 onClick={logout}
-                className="mt-3 w-full px-4 py-2 bg-global-text-primary/90 text-white text-sm font-medium rounded-lg hover:bg-global-text-secondary transition-colors cursor-pointer"
+                className="mt-3 w-full px-4 py-2 bg-[var(--global-text-primary)]/90 text-white text-sm font-medium rounded-lg hover:bg-[var(--global-text-secondary)] transition-colors cursor-pointer"
                 data-test="header-mobile-logout-button"
               >
                 Sair
