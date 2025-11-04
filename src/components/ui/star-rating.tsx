@@ -42,9 +42,8 @@ export function StarRating({
   return (
     <div className={cn("flex items-center gap-1", className)}>
       {Array.from({ length: maxStars }).map((_, index) => {
-        const isFilled = readonly 
-          ? index < value 
-          : index < (hoveredStar ?? value);
+        const activeValue = hoveredStar !== null ? hoveredStar + 1 : value;
+        const isFilled = index < activeValue;
         
         return (
           <button

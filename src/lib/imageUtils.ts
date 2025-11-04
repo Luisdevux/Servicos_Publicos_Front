@@ -32,10 +32,24 @@ export function normalizeImageUrl(url: string | undefined | null): string {
     // Remove espaços em branco
     let normalized = url.trim();
     
-    // Se não tiver protocolo e não começar com /, adiciona http:// como fallback
-    if (!normalized.startsWith('http://') && 
-        !normalized.startsWith('https://') && 
-        !normalized.startsWith('/')) {
+    // Se já tem protocolo ou começa com /, retorna como está
+    if (normalized.startsWith('http://') || 
+        normalized.startsWith('https://') || 
+        normalized.startsWith('/')) {
+      return normalized;
+    }
+    
+    // Verifica se parece ser um arquivo local (tem extensão de imagem)
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.avif'];
+    const isLocalFile = imageExtensions.some(ext => 
+      normalized.toLowerCase().endsWith(ext)
+    );
+    
+    // Se parece ser um arquivo local, adiciona / para indicar que está na pasta public
+    if (isLocalFile) {
+      normalized = `/${normalized}`;
+    } else {
+      // Caso contrário, assume que é uma URL externa sem protocolo
       normalized = `http://${normalized}`;
     }
     
