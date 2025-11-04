@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { MetricCard } from "@/components/MetricCard";
 import { ChartCard } from "@/components/ChartCard";
 import { DonutChartCard } from "@/components/DonutChartCard";
+import MapBairrosDemandas from "@/components/MapBairrosDemandas";
 import { 
   FolderKanban, 
   Users, 
@@ -117,6 +118,17 @@ export default function DashboardPage() {
             icon={metrica.icon} 
           />
         ))}
+      </div>
+
+      <div className="flex justify-end w-full">
+        <div className="w-full max-w-2xl bg-gray-50 rounded-md p-4 shadow-sm hover:shadow-md transition-shadow">
+          <h3 className="text-md font-semibold text-gray-700 mb-4">
+            Mapa de Demandas por Bairro - Vilhena/RO
+          </h3>
+          <div className="h-[400px] md:h-[500px] lg:h-[690px]">
+            <MapBairrosDemandas demandasPorBairro={dadosDemandasPorBairro} />
+          </div>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
