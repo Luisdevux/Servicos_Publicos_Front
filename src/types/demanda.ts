@@ -85,6 +85,7 @@ export interface Pedido {
   status: StatusDemanda;
   descricao?: string;
   link_imagem?: string | string[];
+  link_imagem_resolucao?: string | string[];
   endereco?: {
     cep: string;
     bairro: string;

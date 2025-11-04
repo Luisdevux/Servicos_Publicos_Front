@@ -64,8 +64,7 @@ export function useCreateDemanda() {
 
                 const uploadResult = await demandaService.uploadFotoDemanda(
                   demandaCriada._id,
-                  input.imagens[i],
-                  'solicitacao'
+                  input.imagens[i]
                 );
 
                 // Atualiza o objeto demandaCriada com o link da imagem principal (primeira)
