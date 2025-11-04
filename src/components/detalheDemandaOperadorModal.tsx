@@ -179,7 +179,7 @@ export default function DetalhesDemandaOperadorModal({
             <div className="absolute top-1/2 right-8 w-8 h-8 border-2 border-current rotate-45 opacity-30"></div>
           </div>
 
-          <DialogHeader className="bg-green-600 py-6 px-6 rounded-t-lg relative overflow-hidden flex-shrink-0 z-10">
+          <DialogHeader className="bg-green-600 py-6 px-6 rounded-t-lg relative overflow-hidden shrink-0 z-10">
             {/* Grid de pontos decorativos */}
             <div className="absolute inset-0 opacity-10">
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -212,7 +212,7 @@ export default function DetalhesDemandaOperadorModal({
                   <h3 className="text-lg font-medium text-green-600">
                     Descrição da demanda
                   </h3>
-                  <div className="bg-[var(--global-bg-select)] p-4 rounded-md">
+                  <div className="bg-global-bg-select p-4 rounded-md">
                     <p>{demanda.descricao}</p>
                   </div>
                 </div>
@@ -239,25 +239,25 @@ export default function DetalhesDemandaOperadorModal({
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Bairro</label>
-                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
                         {demanda.endereco.bairro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Tipo de logradouro</label>
-                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
                         {demanda.endereco.tipoLogradouro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Logradouro</label>
-                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
                         {demanda.endereco.logradouro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Número</label>
-                      <div className="p-2 rounded-md bg-[var(--global-bg-select)] text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
                         {demanda.endereco.numero}
                       </div>
                     </div>
@@ -274,7 +274,7 @@ export default function DetalhesDemandaOperadorModal({
                         Descrição da conclusão da demanda
                       </h3>
                       <div className="bg-green-50 p-4 rounded-md border border-green-200">
-                        <p className="text-[var(--global-text-primary)]">{demanda.resolucao}</p>
+                        <p className="text-global-text-primary">{demanda.resolucao}</p>
                       </div>
                     </div>
                   )}
@@ -303,7 +303,7 @@ export default function DetalhesDemandaOperadorModal({
           </div>
 
           {demanda.status !== "Concluída" && (
-            <div className="flex gap-3 px-6 pb-6 flex-shrink-0">
+            <div className="flex gap-3 px-6 pb-6 shrink-0">
               <Button
                 onClick={() => setShowDevolverModal(true)}
                 className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
@@ -385,13 +385,13 @@ export default function DetalhesDemandaOperadorModal({
           <div className="p-6 space-y-6 max-h-[calc(90vh-140px)] overflow-y-auto">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label htmlFor="descricao-resolucao" className="text-[var(--global-text-secondary)] text-base font-semibold flex items-center gap-2">
+                <Label htmlFor="descricao-resolucao" className="text-global-text-secondary text-base font-semibold flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Descrição da resolução
                 </Label>
                 <span className={cn(
                   "text-xs font-medium",
-                  descricaoResolucao.length > 500 ? "text-red-500" : "text-[var(--global-text-primary)]"
+                  descricaoResolucao.length > 500 ? "text-red-500" : "text-global-text-primary"
                 )}>
                   {descricaoResolucao.length}/500
                 </span>
@@ -403,7 +403,7 @@ export default function DetalhesDemandaOperadorModal({
                 onChange={(e) => setDescricaoResolucao(e.target.value)}
                 maxLength={500}
                 className={cn(
-                  "min-h-[120px] resize-none border-[var(--global-border)] focus:border-green-600 focus:ring-green-600",
+                  "min-h-[120px] resize-none border-global-border focus:border-green-600 focus:ring-green-600",
                   descricaoResolucao.length > 500 && "border-red-500 focus:border-red-500 focus:ring-red-500"
                 )}
                 required
@@ -412,11 +412,11 @@ export default function DetalhesDemandaOperadorModal({
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-[var(--global-text-secondary)] text-base font-semibold flex items-center gap-2">
+                <Label className="text-global-text-secondary text-base font-semibold flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Imagens da resolução
                 </Label>
-                <span className="text-xs text-[var(--global-text-primary)]">
+                <span className="text-xs text-global-text-primary">
                   {previewUrls.length}/3 imagens
                 </span>
               </div>
@@ -424,7 +424,7 @@ export default function DetalhesDemandaOperadorModal({
               {previewUrls.length > 0 && (
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   {previewUrls.map((url, index) => (
-                    <div key={url} className="relative w-full h-32 rounded-lg overflow-hidden border-2 border-[var(--global-border)] group">
+                    <div key={url} className="relative w-full h-32 rounded-lg overflow-hidden border-2 border-global-border group">
                       <Image
                         src={url}
                         alt={`Preview ${index + 1}`}
@@ -461,7 +461,7 @@ export default function DetalhesDemandaOperadorModal({
                   </span>
                 </label>
                 {previewUrls.length > 0 && (
-                  <span className="text-sm text-[var(--global-text-primary)] font-medium">
+                  <span className="text-sm text-global-text-primary font-medium">
                     {previewUrls.length} imagem{previewUrls.length > 1 ? 'ns' : ''} adicionada{previewUrls.length > 1 ? 's' : ''}
                   </span>
                 )}
@@ -477,12 +477,12 @@ export default function DetalhesDemandaOperadorModal({
                 id="upload-resolucao"
               />
 
-              <p className="text-xs text-[var(--global-text-primary)]">
+              <p className="text-xs text-global-text-primary">
                 Máximo de 3 imagens • Tamanho máximo: 5MB por imagem
               </p>
             </div>
 
-            <div className="flex gap-3 pt-4 border-t border-[var(--global-border)]">
+            <div className="flex gap-3 pt-4 border-t border-global-border">
               <Button
                 onClick={() => {
                   setShowResolverModal(false);
@@ -496,7 +496,7 @@ export default function DetalhesDemandaOperadorModal({
                   setPreviewUrls([]);
                 }}
                 disabled={isResolvendo}
-                className="flex-1 border-2 border-[var(--global-border)] bg-white text-[var(--global-text-primary)] hover:bg-[var(--global-bg-select)] font-medium"
+                className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
               >
                 Cancelar
               </Button>

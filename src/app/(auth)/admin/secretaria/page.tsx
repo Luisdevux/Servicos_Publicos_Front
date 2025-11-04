@@ -62,7 +62,7 @@ export default function SecretariaAdminPage() {
     : secretarias;
 
   return (
-    <div className="min-h-screen bg-[var(--global-bg)]">
+    <div className="min-h-screen bg-global-bg">
       <div className="px-6 sm:px-6 py-6 md:py-8">
         <div className="mx-auto space-y-6">
           <div className="flex flex-col md:flex-row gap-3 md:items-end md:justify-between">
@@ -80,7 +80,7 @@ export default function SecretariaAdminPage() {
             
             <div>
               <Button
-                className="bg-[var(--global-text-primary)] hover:bg-[var(--global-text-secondary)] text-white"
+                className="bg-global-text-primary hover:bg-global-text-secondary text-white"
                 onClick={() => setOpenCreate(true)}
               >
                 <Plus className="h-4 w-4 mr-2" /> Adicionar secretaria
@@ -133,7 +133,7 @@ export default function SecretariaAdminPage() {
                             className="p-1 hover:bg-gray-100 rounded"
                             aria-label={`Editar ${s.nome}`}
                           >
-                            <Pencil className="h-4 w-4 text-[var(--global-text-primary)]" />
+                            <Pencil className="h-4 w-4 text-global-text-primary" />
                           </button>
                         </td>
                         <td>
@@ -146,7 +146,7 @@ export default function SecretariaAdminPage() {
                             className="p-1 hover:bg-gray-100 rounded"
                             aria-label={`Excluir ${s.nome}`}
                           >
-                            <Trash className="h-4 w-4 text-[var(--global-text-primary)]" />
+                            <Trash className="h-4 w-4 text-global-text-primary" />
                           </button>
                         </td>
                       </tr>
@@ -168,7 +168,7 @@ export default function SecretariaAdminPage() {
           <ChevronLeft size={20} />
         </button>
 
-        <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
+        <div className="flex items-center gap-2 text-sm text-global-text-primary">
           <span>Página {Math.min(page, totalPages)} de {totalPages}</span>
         </div>
 

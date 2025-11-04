@@ -314,7 +314,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!isSubmitting) onOpenChange(o); }}>
       <DialogContent className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl">
-        <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg relative overflow-hidden">
+        <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden">
             
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -415,7 +415,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                 />
                 {loadingCep && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Loader2 className="h-4 w-4 animate-spin text-[var(--global-accent)]" />
+                    <Loader2 className="h-4 w-4 animate-spin text-global-accent" />
                   </div>
                 )}
               </div>
@@ -434,7 +434,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
 
           <div className="space-y-2">
             <Label>Secretarias</Label>
-            <div className="rounded-md border border-[var(--global-border)] p-3 max-h-48 overflow-auto bg-white">
+            <div className="rounded-md border border-global-border p-3 max-h-48 overflow-auto bg-white">
               {isLoadingSecretarias ? (
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <Loader2 className="h-4 w-4 animate-spin" /> Carregando secretarias...
@@ -444,7 +444,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {secretarias.map((s) => (
-                    <label key={s._id} className="flex items-center gap-2 text-sm text-[var(--global-text-primary)] cursor-pointer">
+                    <label key={s._id} className="flex items-center gap-2 text-sm text-global-text-primary cursor-pointer">
                       <Checkbox checked={secretariasSelecionadas.includes(s._id)} onCheckedChange={() => toggleSecretaria(s._id)} />
                       <span>{s.nome}</span>
                     </label>
@@ -458,7 +458,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
             <Button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="flex-1 border-2 border-[var(--global-border)] bg-white text-[var(--global-text-primary)] hover:bg-[var(--global-bg-select)] font-medium"
+              className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
               disabled={isSubmitting}
             >
               Cancelar
@@ -466,7 +466,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-[var(--global-accent)] hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all"
+              className="flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all"
             >
               {isSubmitting ? (
                 <>

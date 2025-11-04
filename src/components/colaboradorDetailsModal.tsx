@@ -15,7 +15,7 @@ export function ColaboradorDetailsModal({ open, onOpenChange, usuario }: Colabor
       onOpenChange(openState);
     }}>
       <DialogContent className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl">
-      <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg relative overflow-hidden">
+      <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden">
             <div className="absolute inset-0 opacity-10">
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                 <defs>

@@ -11,10 +11,10 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-cyan-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[var(--global-accent)] border-t-transparent mx-auto"></div>
-          <p className="mt-6 text-[var(--global-text-primary)] font-medium">Carregando...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-global-accent border-t-transparent mx-auto"></div>
+          <p className="mt-6 text-global-text-primary font-medium">Carregando...</p>
         </div>
       </div>
     );
@@ -23,7 +23,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white" data-test="pagina-inicial">
       <section className="relative w-full overflow-hidden min-h-[50vh]" data-test="secao-hero">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2d6c85] via-[var(--global-accent)] to-[#4a9bb8]">
+        <div className="absolute inset-0 bg-linear-to-br from-[#2d6c85] via-global-accent to-[#4a9bb8]">
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -63,7 +63,7 @@ export default function Home() {
                     </p>
                     <a 
                       href="#servicos"
-                      className="inline-block text-center px-10 py-4 bg-white text-[var(--global-accent)] font-bold rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                      className="inline-block text-center px-10 py-4 bg-white text-global-accent font-bold rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
                       data-test="botao-ver-servicos"
                     >
                       Ver Serviços Disponíveis
@@ -73,14 +73,14 @@ export default function Home() {
                   <>
                     <Link 
                       href="/cadastro"
-                      className="text-center px-10 py-4 bg-white text-[var(--global-accent)] font-bold rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                      className="text-center px-10 py-4 bg-white text-global-accent font-bold rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
                       data-test="botao-comece-agora"
                     >
                       Comece Agora
                     </Link>
                     <Link 
                       href="/login"
-                      className="text-center px-10 py-4 bg-transparent text-white font-bold rounded-lg border-2 border-white hover:bg-white hover:text-[var(--global-accent)] transition-all duration-300"
+                      className="text-center px-10 py-4 bg-transparent text-white font-bold rounded-lg border-2 border-white hover:bg-white hover:text-global-accent transition-all duration-300"
                       data-test="botao-ja-tenho-conta"
                     >
                       Já tenho conta
@@ -116,15 +116,15 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="servicos" className="pt-18 pb-32 px-6 sm:px-6 lg:px-40 bg-gradient-to-b from-gray-50 to-blue-100/20 relative" data-test="secao-servicos">
+      <section id="servicos" className="pt-18 pb-32 px-6 sm:px-6 lg:px-40 bg-linear-to-b from-gray-50 to-blue-100/20 relative" data-test="secao-servicos">
         <div className="text-center mb-16">
-          <div className="inline-block px-4 py-2 bg-[var(--global-accent)]/10 rounded-full mb-4">
-            <span className="text-sm font-semibold text-[var(--global-accent)] uppercase tracking-wider">Serviços Disponíveis</span>
+          <div className="inline-block px-4 py-2 bg-global-accent/10 rounded-full mb-4">
+            <span className="text-sm font-semibold text-global-accent uppercase tracking-wider">Serviços Disponíveis</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-[var(--global-text-secondary)] mb-4" data-test="titulo-servicos">
+          <h2 className="text-4xl md:text-5xl font-bold text-global-text-secondary mb-4" data-test="titulo-servicos">
             Como podemos ajudar?
           </h2>
-          <p className="text-lg text-[var(--global-text-primary)]/70 max-w-2xl mx-auto" data-test="descricao-servicos">
+          <p className="text-lg text-global-text-primary/70 max-w-2xl mx-auto" data-test="descricao-servicos">
             Escolha a categoria do seu problema e nos conte o que está acontecendo
           </p>
         </div>
@@ -170,7 +170,7 @@ export default function Home() {
           ].map((service) => (
             <div
               key={service.label}
-              className="group relative bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 transition-all duration-300 shadow-lg hover:shadow-2xl hover:border-[var(--global-accent)]/50 hover:-translate-y-2 cursor-pointer overflow-hidden"
+              className="group relative bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 transition-all duration-300 shadow-lg hover:shadow-2xl hover:border-global-accent/50 hover:-translate-y-2 cursor-pointer overflow-hidden"
               data-test={`card-servico-${service.label.toLowerCase()}`}
               onClick={() => {
                 if (isAuthenticated) {
@@ -180,10 +180,10 @@ export default function Home() {
                 }
               }}
             >
-                <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-full opacity-10 group-hover:opacity-20 group-hover:scale-125 transition-all duration-500"></div>
+                <div className="absolute -top-8 -right-8 w-32 h-32 bg-linear-to-br from-global-accent to-[#4a9bb8] rounded-full opacity-10 group-hover:opacity-20 group-hover:scale-125 transition-all duration-500"></div>
                 <div className="relative z-10 flex flex-col h-full">
-                    <div className="flex-shrink-0 mb-5">
-                        <div className="w-14 h-14 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+                    <div className="shrink-0 mb-5">
+                        <div className="w-14 h-14 bg-linear-to-br from-global-accent to-[#4a9bb8] rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
                             <div className="w-8 h-8 relative">
                                 <Image
                                     src={service.icon}
@@ -194,16 +194,16 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
-                    <div className="flex-grow">
-                        <h3 className="text-xl font-bold text-[var(--global-text-secondary)] mb-2 group-hover:text-[var(--global-accent)] transition-colors duration-300" data-test={`titulo-servico-${service.label.toLowerCase()}`}>
+                    <div className="grow">
+                        <h3 className="text-xl font-bold text-global-text-secondary mb-2 group-hover:text-global-accent transition-colors duration-300" data-test={`titulo-servico-${service.label.toLowerCase()}`}>
                           {service.label}
                         </h3>
-                        <p className="text-sm text-[var(--global-text-primary)]/70 leading-relaxed" data-test={`descricao-servico-${service.label.toLowerCase()}`}>
+                        <p className="text-sm text-global-text-primary/70 leading-relaxed" data-test={`descricao-servico-${service.label.toLowerCase()}`}>
                           {service.description}
                         </p>
                     </div>
                     <div className="mt-6">
-                        <div className="inline-flex items-center font-semibold text-[var(--global-accent)] transition-all duration-300">
+                        <div className="inline-flex items-center font-semibold text-global-accent transition-all duration-300">
                             <span className="text-sm">Solicitar Serviço</span>
                             <svg className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
@@ -216,17 +216,17 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="relative h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+      <div className="relative h-px bg-linear-to-r from-transparent via-gray-200 to-transparent"></div>
 
-      <section className="pt-24 pb-32 px-6 sm:px-6 lg:px-40 bg-gradient-to-b from-gray-50/50 to-white relative" data-test="secao-como-funciona">
+      <section className="pt-24 pb-32 px-6 sm:px-6 lg:px-40 bg-linear-to-b from-gray-50/50 to-white relative" data-test="secao-como-funciona">
         <div className="text-center mb-20">
-          <div className="inline-block px-4 py-2 bg-[var(--global-accent)]/10 rounded-full mb-4">
-            <span className="text-sm font-semibold text-[var(--global-accent)] uppercase tracking-wider">Processo Simples</span>
+          <div className="inline-block px-4 py-2 bg-global-accent/10 rounded-full mb-4">
+            <span className="text-sm font-semibold text-global-accent uppercase tracking-wider">Processo Simples</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-[var(--global-text-secondary)] mb-6" data-test="titulo-como-funciona">
+          <h2 className="text-4xl md:text-5xl font-bold text-global-text-secondary mb-6" data-test="titulo-como-funciona">
             Como Funciona
           </h2>
-          <p className="text-lg md:text-xl text-[var(--global-text-primary)]/70 max-w-3xl mx-auto leading-relaxed" data-test="descricao-como-funciona">
+          <p className="text-lg md:text-xl text-global-text-primary/70 max-w-3xl mx-auto leading-relaxed" data-test="descricao-como-funciona">
             Três passos simples para fazer a diferença na sua cidade. 
             Reporte problemas de forma rápida e acompanhe tudo em tempo real.
           </p>
@@ -268,24 +268,24 @@ export default function Home() {
           ].map((step, index) => (
             <div key={step.number} className="relative group" data-test={`card-passo-${step.number}`}>
               {index < 2 && (
-                <div className="hidden md:block absolute top-16 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-[var(--global-accent)]/30 to-transparent z-0"></div>
+                <div className="hidden md:block absolute top-16 left-[60%] w-[80%] h-0.5 bg-linear-to-r from-global-accent/30 to-transparent z-0"></div>
               )}
               
-              <div className="relative bg-white rounded-2xl p-10 hover:shadow-xl transition-all duration-300 border-2 border-gray-100 group-hover:border-[var(--global-accent)]/30 min-h-[340px] flex flex-col justify-center">
+              <div className="relative bg-white rounded-2xl p-10 hover:shadow-xl transition-all duration-300 border-2 border-gray-100 group-hover:border-global-accent/30 min-h-[340px] flex flex-col justify-center">
                 <div className="flex flex-col items-center text-center space-y-5 w-full">
                   <div className="relative">
-                    <div className="w-24 h-24 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <div className="w-24 h-24 bg-linear-to-br from-global-accent to-[#4a9bb8] rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
                       {step.icon}
                     </div>
-                    <div className="absolute -top-4 -right-4 w-14 h-14 bg-[var(--global-accent)] border-4 border-white rounded-full flex items-center justify-center text-xl font-bold text-white shadow-md" data-test={`numero-passo-${step.number}`}>
+                    <div className="absolute -top-4 -right-4 w-14 h-14 bg-global-accent border-4 border-white rounded-full flex items-center justify-center text-xl font-bold text-white shadow-md" data-test={`numero-passo-${step.number}`}>
                       {step.number}
                     </div>
                   </div>
                   
-                  <h3 className="text-xl md:text-2xl font-bold text-[var(--global-text-secondary)]" data-test={`titulo-passo-${step.number}`}>
+                  <h3 className="text-xl md:text-2xl font-bold text-global-text-secondary" data-test={`titulo-passo-${step.number}`}>
                     {step.title}
                   </h3>
-                  <p className="text-base md:text-lg text-[var(--global-text-primary)]/70 leading-relaxed" data-test={`descricao-passo-${step.number}`}>
+                  <p className="text-base md:text-lg text-global-text-primary/70 leading-relaxed" data-test={`descricao-passo-${step.number}`}>
                     {step.description}
                   </p>
                 </div>
@@ -294,18 +294,18 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="bg-gradient-to-br from-[var(--global-accent)]/5 to-transparent rounded-2xl p-10 border border-[var(--global-accent)]/20 max-w-5xl mx-auto" data-test="info-processo">
+        <div className="bg-linear-to-br from-global-accent/5 to-transparent rounded-2xl p-10 border border-global-accent/20 max-w-5xl mx-auto" data-test="info-processo">
           <div className="flex items-start gap-6">
-            <div className="flex-shrink-0 w-12 h-12 bg-[var(--global-accent)]/10 rounded-xl flex items-center justify-center">
-              <svg className="w-7 h-7 text-[var(--global-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="shrink-0 w-12 h-12 bg-global-accent/10 rounded-xl flex items-center justify-center">
+              <svg className="w-7 h-7 text-global-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <h4 className="text-lg font-bold text-[var(--global-text-secondary)] mb-3">
+              <h4 className="text-lg font-bold text-global-text-secondary mb-3">
                 O que acontece depois?
               </h4>
-              <p className="text-base md:text-lg text-[var(--global-text-primary)]/80 leading-relaxed">
+              <p className="text-base md:text-lg text-global-text-primary/80 leading-relaxed">
                 Sua solicitação será analisada pela equipe responsável e, caso aprovada, 
                 encaminhada ao setor competente para resolução. Você receberá notificações 
                 sobre cada etapa do processo e poderá acompanhar tudo em tempo real através 
@@ -317,19 +317,19 @@ export default function Home() {
       </section>
 
 
-      <div className="relative h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+      <div className="relative h-px bg-linear-to-r from-transparent via-gray-200 to-transparent"></div>
 
-      <section className="pt-12 pb-24 px-6 sm:px-6 lg:px-40 bg-gradient-to-b from-white via-blue-50/20 to-white relative overflow-hidden" data-test="secao-porque-utilizar">
+      <section className="pt-12 pb-24 px-6 sm:px-6 lg:px-40 bg-linear-to-b from-white via-blue-50/20 to-white relative overflow-hidden" data-test="secao-porque-utilizar">
         
         <div className="absolute inset-0 opacity-[0.03]">
-          <div className="absolute top-20 right-20 w-64 h-64 bg-[var(--global-accent)] rounded-full blur-3xl"></div>
+          <div className="absolute top-20 right-20 w-64 h-64 bg-global-accent rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 left-20 w-80 h-80 bg-cyan-400 rounded-full blur-3xl"></div>
         </div>
 
         <div className="absolute inset-0 opacity-[0.02]">
           <svg width="100%" height="100%">
             <pattern id="diagonals" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M0 40L40 0" stroke="currentColor" strokeWidth="1" className="text-[var(--global-accent)]"/>
+              <path d="M0 40L40 0" stroke="currentColor" strokeWidth="1" className="text-global-accent"/>
             </pattern>
             <rect width="100%" height="100%" fill="url(#diagonals)" />
           </svg>
@@ -338,17 +338,17 @@ export default function Home() {
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 items-start relative z-10">
           <div className="lg:col-span-3 space-y-10 order-2 lg:order-1">
             <div className="space-y-6">
-              <div className="inline-block px-4 py-2 bg-[var(--global-accent)]/10 rounded-full">
-                <span className="text-sm font-semibold text-[var(--global-accent)] uppercase tracking-wider">Por que escolher?</span>
+              <div className="inline-block px-4 py-2 bg-global-accent/10 rounded-full">
+                <span className="text-sm font-semibold text-global-accent uppercase tracking-wider">Por que escolher?</span>
               </div>
               
               <div>
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--global-text-secondary)] leading-tight mb-3" data-test="titulo-porque-utilizar">
-                  Vilhena<span className="text-[var(--global-accent)]">+</span>Pública
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-global-text-secondary leading-tight mb-3" data-test="titulo-porque-utilizar">
+                  Vilhena<span className="text-global-accent">+</span>Pública
                 </h2>
               </div>
 
-              <p className="text-base md:text-lg text-[var(--global-text-primary)] leading-relaxed max-w-2xl" data-test="descricao-porque-utilizar">
+              <p className="text-base md:text-lg text-global-text-primary leading-relaxed max-w-2xl" data-test="descricao-porque-utilizar">
                 A forma mais eficiente de conectar você com a prefeitura de Vilhena
               </p>
             </div>
@@ -395,20 +395,20 @@ export default function Home() {
               ].map((benefit, index) => (
                 <div 
                   key={index} 
-                  className="group relative bg-white rounded-2xl p-6 border border-blue-100 hover:border-[var(--global-accent)]/40 hover:shadow-lg transition-all duration-300"
+                  className="group relative bg-white rounded-2xl p-6 border border-blue-100 hover:border-global-accent/40 hover:shadow-lg transition-all duration-300"
                   data-test={`card-vantagem-${index + 1}`}
                 >
-                  <div className="absolute left-0 top-6 bottom-6 w-1 bg-gradient-to-b from-[var(--global-accent)] to-[#4a9bb8] rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute left-0 top-6 bottom-6 w-1 bg-linear-to-b from-global-accent to-[#4a9bb8] rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   
                   <div className="flex gap-5 items-start pl-2">
-                    <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-xl flex items-center justify-center text-white shadow-md group-hover:scale-110 group-hover:shadow-lg transition-all duration-300">
+                    <div className="shrink-0 w-14 h-14 bg-linear-to-br from-global-accent to-[#4a9bb8] rounded-xl flex items-center justify-center text-white shadow-md group-hover:scale-110 group-hover:shadow-lg transition-all duration-300">
                       {benefit.icon}
                     </div>
                     <div className="flex-1 pt-1">
-                      <h3 className="text-lg font-bold text-[var(--global-text-secondary)] mb-2 group-hover:text-[var(--global-accent)] transition-colors" data-test={`titulo-vantagem-${index + 1}`}>
+                      <h3 className="text-lg font-bold text-global-text-secondary mb-2 group-hover:text-global-accent transition-colors" data-test={`titulo-vantagem-${index + 1}`}>
                         {benefit.title}
                       </h3>
-                      <p className="text-sm md:text-base text-[var(--global-text-primary)]/70 leading-relaxed" data-test={`descricao-vantagem-${index + 1}`}>
+                      <p className="text-sm md:text-base text-global-text-primary/70 leading-relaxed" data-test={`descricao-vantagem-${index + 1}`}>
                         {benefit.description}
                       </p>
                     </div>
@@ -420,14 +420,14 @@ export default function Home() {
 
           <div className="lg:col-span-2 order-1 lg:order-2 lg:self-stretch">
             <div className="relative h-full min-h-[400px]">
-              <div className="relative aspect-[4/4] lg:aspect-auto lg:h-full max-w-sm mx-auto lg:max-w-none">
-                <div className="absolute -inset-4 bg-gradient-to-br from-[var(--global-accent)]/15 via-cyan-400/8 to-transparent rounded-3xl blur-xl"></div>
-                <div className="absolute -inset-2 bg-gradient-to-tr from-blue-400/8 via-transparent to-[#4a9bb8]/8 rounded-3xl"></div>
+              <div className="relative aspect-4/4 lg:aspect-auto lg:h-full max-w-sm mx-auto lg:max-w-none">
+                <div className="absolute -inset-4 bg-linear-to-br from-global-accent/15 via-cyan-400/8 to-transparent rounded-3xl blur-xl"></div>
+                <div className="absolute -inset-2 bg-linear-to-tr from-blue-400/8 via-transparent to-[#4a9bb8]/8 rounded-3xl"></div>
                 
-                <div className="absolute -inset-1 bg-gradient-to-br from-[var(--global-accent)] to-[#4a9bb8] rounded-3xl opacity-15"></div>
+                <div className="absolute -inset-1 bg-linear-to-br from-global-accent to-[#4a9bb8] rounded-3xl opacity-15"></div>
                 
                 <div className="relative h-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white">
-                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--global-accent)]/5 via-transparent to-cyan-400/5 z-10"></div>
+                  <div className="absolute inset-0 bg-linear-to-br from-global-accent/5 via-transparent to-cyan-400/5 z-10"></div>
                   <Image
                     src="/homeCardPorqueUsar.png"
                     alt="Pessoa usando tablet"
@@ -442,11 +442,11 @@ export default function Home() {
         </div>
       </section>
       
-      <div className="relative h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+      <div className="relative h-px bg-linear-to-r from-transparent via-gray-200 to-transparent"></div>
 
       <section className="relative py-16 px-6 sm:px-6 lg:px-40 overflow-hidden" data-test="secao-cta">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--global-accent)]/40 to-transparent"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--global-accent)] via-[#3d8aa8] to-[#4a9bb8]">
+        <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-global-accent/40 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-br from-global-accent via-[#3d8aa8] to-[#4a9bb8]">
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -487,15 +487,15 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6" data-test="botoes-cta">
                 <a 
                   href="#servicos"
-                  className="group relative px-10 py-5 bg-white text-[var(--global-accent)] font-bold text-lg rounded-lg shadow-2xl hover:shadow-3xl transition-all duration-300 overflow-hidden"
+                  className="group relative px-10 py-5 bg-white text-global-accent font-bold text-lg rounded-lg shadow-2xl hover:shadow-3xl transition-all duration-300 overflow-hidden"
                   data-test="botao-fazer-solicitacao"
                 >
                   <span className="relative z-10">Fazer uma Solicitação</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-linear-to-r from-white to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </a>
                 <Link 
                   href="/pedidosMunicipe"
-                  className="px-10 py-5 bg-transparent text-white font-bold text-lg rounded-lg border-2 border-white hover:bg-white hover:text-[var(--global-accent)] transition-all duration-300"
+                  className="px-10 py-5 bg-transparent text-white font-bold text-lg rounded-lg border-2 border-white hover:bg-white hover:text-global-accent transition-all duration-300"
                   data-test="botao-ver-pedidos"
                 >
                   Ver Meus Pedidos
@@ -541,17 +541,17 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6" data-test="botoes-cta">
                 <Link 
                   href="/cadastro"
-                  className="group relative px-10 py-5 bg-white text-[var(--global-accent)] font-bold text-lg rounded-lg shadow-2xl hover:shadow-3xl transition-all duration-300 overflow-hidden"
+                  className="group relative px-10 py-5 bg-white text-global-accent font-bold text-lg rounded-lg shadow-2xl hover:shadow-3xl transition-all duration-300 overflow-hidden"
                   data-test="botao-criar-conta"
                 >
                   <span className="relative z-10">
                     Criar Conta Agora
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-linear-to-r from-white to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Link>
                 <Link 
                   href="/login"
-                  className="px-10 py-5 bg-transparent text-white font-bold text-lg rounded-lg border-2 border-white hover:bg-white hover:text-[var(--global-accent)] transition-all duration-300"
+                  className="px-10 py-5 bg-transparent text-white font-bold text-lg rounded-lg border-2 border-white hover:bg-white hover:text-global-accent transition-all duration-300"
                   data-test="botao-ja-tenho-conta"
                 >
                   Já tenho conta

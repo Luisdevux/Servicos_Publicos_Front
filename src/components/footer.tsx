@@ -23,20 +23,20 @@ export default function Footer({ endereco, contato, theme = 'default' }: FooterP
   const themeClass = theme === 'green' ? 'global-theme-green' : theme === 'purple' ? 'global-theme-purple' : '';
   
   return (
-    <footer className={`border-t border-[var(--global-separator)]/30 bg-[var(--global-bg)] px-6 sm:px-6 lg:px-40 py-4 text-sm text-[var(--global-text-primary)] ${themeClass}`}>
+    <footer className={`border-t border-global-separator/30 bg-global-bg px-6 sm:px-6 lg:px-40 py-4 text-sm text-global-text-primary ${themeClass}`}>
       
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-center">
           <address className="md:flex-1 text-center md:text-left not-italic">
-            <p className="font-semibold text-base text-[var(--global-text-secondary)] mb-1">
+            <p className="font-semibold text-base text-global-text-secondary mb-1">
               {endereco.nome}
             </p>
-            <p className="text-[var(--global-text-primary)]">{endereco.rua}</p>
-            <p className="text-[var(--global-text-primary)]">
+            <p className="text-global-text-primary">{endereco.rua}</p>
+            <p className="text-global-text-primary">
               {endereco.cidade}, {endereco.cep}
             </p>
           </address>
           <div className="md:flex-1 flex flex-col items-center md:items-end gap-3">
-            <span className="font-semibold text-base text-[var(--global-text-secondary)]">
+            <span className="font-semibold text-base text-global-text-secondary">
               Fale Conosco
             </span>
             <div className="flex gap-4">
@@ -44,7 +44,7 @@ export default function Footer({ endereco, contato, theme = 'default' }: FooterP
                 href={contato.email}
                 target="_blank"
                 rel="noreferrer"
-                className="p-2 rounded-lg bg-[var(--global-accent)]/10 transition-all duration-300 hover:scale-110"
+                className="p-2 rounded-lg bg-global-accent/10 transition-all duration-300 hover:scale-110"
                 aria-label="Enviar e-mail para o gabinete"
                 title="Enviar e-mail"
               >
@@ -54,7 +54,7 @@ export default function Footer({ endereco, contato, theme = 'default' }: FooterP
                 href={contato.telefone}
                 target="_blank"
                 rel="noreferrer"
-                className="p-2 rounded-lg bg-[var(--global-accent)]/10 transition-all duration-300 hover:scale-110"
+                className="p-2 rounded-lg bg-global-accent/10 transition-all duration-300 hover:scale-110"
                 aria-label="Ligar para o telefone do gabinete"
                 title="Ligar"
               >
@@ -64,7 +64,7 @@ export default function Footer({ endereco, contato, theme = 'default' }: FooterP
                 href={contato.facebook}
                 target="_blank"
                 rel="noreferrer"
-                className="p-2 rounded-lg bg-[var(--global-accent)]/10 transition-all duration-300 hover:scale-110"
+                className="p-2 rounded-lg bg-global-accent/10 transition-all duration-300 hover:scale-110"
                 aria-label="Acessar página oficial do Facebook"
                 title="Facebook"
               >
@@ -74,7 +74,7 @@ export default function Footer({ endereco, contato, theme = 'default' }: FooterP
                 href={contato.instagram}
                 target="_blank"
                 rel="noreferrer"
-                className="p-2 rounded-lg bg-[var(--global-accent)]/10 hover:bg-gradient-to-r transition-all duration-300 hover:scale-110"
+                className="p-2 rounded-lg bg-global-accent/10 hover:bg-linear-to-r transition-all duration-300 hover:scale-110"
                 aria-label="Acessar perfil oficial do Instagram"
                 title="Instagram"
               >
@@ -83,22 +83,22 @@ export default function Footer({ endereco, contato, theme = 'default' }: FooterP
             </div>
           </div>
         </div>
-        <div className="border-t border-[var(--global-separator)]/30 mt-4 pt-3">
+        <div className="border-t border-global-separator/30 mt-4 pt-3">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
-            <p className="text-xs text-[var(--global-text-primary)]/90">
+            <p className="text-xs text-global-text-primary/90">
               © {new Date().getFullYear()} Vilhena+Pública. Todos os direitos
               reservados.
             </p>
             <div className="flex gap-4 text-xs">
               <Link
                 href="/politica-de-privacidade"
-                className="text-[var(--global-text-primary)] hover:text-[var(--global-link-hover)] transition-colors underline-offset-2 hover:underline"
+                className="text-global-text-primary hover:text-global-link-hover transition-colors underline-offset-2 hover:underline"
               >
                 Política de Privacidade
               </Link>
               <Link
                 href="/termos-de-uso"
-                className="text-[var(--global-text-primary)] hover:text-[var(--global-link-hover)] transition-colors underline-offset-2 hover:underline"
+                className="text-global-text-primary hover:text-global-link-hover transition-colors underline-offset-2 hover:underline"
               >
                 Termos de Uso
               </Link>

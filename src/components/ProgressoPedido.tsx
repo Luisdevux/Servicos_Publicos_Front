@@ -61,7 +61,7 @@ export default function ProgressoPedido({ progresso, size = "md", variant = "def
               }`}
             />
           </div>
-          <span className="text-sm text-[var(--global-text-primary)]">Aguardando aprovação</span>
+          <span className="text-sm text-global-text-primary">Aguardando aprovação</span>
         </div>
         <div className="flex flex-col items-center gap-1">
           <div className={`${getCircleSize()} rounded-full flex items-center justify-center transition-all duration-500 ease-in-out ${
@@ -74,7 +74,7 @@ export default function ProgressoPedido({ progresso, size = "md", variant = "def
               }`}
             />
           </div>
-          <span className="text-sm text-[var(--global-text-primary)]">Em progresso</span>
+          <span className="text-sm text-global-text-primary">Em progresso</span>
         </div>
         <div className="flex flex-col items-center gap-1">
           <div className={`${getCircleSize()} rounded-full flex items-center justify-center transition-all duration-500 ease-in-out ${
@@ -87,7 +87,7 @@ export default function ProgressoPedido({ progresso, size = "md", variant = "def
               }`}
             />
           </div>
-          <span className="text-sm text-[var(--global-text-primary)]">Concluído</span>
+          <span className="text-sm text-global-text-primary">Concluído</span>
         </div>
       </div>
       

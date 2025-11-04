@@ -331,7 +331,7 @@ function SidebarGroupLabel({
       data-slot="sidebar-group-label"
       data-sidebar="group-label"
       className={cn(
-        "text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear text-[var(--global-text-primary)] [&>svg]:size-4 [&>svg]:shrink-0",
+        "text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear text-global-text-primary [&>svg]:size-4 [&>svg]:shrink-0",
         "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0",
         className,
       )}
@@ -377,11 +377,11 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden border-0 text-[var(--global-text-primary)] data-[active=true]:bg-[var(--global-text-primary)] data-[active=true]:text-[var(--global-bg)] data-[state=open]:hover:bg-[var(--global-text-primary)] data-[state=open]:hover:text-[var(--global-bg)] [&>svg]:size-4 [&>svg]:shrink-0",
+  "flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden border-0 text-global-text-primary data-[active=true]:bg-global-text-primary data-[active=true]:text-global-bg data-[state=open]:hover:bg-global-text-primary data-[state=open]:hover:text-global-bg [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "hover:bg-[var(--global-text-primary)] hover:text-[var(--global-bg)]"
+        default: "hover:bg-global-text-primary hover:text-global-bg"
       },
       size: {
         default: "h-8 text-sm",

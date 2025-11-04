@@ -27,6 +27,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { 
+  isValidImageType, 
+  formatFileSize, 
+  validateImageMagicBytes,
+  getAllowedImageTypesDisplay
+} from '@/lib/imageUtils';
 import type { TipoDemanda, EstadoBrasil } from '@/types';
 
 interface CreateDemandaDialogProps {
@@ -65,6 +71,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
   const [loadingCep, setLoadingCep] = useState(false);
   const [imagens, setImagens] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; percentage: number } | null>(null);
 
   // Estados para autocomplete
   const [sugestoesLogradouro, setSugestoesLogradouro] = useState<Array<{ logradouro: string; bairro: string; cep: string }>>([]);
@@ -87,6 +94,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
       setEstado('RO');
       setCep('');
       setImagens([]);
+      setUploadProgress(null);
 
       setPreviewUrls(prev => {
         prev.forEach(url => {
@@ -256,11 +264,22 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
     const maxSize = 5 * 1024 * 1024; // 5MB
     const maxFiles = 3;
 
+    // Validar tipo de arquivo
+    const invalidTypes = newFiles.filter(file => !isValidImageType(file.type));
+    if (invalidTypes.length > 0) {
+      toast.error('Tipo de arquivo inválido', {
+        description: `Apenas imagens ${getAllowedImageTypesDisplay()} são aceitas`,
+      });
+      e.target.value = '';
+      return;
+    }
+
     // Validar tamanho
     const invalidFiles = newFiles.filter(file => file.size > maxSize);
     if (invalidFiles.length > 0) {
+      const sizesMsg = invalidFiles.map(f => `${f.name} (${formatFileSize(f.size)})`).join(', ');
       toast.error('Arquivo muito grande', {
-        description: 'Cada imagem deve ter no máximo 5MB',
+        description: `Arquivos acima do limite: ${sizesMsg}. Máximo permitido: ${formatFileSize(maxSize)}`,
       });
       e.target.value = '';
       return;
@@ -275,13 +294,33 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
       return;
     }
 
-    setImagens(prev => [...prev, ...newFiles]);
+    // Validar se é realmente uma imagem (verificando header do arquivo)
+    const validateImageFiles = async () => {
+      const validationPromises = newFiles.map(file => validateImageMagicBytes(file));
+      const results = await Promise.all(validationPromises);
+      
+      const invalidImages = results.filter(isValid => !isValid);
+      if (invalidImages.length > 0) {
+        toast.error('Arquivo corrompido ou inválido', {
+          description: 'Um ou mais arquivos não são imagens válidas',
+        });
+        e.target.value = '';
+        return false;
+      }
+      return true;
+    };
 
-    const newUrls = newFiles.map(file => URL.createObjectURL(file));
-    setPreviewUrls(prev => [...prev, ...newUrls]);
+    validateImageFiles().then(isValid => {
+      if (!isValid) return;
 
-    toast.success(`${newFiles.length} imagem${newFiles.length > 1 ? 'ns' : ''} adicionada${newFiles.length > 1 ? 's' : ''}`);
-    e.target.value = '';
+      setImagens(prev => [...prev, ...newFiles]);
+
+      const newUrls = newFiles.map(file => URL.createObjectURL(file));
+      setPreviewUrls(prev => [...prev, ...newUrls]);
+
+      toast.success(`${newFiles.length} imagem${newFiles.length > 1 ? 'ns' : ''} adicionada${newFiles.length > 1 ? 's' : ''}`);
+      e.target.value = '';
+    });
   };
 
   const handleRemoveImage = (index: number) => {
@@ -341,6 +380,14 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
       return;
     }
 
+    // Validação de imagens obrigatórias
+    if (imagens.length === 0) {
+      toast.error('Campo obrigatório: Imagens', {
+        description: 'Adicione pelo menos uma imagem da ocorrência para criar a demanda',
+      });
+      return;
+    }
+
     try {
       const logradouroCompleto = `${tipoLogradouro} ${logradouro}`.trim();
 
@@ -368,6 +415,9 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
           estado: estado as EstadoBrasil,
         },
         imagens: imagens.length > 0 ? imagens : undefined,
+        onUploadProgress: (progress) => {
+          setUploadProgress(progress);
+        },
       });
 
       toast.success('Demanda criada com sucesso!', {
@@ -376,9 +426,11 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
         duration: 5000,
       });
 
+      setUploadProgress(null);
       onOpenChange(false);
     } catch (error) {
       console.error('Erro ao criar demanda:', error);
+      setUploadProgress(null);
       toast.error('Erro ao criar demanda', {
         description: error instanceof Error ? error.message : 'Tente novamente mais tarde',
         icon: <AlertCircle className="w-5 h-5" />,
@@ -392,7 +444,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
         className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl"
         data-test="create-demanda-dialog"
       >
-        <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg relative overflow-hidden">
+        <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden">
           {/* Grid de pontos decorativos */}
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -426,8 +478,8 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
 
         <form onSubmit={handleSubmit} className="space-y-6 p-6 max-h-[calc(95vh-140px)] overflow-y-auto" data-test="create-demanda-form"
         >
-          <div className="space-y-4 p-4 bg-[var(--global-bg-select)] rounded-lg border border-[var(--global-border)]">
-            <Label className="text-[var(--global-text-secondary)] text-base font-semibold flex items-center gap-2">
+          <div className="space-y-4 p-4 bg-global-bg-select rounded-lg border border-global-border">
+            <Label className="text-global-text-secondary text-base font-semibold flex items-center gap-2">
               <span className="text-red-500">*</span>
               Endereço do Ocorrido
             </Label>
@@ -435,7 +487,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
             {/* Linha 1: CEP e Bairro */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="cep" className="text-[var(--global-text-primary)] text-sm font-medium">
+                <Label htmlFor="cep" className="text-global-text-primary text-sm font-medium">
                   CEP
                 </Label>
                 <div className="relative">
@@ -446,19 +498,19 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                     placeholder="00000-000"
                     maxLength={9}
                     disabled={loadingCep}
-                    className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)] pr-10"
+                    className="border-global-border focus:border-global-accent focus:ring-global-accent pr-10"
                     data-test="cep-input"
                   />
                   {loadingCep && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Loader2 className="h-4 w-4 animate-spin text-[var(--global-accent)]" />
+                      <Loader2 className="h-4 w-4 animate-spin text-global-accent" />
                     </div>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bairro" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                <Label htmlFor="bairro" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Bairro
                 </Label>
@@ -477,27 +529,27 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                       }
                     }}
                     placeholder="Digite o bairro"
-                    className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
+                    className="border-global-border focus:border-global-accent focus:ring-global-accent"
                     data-test="bairro-input"
                     required
                   />
                   {loadingBairro && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Loader2 className="h-4 w-4 animate-spin text-[var(--global-accent)]" />
+                      <Loader2 className="h-4 w-4 animate-spin text-global-accent" />
                     </div>
                   )}
 
                   {/* Dropdown de sugestões de bairro */}
                   {showSugestoesBairro && sugestoesBairro.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 bg-white border border-[var(--global-border)] rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-global-border rounded-md shadow-lg max-h-60 overflow-y-auto">
                       {sugestoesBairro.map((sugestao, index) => (
                         <div
                           key={index}
                           onClick={() => selecionarBairro(sugestao)}
-                          className="px-4 py-2 hover:bg-[var(--global-bg-select)] cursor-pointer transition-colors border-b border-[var(--global-border)] last:border-b-0"
+                          className="px-4 py-2 hover:bg-global-bg-select cursor-pointer transition-colors border-b border-global-border last:border-b-0"
                         >
-                          <div className="font-medium text-[var(--global-text-primary)]">{sugestao.bairro}</div>
-                          <div className="text-xs text-[var(--global-text-secondary)]">CEP: {viaCepService.formatarCep(sugestao.cep)}</div>
+                          <div className="font-medium text-global-text-primary">{sugestao.bairro}</div>
+                          <div className="text-xs text-global-text-secondary">CEP: {viaCepService.formatarCep(sugestao.cep)}</div>
                         </div>
                       ))}
                     </div>
@@ -509,13 +561,13 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
             {/* Linha 2: Tipo de Logradouro e Logradouro */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="tipoLogradouro" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                <Label htmlFor="tipoLogradouro" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Tipo
                 </Label>
                 <Select value={tipoLogradouro} onValueChange={setTipoLogradouro}>
                   <SelectTrigger
-                    className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)] cursor-pointer"
+                    className="border-global-border focus:border-global-accent focus:ring-global-accent cursor-pointer"
                     data-test="tipo-logradouro-select"
                   >
                     <SelectValue placeholder="Selecione o tipo" />
@@ -536,7 +588,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="logradouro" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                <Label htmlFor="logradouro" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Logradouro
                 </Label>
@@ -555,31 +607,31 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                       }
                     }}
                     placeholder="Nome da rua, avenida..."
-                    className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
+                    className="border-global-border focus:border-global-accent focus:ring-global-accent"
                     data-test="logradouro-input"
                     required
                   />
                   {loadingLogradouro && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Loader2 className="h-4 w-4 animate-spin text-[var(--global-accent)]" />
+                      <Loader2 className="h-4 w-4 animate-spin text-global-accent" />
                     </div>
                   )}
 
                   {/* Dropdown de sugestões de logradouro */}
                   {showSugestoesLogradouro && sugestoesLogradouro.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 bg-white border border-[var(--global-border)] rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-global-border rounded-md shadow-lg max-h-60 overflow-y-auto">
                       {sugestoesLogradouro.map((sugestao, index) => (
                         <div
                           key={index}
                           onClick={() => selecionarLogradouro(sugestao)}
-                          className="px-4 py-3 hover:bg-[var(--global-bg-select)] cursor-pointer transition-colors border-b border-[var(--global-border)] last:border-b-0"
+                          className="px-4 py-3 hover:bg-global-bg-select cursor-pointer transition-colors border-b border-global-border last:border-b-0"
                         >
-                          <div className="font-medium text-[var(--global-text-primary)]">{sugestao.logradouro}</div>
+                          <div className="font-medium text-global-text-primary">{sugestao.logradouro}</div>
                           <div className="flex gap-4 mt-1">
-                            <span className="text-xs text-[var(--global-text-secondary)]">
+                            <span className="text-xs text-global-text-secondary">
                               Bairro: {sugestao.bairro}
                             </span>
-                            <span className="text-xs text-[var(--global-text-secondary)]">
+                            <span className="text-xs text-global-text-secondary">
                               CEP: {viaCepService.formatarCep(sugestao.cep)}
                             </span>
                           </div>
@@ -594,7 +646,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
             {/* Linha 3: Número e Complemento */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="numero" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                <Label htmlFor="numero" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Número
                 </Label>
@@ -608,14 +660,14 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                     setNumero(value);
                   }}
                   placeholder="Ex: 5222"
-                  className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
+                  className="border-global-border focus:border-global-accent focus:ring-global-accent"
                   data-test="numero-input"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="complemento" className="text-[var(--global-text-primary)] text-sm font-medium">
+                <Label htmlFor="complemento" className="text-global-text-primary text-sm font-medium">
                   Complemento
                 </Label>
                 <Input
@@ -623,7 +675,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                   value={complemento}
                   onChange={(e) => setComplemento(e.target.value)}
                   placeholder="Apto, bloco..."
-                  className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
+                  className="border-global-border focus:border-global-accent focus:ring-global-accent"
                   data-test="complemento-input"
                 />
               </div>
@@ -632,7 +684,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
             {/* Linha 4: Cidade e Estado */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="cidade" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                <Label htmlFor="cidade" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Cidade
                 </Label>
@@ -641,7 +693,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                   value={cidade}
                   onChange={(e) => setCidade(e.target.value)}
                   placeholder="Digite a cidade"
-                  className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]"
+                  className="border-global-border focus:border-global-accent focus:ring-global-accent"
                   data-test="cidade-input"
                   required
                   disabled
@@ -649,13 +701,13 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="estado" className="text-[var(--global-text-primary)] text-sm font-medium flex items-center gap-2">
+                <Label htmlFor="estado" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   <span className="text-red-500">*</span>
                   Estado
                 </Label>
                 <Select value={estado} onValueChange={setEstado} disabled>
                   <SelectTrigger
-                    className="border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)] cursor-pointer"
+                    className="border-global-border focus:border-global-accent focus:ring-global-accent cursor-pointer"
                     data-test="estado-select"
                   >
                     <SelectValue placeholder="Selecione o estado" />
@@ -679,13 +731,13 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label htmlFor="descricao" className="text-[var(--global-text-secondary)] text-base font-semibold flex items-center gap-2">
+              <Label htmlFor="descricao" className="text-global-text-secondary text-base font-semibold flex items-center gap-2">
                 <span className="text-red-500">*</span>
                 Descrição
               </Label>
               <span className={cn(
                 "text-xs font-medium",
-                descricao.length > 500 ? "text-red-500" : "text-[var(--global-text-primary)]"
+                descricao.length > 500 ? "text-red-500" : "text-global-text-primary"
               )}>
                 {descricao.length}/500
               </span>
@@ -697,7 +749,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
               placeholder="Descreva detalhadamente o problema encontrado..."
               maxLength={500}
               className={cn(
-                "min-h-[120px] resize-none border-[var(--global-border)] focus:border-[var(--global-accent)] focus:ring-[var(--global-accent)]",
+                "min-h-[120px] resize-none border-global-border focus:border-global-accent focus:ring-global-accent",
                 descricao.length > 500 && "border-red-500 focus:border-red-500 focus:ring-red-500"
               )}
               data-test="descricao-textarea"
@@ -707,10 +759,11 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-[var(--global-text-secondary)] text-base font-semibold">
-                Imagens (Opcional)
+              <Label className="text-global-text-secondary text-base font-semibold flex items-center gap-2">
+                <span className="text-red-500">*</span>
+                Imagens
               </Label>
-              <span className="text-xs text-[var(--global-text-primary)]">
+              <span className="text-xs text-global-text-primary">
                 {previewUrls.length}/3 imagens
               </span>
             </div>
@@ -718,7 +771,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
             {previewUrls.length > 0 && (
               <div className="grid grid-cols-3 gap-3 mb-3" data-test="images-preview-grid">
                 {previewUrls.map((url, index) => (
-                  <div key={url} className="relative w-full h-32 rounded-lg overflow-hidden border-2 border-[var(--global-border)] group" data-test={`image-preview-container-\${index}`}>
+                  <div key={url} className="relative w-full h-32 rounded-lg overflow-hidden border-2 border-global-border group" data-test={`image-preview-container-\${index}`}>
                     <Image
                       src={url}
                       alt={`Preview \${index + 1}`}
@@ -747,7 +800,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                 className={cn(
                   "flex items-center gap-2 px-5 py-3 rounded-lg cursor-pointer transition-all font-medium shadow-md",
                   previewUrls.length < 3
-                    ? "bg-[var(--global-accent)] hover:shadow-lg hover:brightness-110 text-white"
+                    ? "bg-global-accent hover:shadow-lg hover:brightness-110 text-white"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 )}
                 data-test="image-upload-label"
@@ -759,7 +812,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                 <input
                   id="imagem"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png,image/svg+xml,.jpg,.jpeg,.png,.svg"
                   multiple
                   onChange={handleImageChange}
                   disabled={previewUrls.length >= 3}
@@ -768,22 +821,22 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                 />
               </label>
               {previewUrls.length > 0 && (
-                <span className="text-sm text-[var(--global-text-primary)] font-medium" data-test="images-count">
+                <span className="text-sm text-global-text-primary font-medium" data-test="images-count">
                   {previewUrls.length} imagem{previewUrls.length > 1 ? 'ns' : ''} adicionada{previewUrls.length > 1 ? 's' : ''}
                 </span>
               )}
             </div>
-            <p className="text-xs text-[var(--global-text-primary)]">
-              Máximo de 3 imagens • Tamanho máximo: 5MB por imagem
+            <p className="text-xs text-global-text-primary">
+              <span className="text-red-500 font-semibold">*</span> Obrigatório: mínimo 1 imagem • Máximo de 3 imagens • Tamanho máximo: 5MB por imagem
             </p>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-[var(--global-border)]">
+          <div className="flex gap-3 pt-4 border-t border-global-border">
             <Button
               type="button"
               onClick={() => onOpenChange(false)}
               disabled={createDemanda.isPending}
-              className="flex-1 border-2 border-[var(--global-border)] bg-white text-[var(--global-text-primary)] hover:bg-[var(--global-bg-select)] font-medium"
+              className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
               data-test="cancel-button"
             >
               Cancelar
@@ -792,16 +845,30 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
               type="submit"
               disabled={createDemanda.isPending}
               className={cn(
-                "flex-1 bg-[var(--global-accent)] hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
+                "flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
                 createDemanda.isPending && "opacity-70 cursor-not-allowed"
               )}
               data-test="submit-button"
             >
               {createDemanda.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Enviando...
-                </>
+                <div className="flex flex-col items-center w-full">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>
+                      {uploadProgress 
+                        ? `Enviando imagens ${uploadProgress.current}/${uploadProgress.total}...` 
+                        : 'Criando demanda...'}
+                    </span>
+                  </div>
+                  {uploadProgress && (
+                    <div className="w-full bg-white/30 rounded-full h-1.5">
+                      <div 
+                        className="bg-white h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress.percentage}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-2" />

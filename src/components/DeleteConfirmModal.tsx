@@ -58,7 +58,7 @@ export function DeleteConfirmModal({
         </DialogHeader>
         <div className="flex gap-3 justify-end">
           <Button
-            className="border-2 border-[var(--global-bg-select)] bg-white hover:bg-[var(--global-bg-select)]"
+            className="border-2 border-global-bg-select bg-white hover:bg-global-bg-select"
             onClick={() => onOpenChange(false)}
             disabled={isDeleting}
           >
