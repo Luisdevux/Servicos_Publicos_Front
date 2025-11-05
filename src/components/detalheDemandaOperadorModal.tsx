@@ -86,13 +86,6 @@ export default function DetalhesDemandaOperadorModal({
       return;
     }
 
-    if (imagensResolucao.length === 0) {
-      toast.error('Imagem obrigatória', {
-        description: 'Adicione pelo menos uma imagem da resolução',
-      });
-      return;
-    }
-
     if (onResolver) {
       onResolver(demanda.id, descricaoResolucao, imagensResolucao);
       setDescricaoResolucao("");

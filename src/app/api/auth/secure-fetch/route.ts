@@ -74,22 +74,65 @@ export async function POST(request: NextRequest) {
     const headers: HeadersInit = {
       'Authorization': `Bearer ${token.accesstoken}`
     };
-    let finalBody: string | FormData | undefined;
+    let finalBody: string | FormData | Buffer | undefined;
 
     if (bodyType === 'formData' && formData) {
-      // Para FormData, cria um novo FormData e adiciona os arquivos
-      const form = new FormData();
-      if (formData.file) {
-        // Converte base64 de volta para File se necessário
-        if (typeof formData.file === 'string' && formData.file.startsWith('data:')) {
-          const blob = await fetch(formData.file).then(r => r.blob());
-          const file = new File([blob], 'upload.jpg', { type: blob.type });
-          form.append('file', file);
-        }
-
+      if (!formData.file) {
+        console.error('[SecureFetch] formData.file não encontrado');
+        throw new Error('formData.file not found');
       }
-      finalBody = form;
-      // Não define Content-Type para FormData - deixa o browser definir
+
+      // Converte base64 de volta para File/Blob
+      if (typeof formData.file === 'string' && formData.file.startsWith('data:')) {
+        try {
+          const base64Data = formData.file;
+          
+          // Extrai o tipo MIME do data URL
+          const mimeMatch = base64Data.match(/data:([^;]+);/);
+          const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+          
+          // Extrai a extensão do MIME type
+          const extension = mimeType.split('/')[1] || 'jpg';
+          const fileName = formData.fileName || `upload.${extension}`;
+          
+          // Remove o prefixo data:image/xxx;base64,
+          const base64String = base64Data.split(',')[1];
+          
+          if (!base64String) {
+            throw new Error('Base64 data is empty');
+          }
+          
+          // Converte base64 para Buffer
+          const fileBuffer = Buffer.from(base64String, 'base64');
+          
+          // Cria multipart/form-data manualmente
+          const boundary = `----WebKitFormBoundary${Math.random().toString(36).substring(2)}`;
+          
+          const parts: Buffer[] = [];
+          parts.push(Buffer.from(`--${boundary}\r\n`));
+          parts.push(Buffer.from(`Content-Disposition: form-data; name="file"; filename="${fileName}"\r\n`));
+          parts.push(Buffer.from(`Content-Type: ${mimeType}\r\n\r\n`));
+          parts.push(fileBuffer);
+          parts.push(Buffer.from(`\r\n--${boundary}--\r\n`));
+          
+          finalBody = Buffer.concat(parts);
+          headers['Content-Type'] = `multipart/form-data; boundary=${boundary}`;
+          
+          console.log('[SecureFetch] Arquivo reconstruído:', {
+            name: fileName,
+            type: mimeType,
+            size: fileBuffer.length,
+            sizeKB: (fileBuffer.length / 1024).toFixed(2) + ' KB',
+            boundary
+          });
+        } catch (error) {
+          console.error('[SecureFetch] Erro ao reconstruir arquivo:', error);
+          throw new Error(`Failed to reconstruct file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      } else {
+        console.error('[SecureFetch] Arquivo não está em formato base64 válido');
+        throw new Error('File is not in valid base64 format');
+      }
     } else {
       headers['Content-Type'] = 'application/json';
       finalBody = requestBody ? JSON.stringify(requestBody) : undefined;
@@ -100,7 +143,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch(fullUrl, {
       method,
       headers,
-      body: finalBody,
+      body: finalBody as BodyInit,
     });
 
     if (!response.ok) {
@@ -109,10 +152,17 @@ export async function POST(request: NextRequest) {
       try {
         errorData = await response.json();
       } catch {
-        errorData = { error: await response.text() || 'Request failed' };
+        const textError = await response.text();
+        errorData = { error: textError || 'Request failed' };
       }
 
-      console.error(`[SecureFetch] Erro ${response.status}:`, errorData);
+      console.error(`[SecureFetch] Erro ${response.status} em ${endpoint}:`, {
+        status: response.status,
+        statusText: response.statusText,
+        errorData,
+        url: fullUrl
+      });
+      
       return NextResponse.json(errorData, { status: response.status });
     }
 
