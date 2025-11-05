@@ -44,6 +44,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'objects.fslab.dev',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: '**',
       },
     ],
