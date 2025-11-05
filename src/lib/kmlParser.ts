@@ -35,7 +35,7 @@ export function extractBairrosFromGeoJSON(
   const bairros: BairroData[] = [];
   
   const demandasMap = new Map(
-    demandasPorBairro.map(item => [normalizeBairroName(item.bairro), item])
+    demandasPorBairro.map(item => [normalizeBairroNome(item.bairro), item])
   );
 
   geoJSON.features.forEach((feature) => {
@@ -57,7 +57,7 @@ export function extractBairrosFromGeoJSON(
       }
 
       // Busca dados de demanda correspondente
-      const normalizedNome = normalizeBairroName(nome);
+      const normalizedNome = normalizeBairroNome(nome);
       const demandaData = demandasMap.get(normalizedNome);
 
       // Adiciona propriedades de demanda ao feature
@@ -86,8 +86,7 @@ export function extractBairrosFromGeoJSON(
   return bairros;
 }
 
-//Normaliza o nome do bairro para facilitar matching
-function normalizeBairroName(name: string): string {
+export function normalizeBairroNome(name: string): string {
   return name
     .toLowerCase()
     .normalize('NFD')
@@ -110,5 +109,37 @@ export function calculatePolygonCenter(coordinates: [number, number][]): [number
   });
 
   return [sumLat / coordinates.length, sumLng / coordinates.length];
+}
+
+// Converte coordenadas geográficas para um path SVG
+export function coordenadasParaSVGPath(coordenadas: [number, number][], width: number, height: number): string {
+  if (coordenadas.length === 0) return '';
+
+  const lats = coordenadas.map(c => c[0]);
+  const lngs = coordenadas.map(c => c[1]);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+
+  // calcula escala para ajustar ao tamanho do SVG
+  const latRange = maxLat - minLat || 1;
+  const lngRange = maxLng - minLng || 1;
+  const scaleX = (width - 20) / lngRange;
+  const scaleY = (height - 20) / latRange;
+  const scale = Math.min(scaleX, scaleY);
+
+  // centraliza o SVG
+  const offsetX = (width - (maxLng - minLng) * scale) / 2;
+  const offsetY = (height - (maxLat - minLat) * scale) / 2;
+
+  // Converte coordenadas para pontos SVG
+  const points = coordenadas.map(([lat, lng]) => {
+    const x = (lng - minLng) * scale + offsetX;
+    const y = (maxLat - lat) * scale + offsetY; // Inverte Y porque SVG tem Y no topo
+    return `${x},${y}`;
+  });
+
+  return `M ${points.join(' L ')} Z`;
 }
 

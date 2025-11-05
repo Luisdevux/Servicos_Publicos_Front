@@ -2,10 +2,14 @@
 
 import dynamic from 'next/dynamic';
 import type { DemandaPorBairro } from '@/types/admin';
+import type { Demanda } from '@/types/demanda';
+import type { BairroSelecionado } from './MapBairrosDemandasClient';
 
 interface MapBairrosDemandasProps {
   demandasPorBairro: DemandaPorBairro[];
   kmlContent?: string;
+  demandas?: Demanda[];
+  onBairroSelect?: (bairro: BairroSelecionado | null) => void;
 }
 
 // Importação dinâmica para evitar problemas de SSR com Leaflet
@@ -24,6 +28,6 @@ const MapClient = dynamic<MapBairrosDemandasProps>(
   }
 );
 
-export default function MapBairrosDemandas({ demandasPorBairro, kmlContent }: MapBairrosDemandasProps) {
-  return <MapClient demandasPorBairro={demandasPorBairro} kmlContent={kmlContent} />;
+export default function MapBairrosDemandas({ demandasPorBairro, kmlContent, demandas, onBairroSelect }: MapBairrosDemandasProps) {
+  return <MapClient demandasPorBairro={demandasPorBairro} kmlContent={kmlContent} demandas={demandas} onBairroSelect={onBairroSelect} />;
 }
