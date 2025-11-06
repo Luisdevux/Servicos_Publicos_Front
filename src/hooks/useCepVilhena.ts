@@ -89,15 +89,28 @@ export function useCepVilhena() {
       return rangeValidation;
     }
     
-    // Depois valida se o CEP foi encontrado no ViaCEP
+    // Valida se o CEP foi encontrado no ViaCEP
+    // Só aceita CEPs que foram buscados e encontrados
     if (cepEncontrado !== cepLimpo) {
       return { 
         valid: false, 
-        message: 'CEP não encontrado. Digite um CEP válido de Vilhena-RO.' 
+        message: 'CEP não encontrado. Digite um CEP válido de Vilhena-RO e aguarde a busca.' 
       };
     }
     
     return { valid: true };
+  };
+
+  /**
+   * Marca um CEP como válido/encontrado
+   * Útil quando já temos um CEP salvo no banco de dados
+   */
+  const marcarCepComoEncontrado = (cep: string) => {
+    const cepLimpo = cleanCEP(cep);
+    const validation = validarCep(cepLimpo);
+    if (validation.valid) {
+      setCepEncontrado(cepLimpo);
+    }
   };
 
   return {
@@ -105,6 +118,7 @@ export function useCepVilhena() {
     formatarCep,
     validarCep,
     validarCepEncontrado,
+    marcarCepComoEncontrado,
     isLoading,
     cepEncontrado,
   };

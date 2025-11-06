@@ -10,7 +10,7 @@ import { useProfileUpdate } from '@/hooks/useProfileUpdate';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useCepVilhena } from '@/hooks/useCepVilhena';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Edit2, X, Save, LogOut, Loader2, User, Mail, Phone, MapPin, Calendar, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import type { UpdateUsuariosData } from '@/types';
@@ -33,7 +33,7 @@ import {
 export default function PerfilPage() {
   const { isAuthenticated, user: sessionUser, isLoading: isAuthLoading, logout } = useAuth();
   const router = useRouter();
-  const { buscarCep, formatarCep, validarCepEncontrado } = useCepVilhena();
+  const { buscarCep, formatarCep, validarCepEncontrado, marcarCepComoEncontrado } = useCepVilhena();
   
   // Buscar dados completos do usuário da API
   const { data: fullUser, isLoading: isProfileLoading } = useUserProfile(sessionUser?.id);
@@ -48,8 +48,10 @@ export default function PerfilPage() {
     cancelEdit,
     updateProfile,
     uploadPhoto,
+    deletePhoto,
     isUpdating,
     isUploadingPhoto,
+    isDeletingPhoto,
     updateError,
   } = useProfileUpdate(sessionUser?.id || '');
 
@@ -72,17 +74,21 @@ export default function PerfilPage() {
   });
 
   // Sincronizar dados do usuário com o formulário
+  const initialCepMarked = useRef(false);
+  
   useEffect(() => {
     if (user) {
+      const cepUsuario = ('endereco' in user ? user.endereco?.cep : '') || '';
+      
       setFormData({
         nome: user.nome || '',
-        celular: user.celular || '',
+        celular: formatPhoneNumber(user.celular || ''),
         nome_social: ('nome_social' in user ? user.nome_social : '') || '',
         cargo: ('cargo' in user ? user.cargo : '') || '',
         formacao: ('formacao' in user ? user.formacao : '') || '',
         endereco: {
           logradouro: ('endereco' in user ? user.endereco?.logradouro : '') || '',
-          cep: ('endereco' in user ? user.endereco?.cep : '') || '',
+          cep: formatCEP(cepUsuario),
           bairro: ('endereco' in user ? user.endereco?.bairro : '') || '',
           numero: ('endereco' in user ? user.endereco?.numero?.toString() : '') || '',
           complemento: ('endereco' in user ? user.endereco?.complemento : '') || '',
@@ -90,6 +96,12 @@ export default function PerfilPage() {
           estado: ('endereco' in user ? user.endereco?.estado : '') || '',
         },
       });
+      
+      // Marcar o CEP existente como válido/encontrado apenas uma vez
+      if (cepUsuario && !initialCepMarked.current) {
+        marcarCepComoEncontrado(cepUsuario);
+        initialCepMarked.current = true;
+      }
     }
   }, [user]);
 
@@ -213,6 +225,16 @@ export default function PerfilPage() {
     }
   };
 
+  const handlePhotoRemove = async () => {
+    try {
+      await deletePhoto();
+      // A invalidação do cache no hook vai recarregar automaticamente os dados
+    } catch (error) {
+      console.error('Erro ao remover foto:', error);
+      throw error; // Propaga o erro para o componente tratar
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -225,7 +247,7 @@ export default function PerfilPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50" data-test="loading-perfil">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 mx-auto animate-spin text-[var(--global-accent)]" />
+          <Loader2 className="h-12 w-12 mx-auto animate-spin text-global-accent" />
           <p className="mt-4 text-gray-700">Carregando perfil...</p>
         </div>
       </div>
@@ -240,7 +262,7 @@ export default function PerfilPage() {
     <div className="min-h-screen bg-gray-50" data-test="page-perfil">
       <div className="px-6 sm:px-6 lg:px-40 py-8">
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-8">
-          <div className="h-30 relative bg-[var(--global-accent)]">
+          <div className="h-35 relative bg-global-accent">
             <div className="absolute inset-0 opacity-10">
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -258,7 +280,9 @@ export default function PerfilPage() {
               <ProfilePhotoUpload
                 currentPhotoUrl={getUserData(user as any, 'link_imagem')}
                 onUpload={handlePhotoUpload}
+                onRemove={handlePhotoRemove}
                 isUploading={isUploadingPhoto}
+                isRemoving={isDeletingPhoto}
                 userName={user?.nome}
               />
               
@@ -273,7 +297,7 @@ export default function PerfilPage() {
                 {!isEditing ? (
                   <Button
                     onClick={toggleEdit}
-                    className="bg-[var(--global-accent)] text-white hover:opacity-90"
+                    className="bg-global-accent text-white hover:opacity-90"
                     data-test="button-editar-perfil"
                   >
                     <Edit2 className="w-4 h-4 mr-2" />
@@ -318,7 +342,7 @@ export default function PerfilPage() {
           <div className="space-y-8">
             <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-pessoal">
               <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
-                <User className="w-5 h-5 mr-2 text-[var(--global-accent)]" />
+                <User className="w-5 h-5 mr-2 text-global-accent" />
                 Informações Pessoais
               </h2>
 
@@ -337,7 +361,7 @@ export default function PerfilPage() {
 
             <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-contato">
               <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
-                <Mail className="w-5 h-5 mr-2 text-[var(--global-accent)]" />
+                <Mail className="w-5 h-5 mr-2 text-global-accent" />
                 Informações de Contato
               </h2>
 
@@ -390,7 +414,7 @@ export default function PerfilPage() {
             {!isMunicipe(user as any) && (
           <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-profissional">
             <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
-              <Briefcase className="w-5 h-5 mr-2 text-[var(--global-accent)]" />
+              <Briefcase className="w-5 h-5 mr-2 text-global-accent" />
               Informações Profissionais
             </h2>
 
@@ -418,7 +442,7 @@ export default function PerfilPage() {
 
         <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-endereco">
           <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
-            <MapPin className="w-5 h-5 mr-2 text-[var(--global-accent)]" />
+            <MapPin className="w-5 h-5 mr-2 text-global-accent" />
             Endereço
           </h2>
 

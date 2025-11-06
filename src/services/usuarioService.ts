@@ -106,6 +106,14 @@ export const usuarioService = {
   },
 
   /**
+   * Remove a foto de perfil do usuário
+   * DELETE /usuarios/:id/foto (requer AuthMiddleware + AuthPermission)
+   */
+  async deletarFotoUsuario(id: string): Promise<ApiResponse<void>> {
+    return delSecure<ApiResponse<void>>(`/usuarios/${id}/foto`);
+  },
+
+  /**
    * Busca usuários do tipo operador
    * GET /usuarios?nivel_acesso=operador
    */
