@@ -1,6 +1,7 @@
 // src/services/usuarioService.ts
 
 import { getSecure, postSecure, patchSecure, delSecure } from './api';
+import { fileToBase64 } from '@/lib/imageUtils';
 import type {
   Usuarios,
   ApiResponse,
@@ -81,17 +82,7 @@ export const usuarioService = {
     id: string,
     file: File
   ): Promise<ApiResponse<{ link_imagem: string }>> {
-    // Converte o arquivo para base64
-    const toBase64 = (file: File): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-      });
-    };
-
-    const base64File = await toBase64(file);
+    const base64File = await fileToBase64(file);
 
     const response = await fetch('/api/auth/secure-fetch', {
       method: 'POST',

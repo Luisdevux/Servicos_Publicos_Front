@@ -2,24 +2,38 @@
 
 'use client';
 
-import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ProfilePhotoUpload } from '@/components/ProfilePhotoUpload';
+import { ProfileField } from '@/components/ProfileField';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfileUpdate } from '@/hooks/useProfileUpdate';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { viaCepService } from '@/services/viaCepService';
+import { useCepVilhena } from '@/hooks/useCepVilhena';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Edit2, X, Save, LogOut, Loader2, User, Mail, Phone, MapPin, Calendar } from 'lucide-react';
+import { Edit2, X, Save, LogOut, Loader2, User, Mail, Phone, MapPin, Calendar, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import type { UpdateUsuariosData } from '@/types';
+import {
+  formatPhoneNumber,
+  formatCEP,
+  formatCPF,
+  cleanPhoneNumber,
+  cleanCEP,
+  validatePhoneNumber,
+  validateName,
+  validateCEPVilhena,
+  getUserType,
+  isMunicipe,
+  getUserData,
+  getUserEndereco,
+  formatDate,
+} from '@/lib/profileHelpers';
 
 export default function PerfilPage() {
   const { isAuthenticated, user: sessionUser, isLoading: isAuthLoading, logout } = useAuth();
   const router = useRouter();
+  const { buscarCep, formatarCep, validarCepEncontrado } = useCepVilhena();
   
   // Buscar dados completos do usuário da API
   const { data: fullUser, isLoading: isProfileLoading } = useUserProfile(sessionUser?.id);
@@ -104,89 +118,62 @@ export default function PerfilPage() {
   };
 
   const handleCepChange = async (cep: string) => {
-    // Formata o CEP com máscara
-    const cepLimpo = cep.replace(/\D/g, '');
-    let cepFormatado = cepLimpo;
-    
-    if (cepLimpo.length > 5) {
-      cepFormatado = `${cepLimpo.slice(0, 5)}-${cepLimpo.slice(5, 8)}`;
-    }
-    
-    // Atualiza o CEP no formulário
+    const cepFormatado = formatarCep(cep);
     handleInputChange('endereco.cep', cepFormatado);
 
-    // Se o CEP tiver 8 dígitos, busca o endereço
+    const cepLimpo = cleanCEP(cep);
+    
+    // Validar se o CEP é de Vilhena antes de buscar
     if (cepLimpo.length === 8) {
-      toast.loading('Buscando endereço...', { id: 'cep-loading' });
-      
-      const endereco = await viaCepService.buscarEnderecoPorCep(cepLimpo);
-      
-      toast.dismiss('cep-loading');
+      const endereco = await buscarCep(cepLimpo);
       
       if (endereco) {
         setFormData((prev) => ({
           ...prev,
           endereco: {
             ...prev.endereco,
-            cep: viaCepService.formatarCep(cep),
+            cep: cepFormatado,
             logradouro: endereco.logradouro || prev.endereco.logradouro,
             bairro: endereco.bairro || prev.endereco.bairro,
-            cidade: endereco.localidade || prev.endereco.cidade,
-            estado: endereco.uf || prev.endereco.estado,
+            cidade: endereco.cidade || prev.endereco.cidade,
+            estado: endereco.estado || prev.endereco.estado,
           },
         }));
-        toast.success('Endereço encontrado!');
-      } else {
-        toast.error('CEP não encontrado');
       }
     }
   };
 
   const handleCelularChange = (celular: string) => {
-    // Formata o celular com máscara
-    const celularLimpo = celular.replace(/\D/g, '');
-    let celularFormatado = celularLimpo;
-    
-    if (celularLimpo.length > 10) {
-      // Formato: (00) 00000-0000
-      celularFormatado = `(${celularLimpo.slice(0, 2)}) ${celularLimpo.slice(2, 7)}-${celularLimpo.slice(7, 11)}`;
-    } else if (celularLimpo.length > 6) {
-      // Formato: (00) 0000-0000
-      celularFormatado = `(${celularLimpo.slice(0, 2)}) ${celularLimpo.slice(2, 6)}-${celularLimpo.slice(6, 10)}`;
-    } else if (celularLimpo.length > 2) {
-      celularFormatado = `(${celularLimpo.slice(0, 2)}) ${celularLimpo.slice(2)}`;
-    } else if (celularLimpo.length > 0) {
-      celularFormatado = `(${celularLimpo}`;
-    }
-    
+    const celularFormatado = formatPhoneNumber(celular);
     handleInputChange('celular', celularFormatado);
   };
 
   const handleSave = async () => {
-    // Validações básicas
-    if (!formData.nome.trim()) {
-      toast.error('Nome é obrigatório');
+    // Validar nome
+    const nameValidation = validateName(formData.nome);
+    if (!nameValidation.valid) {
+      toast.error(nameValidation.message);
       return;
     }
     
-    // Remove máscara do celular para validação
-    const celularLimpo = formData.celular.replace(/\D/g, '');
-    
-    if (!celularLimpo) {
-      toast.error('Celular é obrigatório');
+    // Validar celular
+    const phoneValidation = validatePhoneNumber(formData.celular);
+    if (!phoneValidation.valid) {
+      toast.error(phoneValidation.message);
       return;
     }
     
-    // Valida formato do celular (deve ter 10 ou 11 dígitos)
-    if (celularLimpo.length < 10 || celularLimpo.length > 11) {
-      toast.error('Celular deve ter 10 ou 11 dígitos');
+    // Validar CEP de Vilhena, verifica se está no range e se foi encontrado no ViaCEP
+    const cepValidation = validarCepEncontrado(formData.endereco.cep);
+    if (!cepValidation.valid) {
+      toast.error(cepValidation.message || 'CEP inválido');
       return;
     }
 
     try {
       const updateData: UpdateUsuariosData = {
         nome: formData.nome,
-        celular: celularLimpo,
+        celular: cleanPhoneNumber(formData.celular),
         endereco: {
           ...formData.endereco,
           numero: typeof formData.endereco.numero === 'string' 
@@ -209,7 +196,6 @@ export default function PerfilPage() {
       }
 
       await updateProfile(updateData);
-      // A invalidação do cache no hook vai recarregar automaticamente os dados
       toast.success('Perfil atualizado com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
@@ -235,61 +221,12 @@ export default function PerfilPage() {
     }
   };
 
-  const getUserType = () => {
-    if (!user || !('nivel_acesso' in user)) return 'Não informado';
-    if (user.nivel_acesso?.administrador) return 'Administrador';
-    if (user.nivel_acesso?.secretario) return 'Secretário';
-    if (user.nivel_acesso?.operador) return 'Operador';
-    if (user.nivel_acesso?.municipe) return 'Munícipe';
-    return 'Não informado';
-  };
-
-  const formatDate = (date: any) => {
-    if (!date || date === 'Não informado') return 'Não informado';
-    
-    try {
-      // Se já está em formato brasileiro (DD/MM/YYYY), retorna direto
-      if (typeof date === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
-        return date;
-      }
-      
-      // Se está em formato ISO ou timestamp, converte
-      const dateObj = new Date(date);
-      if (isNaN(dateObj.getTime())) {
-        return 'Não informado';
-      }
-      
-      return dateObj.toLocaleDateString('pt-BR');
-    } catch {
-      return 'Não informado';
-    }
-  };
-
-  // Helper para acessar propriedades do usuário com segurança
-  const getUserData = (field: string): string | null => {
-    if (!user) return field === 'link_imagem' ? null : 'Não informado';
-    if (field in user) {
-      const value = (user as any)[field];
-      if (field === 'link_imagem') {
-        return value || null; // Retorna null se não houver imagem
-      }
-      return value || 'Não informado';
-    }
-    return field === 'link_imagem' ? null : 'Não informado';
-  };
-
-  const getUserEndereco = (field: string): string | number => {
-    if (!user || !('endereco' in user) || !user.endereco) return field === 'numero' ? 0 : 'Não informado';
-    const value = (user.endereco as any)[field];
-    return value || (field === 'numero' ? 0 : 'Não informado');
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50" data-test="loading-perfil">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 mx-auto animate-spin profile-accent" />
-          <p className="mt-4 profile-text-primary">Carregando perfil...</p>
+          <Loader2 className="h-12 w-12 mx-auto animate-spin text-[var(--global-accent)]" />
+          <p className="mt-4 text-gray-700">Carregando perfil...</p>
         </div>
       </div>
     );
@@ -303,7 +240,7 @@ export default function PerfilPage() {
     <div className="min-h-screen bg-gray-50" data-test="page-perfil">
       <div className="px-6 sm:px-6 lg:px-40 py-8">
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-8">
-          <div className="h-30 relative profile-header-bg">
+          <div className="h-30 relative bg-[var(--global-accent)]">
             <div className="absolute inset-0 opacity-10">
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -319,24 +256,24 @@ export default function PerfilPage() {
           <div className="px-6 sm:px-6 lg:px-12 pb-8">
             <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-16 gap-6">
               <ProfilePhotoUpload
-                currentPhotoUrl={getUserData('link_imagem')}
+                currentPhotoUrl={getUserData(user as any, 'link_imagem')}
                 onUpload={handlePhotoUpload}
                 isUploading={isUploadingPhoto}
                 userName={user?.nome}
               />
               
               <div className="flex-1 text-center sm:text-left mt-20">
-                <h1 className="text-3xl font-bold profile-text-secondary" data-test="perfil-titulo">
+                <h1 className="text-3xl font-bold text-gray-800" data-test="perfil-titulo">
                   {user.nome}
                 </h1>
-                <p className="mt-2 profile-text-primary text-lg">{getUserType()}</p>
+                <p className="mt-2 text-gray-600 text-lg">{getUserType(user as any)}</p>
               </div>
 
               <div className="flex gap-3">
                 {!isEditing ? (
                   <Button
                     onClick={toggleEdit}
-                    className="profile-btn-primary text-white"
+                    className="bg-[var(--global-accent)] text-white hover:opacity-90"
                     data-test="button-editar-perfil"
                   >
                     <Edit2 className="w-4 h-4 mr-2" />
@@ -346,7 +283,7 @@ export default function PerfilPage() {
                   <>
                     <Button
                       onClick={cancelEdit}
-                      className="border-2 profile-border bg-white profile-text-primary hover:bg-gray-50"
+                      className="border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
                       data-test="button-cancelar-edicao"
                     >
                       <X className="w-4 h-4 mr-2" />
@@ -355,7 +292,7 @@ export default function PerfilPage() {
                     <Button
                       onClick={handleSave}
                       disabled={isUpdating}
-                      className="profile-btn-success text-white"
+                      className="bg-green-600 text-white hover:bg-green-700"
                       data-test="button-salvar-perfil"
                     >
                       {isUpdating ? (
@@ -380,250 +317,188 @@ export default function PerfilPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-8">
             <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-pessoal">
-              <h2 className="text-xl font-semibold mb-6 flex items-center profile-text-secondary">
-                <User className="w-5 h-5 mr-2 profile-accent" />
+              <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
+                <User className="w-5 h-5 mr-2 text-[var(--global-accent)]" />
                 Informações Pessoais
               </h2>
 
               <div className="space-y-5">
-                <div data-test="perfil-campo-nome">
-                  <Label className="text-sm font-medium text-gray-700 mb-2">
-                    Nome Completo {isEditing && <span className="text-red-500">*</span>}
-                  </Label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.nome}
-                      onChange={(e) => handleInputChange('nome', e.target.value)}
-                      className="mt-1"
-                      placeholder="Digite seu nome completo"
-                      required
-                    />
-                  ) : (
-                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <p className="text-gray-900">{user?.nome || 'Não informado'}</p>
-                    </div>
-                  )}
-                </div>
+                <ProfileField
+                  label="Nome Completo"
+                  value={formData.nome}
+                  isEditing={isEditing}
+                  isRequired
+                  placeholder="Digite seu nome completo"
+                  onChange={(value) => handleInputChange('nome', value)}
+                  data-test="perfil-campo-nome"
+                />
               </div>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-contato">
-              <h2 className="text-xl font-semibold mb-6 flex items-center profile-text-secondary">
-                <Mail className="w-5 h-5 mr-2 profile-accent" />
+              <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
+                <Mail className="w-5 h-5 mr-2 text-[var(--global-accent)]" />
                 Informações de Contato
               </h2>
 
               <div className="space-y-5">
-                <div data-test="perfil-campo-email">
-                  <Label className="text-sm font-medium text-gray-700 mb-2">E-mail</Label>
-                  <div className="p-3 bg-gray-100 rounded-lg border border-gray-200">
-                    <p className="text-gray-600">{user?.email || 'Não informado'}</p>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">Campo não editável</p>
-                </div>
+                <ProfileField
+                  label="E-mail"
+                  value={user?.email || 'Não informado'}
+                  isEditing={false}
+                  isDisabled
+                  helperText="Campo não editável"
+                  data-test="perfil-campo-email"
+                />
 
-                <div data-test="perfil-campo-celular">
-                  <Label className="text-sm font-medium text-gray-700 mb-2">
-                    Celular {isEditing && <span className="text-red-500">*</span>}
-                  </Label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.celular}
-                      onChange={(e) => handleCelularChange(e.target.value)}
-                      className="mt-1"
-                      placeholder="(00) 00000-0000"
-                      maxLength={15}
-                      required
-                    />
-                  ) : (
-                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center">
-                      <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                      <p className="text-gray-900">{user?.celular || 'Não informado'}</p>
-                    </div>
-                  )}
-                </div>
+                <ProfileField
+                  label="Celular"
+                  value={formData.celular}
+                  isEditing={isEditing}
+                  isRequired
+                  placeholder="(00) 00000-0000"
+                  maxLength={15}
+                  icon={<Phone className="w-4 h-4" />}
+                  onChange={handleCelularChange}
+                  data-test="perfil-campo-celular"
+                />
 
-            <div data-test="perfil-campo-cpf">
-              <Label className="text-sm font-medium text-gray-700 mb-2">CPF</Label>
-              <div className="p-3 bg-gray-100 rounded-lg border border-gray-200">
-                <p className="text-gray-600">{user?.cpf || 'Não informado'}</p>
+                <ProfileField
+                  label="CPF"
+                  value={formatCPF(user?.cpf || '')}
+                  isEditing={false}
+                  isDisabled
+                  helperText="Campo não editável"
+                  data-test="perfil-campo-cpf"
+                />
+
+                <ProfileField
+                  label="Data de Nascimento"
+                  value={formatDate(getUserData(user as any, 'data_nascimento'))}
+                  isEditing={false}
+                  isDisabled
+                  icon={<Calendar className="w-4 h-4" />}
+                  helperText="Campo não editável"
+                  data-test="perfil-campo-data-nascimento"
+                />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Campo não editável</p>
-            </div>
-
-            <div data-test="perfil-campo-data-nascimento">
-              <Label className="text-sm font-medium text-gray-700 mb-2">Data de Nascimento</Label>
-              <div className="p-3 bg-gray-100 rounded-lg border border-gray-200 flex items-center">
-                <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                <p className="text-gray-600">{formatDate(getUserData('data_nascimento'))}</p>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Campo não editável</p>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="space-y-8">
-
-        {!user.nivel_acesso?.municipe && (
+          <div className="space-y-8">
+            {/* Informações Profissionais, apenas se não for munícipe */}
+            {!isMunicipe(user as any) && (
           <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-profissional">
-            <h2 className="text-xl font-semibold mb-6 profile-text-secondary">
+            <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
+              <Briefcase className="w-5 h-5 mr-2 text-[var(--global-accent)]" />
               Informações Profissionais
             </h2>
 
             <div className="space-y-5">
-              <div data-test="perfil-campo-cargo">
-                <Label className="text-sm font-medium text-gray-700 mb-2">Cargo</Label>
-                {isEditing ? (
-                  <Input
-                    value={formData.cargo}
-                    onChange={(e) => handleInputChange('cargo', e.target.value)}
-                    className="mt-1"
-                    placeholder="Digite seu cargo"
-                  />
-                ) : (
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <p className="text-gray-900">{getUserData('cargo')}</p>
-                  </div>
-                )}
-              </div>
+              <ProfileField
+                label="Cargo"
+                value={formData.cargo}
+                isEditing={isEditing}
+                placeholder="Digite seu cargo"
+                onChange={(value) => handleInputChange('cargo', value)}
+                data-test="perfil-campo-cargo"
+              />
 
-              <div data-test="perfil-campo-formacao">
-                <Label className="text-sm font-medium text-gray-700 mb-2">Formação</Label>
-                {isEditing ? (
-                  <Input
-                    value={formData.formacao}
-                    onChange={(e) => handleInputChange('formacao', e.target.value)}
-                    className="mt-1"
-                    placeholder="Digite sua formação"
-                  />
-                ) : (
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <p className="text-gray-900">{getUserData('formacao')}</p>
-                  </div>
-                )}
-              </div>
+              <ProfileField
+                label="Formação"
+                value={formData.formacao}
+                isEditing={isEditing}
+                placeholder="Digite sua formação"
+                onChange={(value) => handleInputChange('formacao', value)}
+                data-test="perfil-campo-formacao"
+              />
             </div>
           </div>
         )}
 
         <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-endereco">
-          <h2 className="text-xl font-semibold mb-6 flex items-center profile-text-secondary">
-            <MapPin className="w-5 h-5 mr-2 profile-accent" />
+          <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
+            <MapPin className="w-5 h-5 mr-2 text-[var(--global-accent)]" />
             Endereço
           </h2>
 
           <div className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
-              <div data-test="perfil-campo-cep">
-                <Label className="text-sm font-medium text-gray-700 mb-2">CEP</Label>
-                {isEditing ? (
-                  <Input
-                    value={formData.endereco.cep}
-                    onChange={(e) => handleCepChange(e.target.value)}
-                    className="mt-1"
-                    placeholder="00000-000"
-                    maxLength={9}
-                  />
-                ) : (
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <p className="text-gray-900">{getUserEndereco('cep')}</p>
-                  </div>
-                )}
-              </div>
+              <ProfileField
+                label="CEP"
+                value={formData.endereco.cep}
+                isEditing={isEditing}
+                placeholder="00000-000"
+                maxLength={9}
+                onChange={handleCepChange}
+                data-test="perfil-campo-cep"
+              />
 
-              <div data-test="perfil-campo-numero">
-                <Label className="text-sm font-medium text-gray-700 mb-2">Número</Label>
-                {isEditing ? (
-                  <Input
-                    type="text"
-                    value={formData.endereco.numero}
-                    onChange={(e) => handleInputChange('endereco.numero', e.target.value)}
-                    className="mt-1"
-                    placeholder="123"
-                  />
-                ) : (
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <p className="text-gray-900">{getUserEndereco('numero')}</p>
-                  </div>
-                )}
-              </div>
+              <ProfileField
+                label="Número"
+                value={formData.endereco.numero}
+                isEditing={isEditing}
+                placeholder="123"
+                onChange={(value) => handleInputChange('endereco.numero', value)}
+                data-test="perfil-campo-numero"
+              />
             </div>
 
-            <div data-test="perfil-campo-logradouro">
-              <Label className="text-sm font-medium text-gray-700 mb-2">Logradouro</Label>
-              {isEditing ? (
-                <Input
-                  value={formData.endereco.logradouro}
-                  onChange={(e) => handleInputChange('endereco.logradouro', e.target.value)}
-                  className="mt-1"
-                  placeholder="Rua, Avenida..."
-                />
-              ) : (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-gray-900">{getUserEndereco('logradouro')}</p>
-                </div>
-              )}
-            </div>
+            <ProfileField
+              label="Logradouro"
+              value={formData.endereco.logradouro}
+              isEditing={isEditing}
+              placeholder="Rua, Avenida..."
+              onChange={(value) => handleInputChange('endereco.logradouro', value)}
+              data-test="perfil-campo-logradouro"
+            />
 
-            <div data-test="perfil-campo-complemento">
-              <Label className="text-sm font-medium text-gray-700 mb-2">Complemento</Label>
-              {isEditing ? (
-                <Input
-                  value={formData.endereco.complemento}
-                  onChange={(e) => handleInputChange('endereco.complemento', e.target.value)}
-                  className="mt-1"
-                  placeholder="Apto, Bloco..."
-                />
-              ) : (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-gray-900">{getUserEndereco('complemento')}</p>
-                </div>
-              )}
-            </div>
+            <ProfileField
+              label="Complemento"
+              value={formData.endereco.complemento}
+              isEditing={isEditing}
+              placeholder="Apto, Bloco..."
+              onChange={(value) => handleInputChange('endereco.complemento', value)}
+              data-test="perfil-campo-complemento"
+            />
 
-            <div data-test="perfil-campo-bairro">
-              <Label className="text-sm font-medium text-gray-700 mb-2">Bairro</Label>
-              {isEditing ? (
-                <Input
-                  value={formData.endereco.bairro}
-                  onChange={(e) => handleInputChange('endereco.bairro', e.target.value)}
-                  className="mt-1"
-                  placeholder="Nome do bairro"
-                />
-              ) : (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-gray-900">{getUserEndereco('bairro')}</p>
-                </div>
-              )}
-            </div>
+            <ProfileField
+              label="Bairro"
+              value={formData.endereco.bairro}
+              isEditing={isEditing}
+              placeholder="Nome do bairro"
+              onChange={(value) => handleInputChange('endereco.bairro', value)}
+              data-test="perfil-campo-bairro"
+            />
 
             <div className="grid grid-cols-2 gap-4">
-              <div data-test="perfil-campo-cidade">
-                <Label className="text-sm font-medium text-gray-700 mb-2">Cidade</Label>
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-gray-900">{getUserEndereco('cidade')}</p>
-                </div>
-              </div>
+              <ProfileField
+                label="Cidade"
+                value={getUserEndereco(user as any, 'cidade')}
+                isEditing={false}
+                isDisabled
+                data-test="perfil-campo-cidade"
+              />
 
-              <div data-test="perfil-campo-estado">
-                <Label className="text-sm font-medium text-gray-700 mb-2">Estado</Label>
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-gray-900">{getUserEndereco('estado')}</p>
-                </div>
-              </div>
+              <ProfileField
+                label="Estado"
+                value={getUserEndereco(user as any, 'estado')}
+                isEditing={false}
+                isDisabled
+                data-test="perfil-campo-estado"
+              />
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-acoes">
-          <h2 className="text-xl font-semibold mb-6 profile-text-secondary">
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">
             Ações da Conta
           </h2>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button
               onClick={handleLogout}
-              className="profile-btn-danger text-white"
+              className="bg-red-600 text-white hover:bg-red-700"
               data-test="button-sair"
             >
               <LogOut className="w-4 h-4 mr-2" />

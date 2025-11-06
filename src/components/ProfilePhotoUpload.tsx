@@ -2,10 +2,12 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Camera, Upload, X, Loader2, AlertCircle } from 'lucide-react';
+import { Camera, Upload, X, Loader2 } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { validateImageMagicBytes } from '@/lib/imageUtils';
 
 interface ProfilePhotoUploadProps {
   currentPhotoUrl?: string | null;
@@ -25,7 +27,7 @@ export function ProfilePhotoUpload({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -38,6 +40,13 @@ export function ProfilePhotoUpload({
     // Validar tamanho (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('O arquivo deve ter no máximo 5MB.');
+      return;
+    }
+
+    // Validar magic bytes (assinatura do arquivo)
+    const isValidImage = await validateImageMagicBytes(file);
+    if (!isValidImage) {
+      toast.error('Arquivo inválido. Envie apenas imagens JPG, PNG ou SVG.');
       return;
     }
 
@@ -96,16 +105,16 @@ export function ProfilePhotoUpload({
             type="button"
           >
             {isUploading ? (
-              <Loader2 className="w-6 h-6 profile-accent animate-spin" />
+              <Loader2 className="w-6 h-6 text-[var(--global-accent)] animate-spin" />
             ) : (
-              <Camera className="w-6 h-6 profile-accent" />
+              <Camera className="w-6 h-6 text-[var(--global-accent)]" />
             )}
           </button>
         </div>
 
         {/* Badge de status */}
         {isUploading && (
-          <div className="absolute -bottom-2 -right-2 profile-bg-accent text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
+          <div className="absolute -bottom-2 -right-2 bg-[var(--global-accent)] text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
             Enviando...
           </div>
         )}
@@ -122,94 +131,79 @@ export function ProfilePhotoUpload({
         />
       </div>
 
-      {isDialogOpen && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-          onClick={handleCancelUpload}
+      {/* Dialog usando componente shadcn/ui */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent 
+          className="sm:max-w-md"
           data-test="upload-preview-dialog"
         >
-          <div 
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header do modal */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-xl font-semibold profile-text-secondary">
-                Confirmar nova foto
-              </h3>
-              <button
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-800">
+              Confirmar nova foto
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Preview da foto */}
+            <div className="flex justify-center">
+              {previewUrl && (
+                <div className="relative">
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-48 h-48 rounded-full object-cover shadow-lg ring-4 ring-gray-200"
+                    data-test="photo-preview"
+                  />
+                  <div className="absolute -bottom-2 -right-2 bg-green-500 text-white p-2 rounded-full shadow-lg">
+                    <Camera className="w-4 h-4" />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Mensagem */}
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Esta será sua nova foto de perfil.
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Você poderá alterá-la novamente quando quiser.
+              </p>
+            </div>
+
+            {/* Botões de ação */}
+            <div className="flex gap-3">
+              <Button
                 onClick={handleCancelUpload}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-full"
-                data-test="close-dialog-button"
+                className="flex-1 border-2 border-gray-200 bg-white hover:bg-gray-50"
+                data-test="cancel-button"
                 type="button"
               >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6">
-              {/* Preview da foto */}
-              <div className="mb-6 flex justify-center">
-                {previewUrl && (
-                  <div className="relative">
-                    <img
-                      src={previewUrl}
-                      alt="Preview"
-                      className="w-48 h-48 rounded-full object-cover shadow-lg ring-4 profile-border"
-                      data-test="photo-preview"
-                    />
-                    <div className="absolute -bottom-2 -right-2 bg-green-500 text-white p-2 rounded-full shadow-lg">
-                      <Camera className="w-4 h-4" />
-                    </div>
-                  </div>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleConfirmUpload}
+                disabled={isUploading}
+                className="flex-1 bg-[var(--global-accent)] text-white hover:opacity-90"
+                data-test="confirm-upload-button"
+                type="button"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Confirmar
+                  </>
                 )}
-              </div>
-
-              {/* Mensagem */}
-              <div className="mb-6 text-center">
-                <p className="text-sm text-gray-600">
-                  Esta será sua nova foto de perfil.
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Você poderá alterá-la novamente quando quiser.
-                </p>
-              </div>
-
-              {/* Botões de ação */}
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleCancelUpload}
-                  className="flex-1 border-2 profile-border bg-white hover:bg-gray-50"
-                  data-test="cancel-button"
-                  type="button"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={handleConfirmUpload}
-                  disabled={isUploading}
-                  className="flex-1 profile-btn-primary text-white disabled:opacity-50"
-                  data-test="confirm-upload-button"
-                  type="button"
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4 mr-2" />
-                      Confirmar
-                    </>
-                  )}
-                </Button>
-              </div>
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

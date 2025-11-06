@@ -34,8 +34,8 @@ export function Avatar({
   fallbackIcon 
 }: AvatarProps) {
   const [imageError, setImageError] = useState(false);
-  // Considera fallback se src for null, undefined, string vazia ou "Não informado"
-  const showFallback = !src || src === 'Não informado' || imageError;
+  // Considera fallback se src for null, undefined ou string vazia
+  const showFallback = !src || imageError;
 
   const handleImageError = () => {
     setImageError(true);
@@ -44,12 +44,12 @@ export function Avatar({
   return (
     <div 
       className={`${sizeClasses[size]} rounded-full overflow-hidden flex items-center justify-center ${
-        showFallback ? 'profile-avatar-bg' : ''
+        showFallback ? 'bg-gray-100' : ''
       } ${className}`}
       data-test="avatar"
     >
       {showFallback ? (
-        <div className="profile-accent" data-test="avatar-fallback">
+        <div className="text-[var(--global-accent)]" data-test="avatar-fallback">
           {fallbackIcon || <User className={iconSizeClasses[size]} />}
         </div>
       ) : (
