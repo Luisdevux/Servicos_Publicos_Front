@@ -59,6 +59,8 @@ export default function PedidosOperadorPage() {
       try {
         const result = await demandaService.buscarDemandas();
         console.log("Demandas carregadas:", result);
+        console.log("Total de demandas retornadas:", result?.data?.docs?.length || 0);
+        console.log("Usuário da sessão:", session?.user);
         return result;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
@@ -79,42 +81,89 @@ export default function PedidosOperadorPage() {
     }
   }, [error, router]);
 
-  const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => {
-    // Debug: log da demanda completa para ver estrutura
-    if (demanda.status === "Concluída") {
-      console.log("Demanda da API no operador (Concluída):", demanda);
-      console.log("link_imagem_resolucao:", demanda.link_imagem_resolucao);
-      console.log("tipo de link_imagem_resolucao:", typeof demanda.link_imagem_resolucao);
-      console.log("é array?", Array.isArray(demanda.link_imagem_resolucao));
-    }
-    
-    return {
-      id: demanda._id,
-      titulo: `Demanda sobre ${demanda.tipo}`,
-      descricao: demanda.descricao,
-      tipo: demanda.tipo.toLowerCase(),
-      status: demanda.status || 'Em aberto',
-      imagem: demanda.link_imagem 
-        ? (Array.isArray(demanda.link_imagem) 
-            ? demanda.link_imagem 
-            : [demanda.link_imagem])
-        : undefined,
-      endereco: demanda.endereco ? {
-        bairro: demanda.endereco.bairro,
-        tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
-        logradouro: demanda.endereco.logradouro,
-        numero: demanda.endereco.numero,
-      } : undefined,
-      usuarios: demanda.usuarios,
-      resolucao: demanda.resolucao,
-      motivo_devolucao: demanda.motivo_devolucao,
-      link_imagem_resolucao: demanda.link_imagem_resolucao 
-        ? (Array.isArray(demanda.link_imagem_resolucao) 
-            ? demanda.link_imagem_resolucao 
-            : [demanda.link_imagem_resolucao])
-        : undefined,
-    };
-  }) || [];
+  // Filtrar apenas demandas atribuídas ao operador logado
+  const demandas: DemandaCard[] = response?.data?.docs
+    ?.filter((demanda: DemandaAPI) => {
+      // Se não tem usuários atribuídos, não mostrar
+      if (!demanda.usuarios || demanda.usuarios.length === 0) {
+        console.log(`❌ Demanda ${demanda._id} não tem usuários atribuídos`);
+        return false;
+      }
+
+      // Verificar se o operador logado está na lista de usuários atribuídos
+      const userId = session?.user?.id;
+      if (!userId) {
+        console.log(`⚠️ Não foi possível obter o ID do usuário da sessão`);
+        return false;
+      }
+
+      // Verificar se o usuário está na lista
+      const isAtribuido = demanda.usuarios.some((usuario: any) => {
+        // Se é um objeto, comparar o _id
+        if (typeof usuario === 'object' && usuario._id) {
+          return usuario._id === userId;
+        }
+        // Se é uma string, comparar diretamente
+        return usuario === userId;
+      });
+
+      if (isAtribuido) {
+        console.log(`✅ Demanda ${demanda._id} está atribuída ao operador ${userId}`);
+      } else {
+        console.log(`❌ Demanda ${demanda._id} NÃO está atribuída ao operador ${userId}. Usuários:`, demanda.usuarios);
+      }
+
+      return isAtribuido;
+    })
+    ?.map((demanda: DemandaAPI) => {
+      // Debug: log da demanda completa para ver estrutura
+      if (demanda.status === "Concluída") {
+        console.log("Demanda da API no operador (Concluída):", demanda);
+        console.log("link_imagem_resolucao:", demanda.link_imagem_resolucao);
+        console.log("tipo de link_imagem_resolucao:", typeof demanda.link_imagem_resolucao);
+        console.log("é array?", Array.isArray(demanda.link_imagem_resolucao));
+      }
+      
+      return {
+        id: demanda._id,
+        titulo: `Demanda sobre ${demanda.tipo}`,
+        descricao: demanda.descricao,
+        tipo: demanda.tipo.toLowerCase(),
+        status: demanda.status || 'Em aberto',
+        imagem: demanda.link_imagem 
+          ? (Array.isArray(demanda.link_imagem) 
+              ? demanda.link_imagem 
+              : [demanda.link_imagem])
+          : undefined,
+        endereco: demanda.endereco ? {
+          bairro: demanda.endereco.bairro,
+          tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
+          logradouro: demanda.endereco.logradouro,
+          numero: demanda.endereco.numero,
+        } : undefined,
+        usuarios: demanda.usuarios,
+        resolucao: demanda.resolucao,
+        motivo_devolucao: demanda.motivo_devolucao,
+        link_imagem_resolucao: demanda.link_imagem_resolucao 
+          ? (Array.isArray(demanda.link_imagem_resolucao) 
+              ? demanda.link_imagem_resolucao 
+              : [demanda.link_imagem_resolucao])
+          : undefined,
+      };
+    }) || [];
+
+  // Log para debug: mostrar demandas processadas
+  console.log("=== DEMANDAS PROCESSADAS ===");
+  console.log("Total de demandas após filtro:", demandas.length);
+  demandas.forEach((d, index) => {
+    console.log(`Demanda ${index + 1}:`, {
+      id: d.id,
+      titulo: d.titulo,
+      status: d.status,
+      tipo: d.tipo
+    });
+  });
+  console.log("===========================");
 
   const devolverMutation = useMutation({
     mutationFn: async ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
@@ -227,13 +276,22 @@ export default function PedidosOperadorPage() {
     const statusNormalizado = demanda.status.toLowerCase();
     
     if (abaAtiva === "aguardando-resolucao") {
-      return statusNormalizado === "em andamento";
+      const match = statusNormalizado === "em andamento";
+      console.log(`Filtro "aguardando-resolucao": Demanda ${demanda.id} - Status: "${demanda.status}" (normalizado: "${statusNormalizado}") - Match: ${match}`);
+      return match;
     } else if (abaAtiva === "concluidas") {
-      return statusNormalizado === "concluída" || statusNormalizado === "concluida";
+      const match = statusNormalizado === "concluída" || statusNormalizado === "concluida";
+      console.log(`Filtro "concluidas": Demanda ${demanda.id} - Status: "${demanda.status}" (normalizado: "${statusNormalizado}") - Match: ${match}`);
+      return match;
     }
     
     return false;
   });
+
+  console.log("=== APÓS FILTRO DE STATUS ===");
+  console.log(`Aba ativa: ${abaAtiva}`);
+  console.log(`Demandas após filtro de status: ${demandasPorStatus.length}`);
+  console.log("==============================");
 
   const demandasFiltradas = demandasPorStatus.filter(demanda => {
     if (filtroSelecionado === "todos") {
