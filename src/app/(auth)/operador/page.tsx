@@ -276,7 +276,7 @@ export default function PedidosOperadorPage() {
     const statusNormalizado = demanda.status.toLowerCase();
     
     if (abaAtiva === "aguardando-resolucao") {
-      const match = statusNormalizado === "em andamento";
+      const match = statusNormalizado === "Em andamento";
       console.log(`Filtro "aguardando-resolucao": Demanda ${demanda.id} - Status: "${demanda.status}" (normalizado: "${statusNormalizado}") - Match: ${match}`);
       return match;
     } else if (abaAtiva === "concluidas") {
@@ -302,7 +302,7 @@ export default function PedidosOperadorPage() {
 
   // Contador de demandas por aba
   const contadorAguardandoResolucao = demandas.filter(d => 
-    d.status.toLowerCase() === "em andamento"
+    d.status.toLowerCase() === "Em andamento"
   ).length;
 
   const contadorConcluidas = demandas.filter(d => 

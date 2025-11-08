@@ -148,7 +148,21 @@ export default function PedidosSecretariaPage() {
     retry: 1,
   });
 
-  const operadores: Usuarios[] = operadoresResponse?.data?.docs || [];
+  // Remover o próprio usuário da lista de operadores (para o secretário não se auto-atribuir)
+  const operadores: Usuarios[] = (operadoresResponse?.data?.docs || []).filter((op: any) => {
+    try {
+      const userId = session?.user?.id;
+      if (!userId) return true; // se não tiver sessão, não filtra
+
+      // suportar formatos { _id } ou id ou string
+      const opId = (op && (op._id || op.id || op)).toString();
+      return opId !== userId.toString();
+    } catch (e) {
+      // em caso de erro, não filtrar esse item
+      console.error('Erro ao filtrar operadores:', e);
+      return true;
+    }
+  });
 
   const atribuirMutation = useMutation({
     mutationFn: async ({ demandaId, operadorId }: { demandaId: string; operadorId: string }) => {
