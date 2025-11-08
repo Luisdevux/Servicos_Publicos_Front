@@ -57,13 +57,18 @@ export default function PedidosOperadorPage() {
     queryKey: ['demandas-operador'],
     queryFn: async () => {
       try {
+        // A API já deve retornar apenas as demandas do operador logado
         const result = await demandaService.buscarDemandas();
-        console.log("Demandas carregadas:", result);
-        console.log("Total de demandas retornadas:", result?.data?.docs?.length || 0);
-        console.log("Usuário da sessão:", session?.user);
+        console.log("📋 Demandas carregadas do operador:", result);
+        console.log("📊 Total de demandas:", result?.data?.docs?.length || 0);
+        if (result?.data?.docs) {
+          result.data.docs.forEach((d: any) => {
+            console.log(`  - Demanda ${d._id}: ${d.tipo} - Status: ${d.status}`);
+          });
+        }
         return result;
       } catch (err) {
-        console.error("Erro ao buscar demandas:", err);
+        console.error("❌ Erro ao buscar demandas:", err);
         throw err;
       }
     },
@@ -81,41 +86,8 @@ export default function PedidosOperadorPage() {
     }
   }, [error, router]);
 
-  // Filtrar apenas demandas atribuídas ao operador logado
-  const demandas: DemandaCard[] = response?.data?.docs
-    ?.filter((demanda: DemandaAPI) => {
-      // Se não tem usuários atribuídos, não mostrar
-      if (!demanda.usuarios || demanda.usuarios.length === 0) {
-        console.log(`❌ Demanda ${demanda._id} não tem usuários atribuídos`);
-        return false;
-      }
-
-      // Verificar se o operador logado está na lista de usuários atribuídos
-      const userId = session?.user?.id;
-      if (!userId) {
-        console.log(`⚠️ Não foi possível obter o ID do usuário da sessão`);
-        return false;
-      }
-
-      // Verificar se o usuário está na lista
-      const isAtribuido = demanda.usuarios.some((usuario: any) => {
-        // Se é um objeto, comparar o _id
-        if (typeof usuario === 'object' && usuario._id) {
-          return usuario._id === userId;
-        }
-        // Se é uma string, comparar diretamente
-        return usuario === userId;
-      });
-
-      if (isAtribuido) {
-        console.log(`✅ Demanda ${demanda._id} está atribuída ao operador ${userId}`);
-      } else {
-        console.log(`❌ Demanda ${demanda._id} NÃO está atribuída ao operador ${userId}. Usuários:`, demanda.usuarios);
-      }
-
-      return isAtribuido;
-    })
-    ?.map((demanda: DemandaAPI) => {
+  // Mapear as demandas sem filtro adicional - a API já retorna apenas as do operador
+  const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => {
       // Debug: log da demanda completa para ver estrutura
       if (demanda.status === "Concluída") {
         console.log("Demanda da API no operador (Concluída):", demanda);
@@ -152,18 +124,7 @@ export default function PedidosOperadorPage() {
       };
     }) || [];
 
-  // Log para debug: mostrar demandas processadas
-  console.log("=== DEMANDAS PROCESSADAS ===");
-  console.log("Total de demandas após filtro:", demandas.length);
-  demandas.forEach((d, index) => {
-    console.log(`Demanda ${index + 1}:`, {
-      id: d.id,
-      titulo: d.titulo,
-      status: d.status,
-      tipo: d.tipo
-    });
-  });
-  console.log("===========================");
+  console.log("✅ Demandas do operador:", demandas.length);
 
   const devolverMutation = useMutation({
     mutationFn: async ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
@@ -273,25 +234,15 @@ export default function PedidosOperadorPage() {
 
   // Filtrar demandas por status baseado na aba ativa
   const demandasPorStatus = demandas.filter(demanda => {
-    const statusNormalizado = demanda.status.toLowerCase();
-    
     if (abaAtiva === "aguardando-resolucao") {
-      const match = statusNormalizado === "Em andamento";
-      console.log(`Filtro "aguardando-resolucao": Demanda ${demanda.id} - Status: "${demanda.status}" (normalizado: "${statusNormalizado}") - Match: ${match}`);
-      return match;
+      return demanda.status === "Em andamento";
     } else if (abaAtiva === "concluidas") {
-      const match = statusNormalizado === "concluída" || statusNormalizado === "concluida";
-      console.log(`Filtro "concluidas": Demanda ${demanda.id} - Status: "${demanda.status}" (normalizado: "${statusNormalizado}") - Match: ${match}`);
-      return match;
+      return demanda.status === "Concluída";
     }
-    
     return false;
   });
 
-  console.log("=== APÓS FILTRO DE STATUS ===");
-  console.log(`Aba ativa: ${abaAtiva}`);
-  console.log(`Demandas após filtro de status: ${demandasPorStatus.length}`);
-  console.log("==============================");
+  console.log(`📊 Filtro ativo: ${abaAtiva} - ${demandasPorStatus.length} demandas`);
 
   const demandasFiltradas = demandasPorStatus.filter(demanda => {
     if (filtroSelecionado === "todos") {
@@ -302,11 +253,11 @@ export default function PedidosOperadorPage() {
 
   // Contador de demandas por aba
   const contadorAguardandoResolucao = demandas.filter(d => 
-    d.status.toLowerCase() === "Em andamento"
+    d.status === "Em andamento"
   ).length;
 
   const contadorConcluidas = demandas.filter(d => 
-    d.status.toLowerCase() === "concluída" || d.status.toLowerCase() === "concluida"
+    d.status === "Concluída"
   ).length;
 
   const totalPaginas = Math.ceil(demandasFiltradas.length / ITENS_POR_PAGINA);
