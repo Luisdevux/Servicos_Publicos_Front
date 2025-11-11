@@ -9,11 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { CadastroFormData } from "@/types";
 import { useRouter } from "next/navigation";
+import { useCepVilhena } from "@/hooks/useCepVilhena";
+import { formatCPF, formatPhoneNumber, cleanCPF, cleanPhoneNumber } from "@/lib/profileHelpers";
+import { toast } from "sonner";
 
 export default function CadastroPage() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
   const router = useRouter();
+  const { buscarCep, formatarCep, validarCepEncontrado } = useCepVilhena();
   
   const [formData, setFormData] = useState<CadastroFormData>({
     nomeCivil: "",
@@ -39,10 +43,52 @@ export default function CadastroPage() {
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCPF(e.target.value);
+    setFormData(prev => ({ ...prev, cpf: formatted }));
+  };
+
+  const handleCelularChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setFormData(prev => ({ ...prev, celular: formatted }));
+  };
+
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatarCep(e.target.value);
+    setFormData(prev => ({ ...prev, cep: formatted }));
+
+    // Buscar endereço quando CEP tiver 8 dígitos
+    if (formatted.replace(/\D/g, '').length === 8) {
+      const endereco = await buscarCep(formatted);
+      
+      if (endereco) {
+        setFormData(prev => ({
+          ...prev,
+          rua: endereco.logradouro || prev.rua,
+          bairro: endereco.bairro || prev.bairro,
+          cidade: endereco.cidade || prev.cidade,
+          estado: endereco.estado || prev.estado,
+        }));
+      }
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar CEP de Vilhena (verifica se foi encontrado no ViaCEP)
+    const cepValidation = validarCepEncontrado(formData.cep);
+    if (!cepValidation.valid) {
+      toast.error(cepValidation.message || 'CEP inválido');
+      return;
+    }
+    
     // TODO: Implementar lógica de cadastro
-    console.log("Dados do formulário:", formData);
+    console.log("Dados do formulário:", {
+      ...formData,
+      cpf: cleanCPF(formData.cpf),
+      celular: cleanPhoneNumber(formData.celular),
+    });
   };
 
   return (
@@ -94,7 +140,8 @@ export default function CadastroPage() {
                         type="text"
                         placeholder="999.999.999-99"
                         value={formData.cpf}
-                        onChange={handleChange}
+                        onChange={handleCpfChange}
+                        maxLength={14}
                         data-test="input-cpf"
                     />
                 </div>
@@ -136,7 +183,8 @@ export default function CadastroPage() {
                         type="tel"
                         placeholder="(69) 98125-2365"
                         value={formData.celular}
-                        onChange={handleChange}
+                        onChange={handleCelularChange}
+                        maxLength={15}
                         required
                         data-test="input-celular"
                     />
@@ -152,14 +200,15 @@ export default function CadastroPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-2">
                         <label htmlFor="cep" className="block text-sm font-medium text-global-text-primary">
-                            CEP
+                            CEP <span className="text-xs text-gray-500">(Vilhena-RO: 76980-001 a 76989-999)</span>
                         </label>
                         <Input
                             id="cep"
                             type="text"
-                            placeholder="76980-632"
+                            placeholder="76980-000"
                             value={formData.cep}
-                            onChange={handleChange}
+                            onChange={handleCepChange}
+                            maxLength={9}
                             required
                             data-test="input-cep"
                         />

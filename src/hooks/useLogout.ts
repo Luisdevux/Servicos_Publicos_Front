@@ -18,7 +18,8 @@ export function useLogout() {
     // Determina a URL de callback baseado na rota atual
     const isSecretariaArea = pathname?.startsWith('/secretaria');
     const isOperadorArea = pathname?.startsWith('/operador');
-    const callbackUrl = (isSecretariaArea || isOperadorArea) ? '/login/funcionario' : '/login/municipe';
+    const isAdminArea = pathname?.startsWith('/admin');
+    const callbackUrl = (isSecretariaArea || isOperadorArea || isAdminArea) ? '/login/funcionario' : '/login/municipe';
 
     try {
       // Chama a API de logout do backend através da rota segura

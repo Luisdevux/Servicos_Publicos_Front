@@ -1,6 +1,7 @@
 // src/services/usuarioService.ts
 
 import { getSecure, postSecure, patchSecure, delSecure } from './api';
+import { fileToBase64 } from '@/lib/imageUtils';
 import type {
   Usuarios,
   ApiResponse,
@@ -81,8 +82,7 @@ export const usuarioService = {
     id: string,
     file: File
   ): Promise<ApiResponse<{ link_imagem: string }>> {
-    const formData = new FormData();
-    formData.append('file', file);
+    const base64File = await fileToBase64(file);
 
     const response = await fetch('/api/auth/secure-fetch', {
       method: 'POST',
@@ -90,36 +90,27 @@ export const usuarioService = {
       body: JSON.stringify({
         endpoint: `/usuarios/${id}/foto`,
         method: 'POST',
-        body: formData
+        bodyType: 'formData',
+        formData: {
+          file: base64File
+        }
       })
     });
 
     if (!response.ok) {
-      throw new Error('Erro ao fazer upload da foto');
+      const errorData = await response.json().catch(() => ({ error: 'Erro ao fazer upload da foto' }));
+      throw new Error(errorData.error || 'Erro ao fazer upload da foto');
     }
 
     return response.json();
   },
 
   /**
-   * Busca foto de um usuário
-   * GET /usuarios/:id/foto (requer AuthMiddleware + AuthPermission)
+   * Remove a foto de perfil do usuário
+   * DELETE /usuarios/:id/foto (requer AuthMiddleware + AuthPermission)
    */
-  async buscarFotoUsuario(id: string): Promise<Blob> {
-    const response = await fetch('/api/auth/secure-fetch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        endpoint: `/usuarios/${id}/foto`,
-        method: 'GET'
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao buscar foto');
-    }
-
-    return response.blob();
+  async deletarFotoUsuario(id: string): Promise<ApiResponse<void>> {
+    return delSecure<ApiResponse<void>>(`/usuarios/${id}/foto`);
   },
 
   /**

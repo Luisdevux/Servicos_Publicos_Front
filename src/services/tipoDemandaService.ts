@@ -1,6 +1,7 @@
 // src/services/tipoDemandaService.ts
 
 import { getSecure, postSecure, patchSecure, delSecure } from './api';
+import { fileToBase64 } from '@/lib/imageUtils';
 import type {
   TipoDemandaModel,
   ApiResponse,
@@ -132,13 +133,3 @@ export const tipoDemandaService = {
     return delSecure<ApiResponse<void>>(`/tipoDemanda/${id}/foto`);
   },
 };
-
-
-async function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-  });
-}

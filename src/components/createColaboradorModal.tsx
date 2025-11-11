@@ -18,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { secretariaService } from '@/services/secretariaService';
 import { usuarioService } from '@/services/usuarioService';
-import { viaCepService } from '@/services';
+import { useCepVilhena } from '@/hooks/useCepVilhena';
 import type { CreateUsuariosData, Secretaria, Usuarios, EstadoBrasil } from '@/types';
 import type { Endereco } from '@/types/endereco';
 import { ESTADOS_BRASIL } from '@/types';
@@ -31,6 +31,7 @@ interface CreateColaboradorModalProps {
 
 export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateColaboradorModalProps) {
   const queryClient = useQueryClient();
+  const { buscarCep, formatarCep, validarCepEncontrado } = useCepVilhena();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [nome, setNome] = useState('');
@@ -137,6 +138,14 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
     if (!cpf.trim()) return toast.error('Informe o CPF');
     if (!cnh.trim()) return toast.error('Informe a CNH');
     if (!nivel) return toast.error('Selecione o nível de acesso');
+
+    // Validar CEP de Vilhena, verifica se está no range e se foi encontrado no ViaCEP
+    const cepValidation = validarCepEncontrado(cep);
+    if (!cepValidation.valid) {
+      toast.error(cepValidation.message || 'CEP inválido');
+      setIsSubmitting(false);
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -278,35 +287,20 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
   };
 
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 8) value = value.slice(0, 8);
+    const formatted = formatarCep(e.target.value);
+    setCep(formatted);
 
-    if (value.length > 5) {
-      value = `${value.slice(0, 5)}-${value.slice(5)}`;
-    }
-
-    setCep(value);
-
-    const apenasNumeros = value.replace(/\D/g, '');
+    const apenasNumeros = formatted.replace(/\D/g, '');
     if (apenasNumeros.length === 8) {
-      setLoadingCep(true);
-      try {
-        const endereco = await viaCepService.buscarEnderecoPorCep(apenasNumeros);
-        if (endereco) {
-          setBairro(endereco.bairro || '');
-          setCidade(endereco.localidade || 'Vilhena');
-          setEstado((endereco.uf as EstadoBrasil) || 'RO');
-          if (endereco.logradouro) {
-            setLogradouro(endereco.logradouro);
-          }
-          toast.success('CEP encontrado! Endereço preenchido automaticamente.');
-        } else {
-          toast.error('CEP não encontrado. Verifique o número digitado.');
+      const endereco = await buscarCep(apenasNumeros);
+      
+      if (endereco) {
+        setBairro(endereco.bairro || '');
+        setCidade(endereco.cidade || 'Vilhena');
+        setEstado((endereco.estado as EstadoBrasil) || 'RO');
+        if (endereco.logradouro) {
+          setLogradouro(endereco.logradouro);
         }
-      } catch (error) {
-        toast.error('Erro ao buscar CEP. Tente novamente.');
-      } finally {
-        setLoadingCep(false);
       }
     }
   };

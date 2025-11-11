@@ -1,6 +1,7 @@
 // src/types/next-auth.d.ts
 
 import "next-auth";
+import type { Endereco } from "./endereco";
 
 declare module "next-auth" {
 
@@ -11,6 +12,7 @@ declare module "next-auth" {
       email: string;
       cpf?: string;
       cnpj?: string;
+      data_nascimento?: string;
       username?: string;
       celular: string;
       nivel_acesso: {
@@ -20,6 +22,11 @@ declare module "next-auth" {
         administrador?: boolean;
       };
       ativo: boolean;
+      link_imagem?: string;
+      nome_social?: string;
+      cargo?: string;
+      formacao?: string;
+      endereco?: Endereco;
     };
     error?: string;
   }
@@ -42,6 +49,11 @@ declare module "next-auth" {
     accesstoken: string;
     refreshtoken: string;
     lembrarDeMim?: boolean;
+    link_imagem?: string;
+    nome_social?: string;
+    cargo?: string;
+    formacao?: string;
+    endereco?: Endereco;
   }
 
 }
@@ -68,6 +80,11 @@ declare module "next-auth/jwt" {
     accessTokenExpires?: number;
     error?: string;
     errorDetails?: string;
+    link_imagem?: string;
+    nome_social?: string;
+    cargo?: string;
+    formacao?: string;
+    endereco?: Endereco;
   }
 }
 

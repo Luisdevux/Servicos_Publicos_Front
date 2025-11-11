@@ -141,3 +141,15 @@ export async function validateImageMagicBytes(file: File): Promise<boolean> {
     reader.readAsArrayBuffer(file.slice(0, 4));
   });
 }
+
+/**
+ * Converte um arquivo para Base64
+ */
+export function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+}

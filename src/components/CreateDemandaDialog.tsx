@@ -7,7 +7,8 @@ import { Upload, X, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { useCreateDemanda } from '@/hooks/useDemandaMutations';
-import { viaCepService } from '@/services';
+import { useCepVilhena } from '@/hooks/useCepVilhena';
+import { viaCepService } from '@/services'; // Para busca de CEPs por endereço
 import {
   Dialog,
   DialogContent,
@@ -58,6 +59,7 @@ const ESTADOS_BRASIL = [
 
 export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: CreateDemandaDialogProps) {
   const createDemanda = useCreateDemanda();
+  const { buscarCep, formatarCep, validarCepEncontrado } = useCepVilhena();
 
   const [descricao, setDescricao] = useState('');
   const [bairro, setBairro] = useState('');
@@ -80,6 +82,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
   const [showSugestoesBairro, setShowSugestoesBairro] = useState(false);
   const [loadingLogradouro, setLoadingLogradouro] = useState(false);
   const [loadingBairro, setLoadingBairro] = useState(false);
+  const [enderecoPorCep, setEnderecoPorCep] = useState(false); // Controla se o endereço veio da busca por CEP
 
   // Limpar formulário quando dialog fecha
   useEffect(() => {
@@ -95,6 +98,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
       setCep('');
       setImagens([]);
       setUploadProgress(null);
+      setEnderecoPorCep(false); // Reset do estado de endereço por CEP
 
       setPreviewUrls(prev => {
         prev.forEach(url => {
@@ -109,57 +113,47 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
 
   // Máscara de CEP com busca automática
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 8) value = value.slice(0, 8);
-
-    if (value.length > 5) {
-      value = `${value.slice(0, 5)}-${value.slice(5)}`;
-    }
-
-    setCep(value);
+    const formatted = formatarCep(e.target.value);
+    setCep(formatted);
 
     // Se tiver 8 dígitos, busca o endereço automaticamente
-    const apenasNumeros = value.replace(/\D/g, '');
+    const apenasNumeros = formatted.replace(/\D/g, '');
     if (apenasNumeros.length === 8) {
-      setLoadingCep(true);
-      try {
-        const endereco = await viaCepService.buscarEnderecoPorCep(apenasNumeros);
+      const endereco = await buscarCep(apenasNumeros);
 
-        if (endereco) {
-          // Preenche os campos automaticamente
-          setBairro(endereco.bairro || '');
-          setCidade(endereco.localidade || 'Vilhena');
-          setEstado((endereco.uf as EstadoBrasil) || 'RO');
+      if (endereco) {
+        // Marca que o endereço veio da busca por CEP
+        setEnderecoPorCep(true);
+        
+        // Preenche os campos automaticamente
+        setBairro(endereco.bairro || '');
+        setCidade(endereco.cidade || 'Vilhena');
+        setEstado((endereco.estado as EstadoBrasil) || 'RO');
 
-          // Extrai tipo e logradouro do campo "logradouro" do ViaCEP
-          if (endereco.logradouro) {
-            const palavras = endereco.logradouro.split(' ');
-            const primeiroTermo = palavras[0];
+        // Extrai tipo e logradouro do campo "logradouro"
+        if (endereco.logradouro) {
+          const palavras = endereco.logradouro.split(' ');
+          const primeiroTermo = palavras[0];
 
-            // Verifica se o primeiro termo é um tipo conhecido
-            if (TIPOS_LOGRADOURO.includes(primeiroTermo)) {
-              setTipoLogradouro(primeiroTermo);
-              setLogradouro(palavras.slice(1).join(' '));
-            } else {
-              setLogradouro(endereco.logradouro);
-            }
+          // Verifica se o primeiro termo é um tipo conhecido
+          if (TIPOS_LOGRADOURO.includes(primeiroTermo)) {
+            setTipoLogradouro(primeiroTermo);
+            setLogradouro(palavras.slice(1).join(' '));
+          } else {
+            setLogradouro(endereco.logradouro);
           }
-
-          toast.success('CEP encontrado! Endereço preenchido automaticamente.');
-        } else {
-          toast.error('CEP não encontrado. Verifique o número digitado.');
         }
-      } catch (error) {
-        console.error('Erro ao buscar CEP:', error);
-        toast.error('Erro ao buscar CEP. Tente novamente.');
-      } finally {
-        setLoadingCep(false);
       }
     }
   };
 
   // Busca de logradouro
   useEffect(() => {
+    // Não busca autocomplete se o endereço veio do CEP
+    if (enderecoPorCep) {
+      return;
+    }
+
     const timer = setTimeout(async () => {
       if (logradouro.length >= 3) {
         setLoadingLogradouro(true);
@@ -193,10 +187,15 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [logradouro]);
+  }, [logradouro, enderecoPorCep]);
 
   // Busca de bairro
   useEffect(() => {
+    // Não busca autocomplete se o endereço veio do CEP
+    if (enderecoPorCep) {
+      return;
+    }
+
     const timer = setTimeout(async () => {
       if (bairro.length >= 3) {
         setLoadingBairro(true);
@@ -229,7 +228,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [bairro]);
+  }, [bairro, enderecoPorCep]);
 
   // Selecionar sugestão de logradouro
   const selecionarLogradouro = (sugestao: { logradouro: string; bairro: string; cep: string }) => {
@@ -245,14 +244,14 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
     }
 
     setBairro(sugestao.bairro);
-    setCep(viaCepService.formatarCep(sugestao.cep));
+    setCep(formatarCep(sugestao.cep));
     setShowSugestoesLogradouro(false);
   };
 
   // Selecionar sugestão de bairro
   const selecionarBairro = (sugestao: { bairro: string; cep: string }) => {
     setBairro(sugestao.bairro);
-    setCep(viaCepService.formatarCep(sugestao.cep));
+    setCep(formatarCep(sugestao.cep));
     setShowSugestoesBairro(false);
   };
 
@@ -376,6 +375,15 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
     if (!cidade.trim()) {
       toast.error('Campo obrigatório: Cidade', {
         description: 'Preencha a cidade do endereço',
+      });
+      return;
+    }
+
+    // Validar CEP de Vilhena, verifica se está no range e se foi encontrado no ViaCEP
+    const cepValidation = validarCepEncontrado(cep);
+    if (!cepValidation.valid) {
+      toast.error('CEP inválido', {
+        description: cepValidation.message || 'Digite um CEP válido de Vilhena',
       });
       return;
     }
@@ -520,11 +528,12 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                     value={bairro}
                     onChange={(e) => {
                       setBairro(e.target.value);
+                      setEnderecoPorCep(false); // Reativa o autocomplete quando usuário edita
                       setShowSugestoesBairro(true);
                     }}
                     onBlur={() => setTimeout(() => setShowSugestoesBairro(false), 200)}
                     onFocus={() => {
-                      if (sugestoesBairro.length > 0) {
+                      if (sugestoesBairro.length > 0 && !enderecoPorCep) {
                         setShowSugestoesBairro(true);
                       }
                     }}
@@ -549,7 +558,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                           className="px-4 py-2 hover:bg-global-bg-select cursor-pointer transition-colors border-b border-global-border last:border-b-0"
                         >
                           <div className="font-medium text-global-text-primary">{sugestao.bairro}</div>
-                          <div className="text-xs text-global-text-secondary">CEP: {viaCepService.formatarCep(sugestao.cep)}</div>
+                          <div className="text-xs text-global-text-secondary">CEP: {formatarCep(sugestao.cep)}</div>
                         </div>
                       ))}
                     </div>
@@ -598,11 +607,12 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                     value={logradouro}
                     onChange={(e) => {
                       setLogradouro(e.target.value);
+                      setEnderecoPorCep(false); // Reativa o autocomplete quando usuário edita
                       setShowSugestoesLogradouro(true);
                     }}
                     onBlur={() => setTimeout(() => setShowSugestoesLogradouro(false), 200)}
                     onFocus={() => {
-                      if (sugestoesLogradouro.length > 0) {
+                      if (sugestoesLogradouro.length > 0 && !enderecoPorCep) {
                         setShowSugestoesLogradouro(true);
                       }
                     }}
@@ -632,7 +642,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                               Bairro: {sugestao.bairro}
                             </span>
                             <span className="text-xs text-global-text-secondary">
-                              CEP: {viaCepService.formatarCep(sugestao.cep)}
+                              CEP: {formatarCep(sugestao.cep)}
                             </span>
                           </div>
                         </div>
