@@ -257,27 +257,26 @@ export default function DetalhesDemandaSecretariaModal({
                     </div>
                   )}
 
-                  {demanda.link_imagem_resolucao && (
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-purple-600">
-                        {Array.isArray(demanda.link_imagem_resolucao) ? 'Imagens da conclusão' : 'Imagem da conclusão'}
-                      </h3>
-                      <ImageCarousel 
-                        images={
-                          Array.isArray(demanda.link_imagem_resolucao) 
-                            ? demanda.link_imagem_resolucao.map(img => 
-                                img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011'}/demandas/${demanda.id}/foto/resolucao`
-                              )
-                            : [demanda.link_imagem_resolucao.startsWith('http') 
-                                ? demanda.link_imagem_resolucao 
-                                : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011'}/demandas/${demanda.id}/foto/resolucao`
-                              ]
-                        }
-                        alt="Imagem da conclusão"
-                        className="h-48"
-                      />
-                    </div>
-                  )}
+                  {demanda.link_imagem_resolucao && (() => {
+                    const imagensResolucao = Array.isArray(demanda.link_imagem_resolucao)
+                      ? demanda.link_imagem_resolucao.filter((img): img is string => Boolean(img && typeof img === 'string' && img.trim() !== ''))
+                      : (demanda.link_imagem_resolucao && typeof demanda.link_imagem_resolucao === 'string' && demanda.link_imagem_resolucao.trim() !== '')
+                        ? [demanda.link_imagem_resolucao]
+                        : [];
+                    
+                    return imagensResolucao.length > 0 ? (
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-medium text-purple-600">
+                          {imagensResolucao.length > 1 ? 'Imagens da conclusão' : 'Imagem da conclusão'}
+                        </h3>
+                        <ImageCarousel 
+                          images={imagensResolucao}
+                          alt="Imagem da conclusão"
+                          className="h-48"
+                        />
+                      </div>
+                    ) : null;
+                  })()}
                 </>
               )}
             </div>

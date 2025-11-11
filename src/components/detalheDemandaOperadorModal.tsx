@@ -86,13 +86,6 @@ export default function DetalhesDemandaOperadorModal({
       return;
     }
 
-    if (imagensResolucao.length === 0) {
-      toast.error('Imagem obrigatória', {
-        description: 'Adicione pelo menos uma imagem da resolução',
-      });
-      return;
-    }
-
     if (onResolver) {
       onResolver(demanda.id, descricaoResolucao, imagensResolucao);
       setDescricaoResolucao("");
@@ -279,24 +272,26 @@ export default function DetalhesDemandaOperadorModal({
                     </div>
                   )}
 
-                  {demanda.link_imagem_resolucao && (
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-green-600">
-                        {Array.isArray(demanda.link_imagem_resolucao) && demanda.link_imagem_resolucao.length > 1 
-                          ? 'Imagens da conclusão' 
-                          : 'Imagem da conclusão'}
-                      </h3>
-                      <ImageCarousel 
-                        images={
-                          Array.isArray(demanda.link_imagem_resolucao) 
-                            ? demanda.link_imagem_resolucao 
-                            : [demanda.link_imagem_resolucao]
-                        }
-                        alt="Imagem da conclusão"
-                        className="h-48"
-                      />
-                    </div>
-                  )}
+                  {demanda.link_imagem_resolucao && (() => {
+                    const imagensResolucao = Array.isArray(demanda.link_imagem_resolucao)
+                      ? demanda.link_imagem_resolucao.filter((img): img is string => Boolean(img && typeof img === 'string' && img.trim() !== ''))
+                      : (demanda.link_imagem_resolucao && typeof demanda.link_imagem_resolucao === 'string' && demanda.link_imagem_resolucao.trim() !== '')
+                        ? [demanda.link_imagem_resolucao]
+                        : [];
+                    
+                    return imagensResolucao.length > 0 ? (
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-medium text-green-600">
+                          {imagensResolucao.length > 1 ? 'Imagens da conclusão' : 'Imagem da conclusão'}
+                        </h3>
+                        <ImageCarousel 
+                          images={imagensResolucao}
+                          alt="Imagem da conclusão"
+                          className="h-48"
+                        />
+                      </div>
+                    ) : null;
+                  })()}
                 </>
               )}
             </div>
