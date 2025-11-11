@@ -293,21 +293,31 @@ export default function PerfilPage() {
                 <p className="mt-2 text-gray-600 text-lg">{getUserType(user as any)}</p>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 pb-2">
                 {!isEditing ? (
-                  <Button
-                    onClick={toggleEdit}
-                    className="bg-global-accent text-white hover:opacity-90"
-                    data-test="button-editar-perfil"
-                  >
-                    <Edit2 className="w-4 h-4 mr-2" />
-                    Editar Perfil
-                  </Button>
+                  <>
+                    <Button
+                      onClick={toggleEdit}
+                      className="bg-global-accent text-white hover:opacity-90"
+                      data-test="button-editar-perfil"
+                    >
+                      <Edit2 className="w-4 h-4 mr-2" />
+                      Editar Perfil
+                    </Button>
+                    <Button
+                      onClick={handleLogout}
+                      className="bg-red-600 text-white hover:bg-red-700"
+                      data-test="button-sair"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sair
+                    </Button>
+                  </>
                 ) : (
                   <>
                     <Button
                       onClick={cancelEdit}
-                      className="border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                      className="border-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                       data-test="button-cancelar-edicao"
                     >
                       <X className="w-4 h-4 mr-2" />
@@ -338,55 +348,25 @@ export default function PerfilPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-8">
-            <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-pessoal">
-              <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
-                <User className="w-5 h-5 mr-2 text-global-accent" />
-                Informações Pessoais
-              </h2>
+        <div className="space-y-8">
+          <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-pessoal">
+            <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
+              <User className="w-5 h-5 mr-2 text-global-accent" />
+              Informações Pessoais
+            </h2>
 
-              <div className="space-y-5">
-                <ProfileField
-                  label="Nome Completo"
-                  value={formData.nome}
-                  isEditing={isEditing}
-                  isRequired
-                  placeholder="Digite seu nome completo"
-                  onChange={(value) => handleInputChange('nome', value)}
-                  data-test="perfil-campo-nome"
-                />
-              </div>
-            </div>
+            <div className="space-y-5">
+              <ProfileField
+                label="Nome Completo"
+                value={formData.nome}
+                isEditing={isEditing}
+                isRequired
+                placeholder="Digite seu nome completo"
+                onChange={(value) => handleInputChange('nome', value)}
+                data-test="perfil-campo-nome"
+              />
 
-            <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-contato">
-              <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
-                <Mail className="w-5 h-5 mr-2 text-global-accent" />
-                Informações de Contato
-              </h2>
-
-              <div className="space-y-5">
-                <ProfileField
-                  label="E-mail"
-                  value={user?.email || 'Não informado'}
-                  isEditing={false}
-                  isDisabled
-                  helperText="Campo não editável"
-                  data-test="perfil-campo-email"
-                />
-
-                <ProfileField
-                  label="Celular"
-                  value={formData.celular}
-                  isEditing={isEditing}
-                  isRequired
-                  placeholder="(00) 00000-0000"
-                  maxLength={15}
-                  icon={<Phone className="w-4 h-4" />}
-                  onChange={handleCelularChange}
-                  data-test="perfil-campo-celular"
-                />
-
+              <div className="grid grid-cols-2 gap-4">
                 <ProfileField
                   label="CPF"
                   value={formatCPF(user?.cpf || '')}
@@ -409,129 +389,136 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          <div className="space-y-8">
-            {/* Informações Profissionais, apenas se não for munícipe */}
-            {!isMunicipe(user as any) && (
-          <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-profissional">
+
+          {!isMunicipe(user as any) && (
+            <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-profissional">
+              <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
+                <Briefcase className="w-5 h-5 mr-2 text-global-accent" />
+                Informações Profissionais
+              </h2>
+
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <ProfileField
+                    label="Cargo"
+                    value={formData.cargo}
+                    isEditing={isEditing}
+                    placeholder="Digite seu cargo"
+                    onChange={(value) => handleInputChange('cargo', value)}
+                    data-test="perfil-campo-cargo"
+                  />
+
+                  <ProfileField
+                    label="Formação"
+                    value={formData.formacao}
+                    isEditing={isEditing}
+                    placeholder="Digite sua formação"
+                    onChange={(value) => handleInputChange('formacao', value)}
+                    data-test="perfil-campo-formacao"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-contato">
             <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
-              <Briefcase className="w-5 h-5 mr-2 text-global-accent" />
-              Informações Profissionais
+              <Mail className="w-5 h-5 mr-2 text-global-accent" />
+              Informações de Contato
             </h2>
 
             <div className="space-y-5">
               <ProfileField
-                label="Cargo"
-                value={formData.cargo}
-                isEditing={isEditing}
-                placeholder="Digite seu cargo"
-                onChange={(value) => handleInputChange('cargo', value)}
-                data-test="perfil-campo-cargo"
+                label="E-mail"
+                value={user?.email || 'Não informado'}
+                isEditing={false}
+                isDisabled
+                helperText="Campo não editável"
+                data-test="perfil-campo-email"
               />
 
               <ProfileField
-                label="Formação"
-                value={formData.formacao}
+                label="Celular"
+                value={formData.celular}
                 isEditing={isEditing}
-                placeholder="Digite sua formação"
-                onChange={(value) => handleInputChange('formacao', value)}
-                data-test="perfil-campo-formacao"
+                isRequired
+                placeholder="(00) 00000-0000"
+                maxLength={15}
+                icon={<Phone className="w-4 h-4" />}
+                onChange={handleCelularChange}
+                data-test="perfil-campo-celular"
               />
             </div>
           </div>
-        )}
+          <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-endereco">
+            <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
+              <MapPin className="w-5 h-5 mr-2 text-global-accent" />
+              Endereço
+            </h2>
 
-        <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-info-endereco">
-          <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800">
-            <MapPin className="w-5 h-5 mr-2 text-global-accent" />
-            Endereço
-          </h2>
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <ProfileField
+                  label="CEP"
+                  value={formData.endereco.cep}
+                  isEditing={isEditing}
+                  placeholder="00000-000"
+                  maxLength={9}
+                  onChange={handleCepChange}
+                  data-test="perfil-campo-cep"
+                />
 
-          <div className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <ProfileField
-                label="CEP"
-                value={formData.endereco.cep}
-                isEditing={isEditing}
-                placeholder="00000-000"
-                maxLength={9}
-                onChange={handleCepChange}
-                data-test="perfil-campo-cep"
-              />
+                <ProfileField
+                  label="Número"
+                  value={formData.endereco.numero}
+                  isEditing={isEditing}
+                  placeholder="123"
+                  onChange={(value) => handleInputChange('endereco.numero', value)}
+                  data-test="perfil-campo-numero"
+                />
+              </div>
 
-              <ProfileField
-                label="Número"
-                value={formData.endereco.numero}
-                isEditing={isEditing}
-                placeholder="123"
-                onChange={(value) => handleInputChange('endereco.numero', value)}
-                data-test="perfil-campo-numero"
-              />
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <ProfileField
+                  label="Logradouro"
+                  value={formData.endereco.logradouro}
+                  isEditing={isEditing}
+                  placeholder="Rua, Avenida..."
+                  onChange={(value) => handleInputChange('endereco.logradouro', value)}
+                  data-test="perfil-campo-logradouro"
+                />
 
-            <ProfileField
-              label="Logradouro"
-              value={formData.endereco.logradouro}
-              isEditing={isEditing}
-              placeholder="Rua, Avenida..."
-              onChange={(value) => handleInputChange('endereco.logradouro', value)}
-              data-test="perfil-campo-logradouro"
-            />
+                <ProfileField
+                  label="Bairro"
+                  value={formData.endereco.bairro}
+                  isEditing={isEditing}
+                  placeholder="Nome do bairro"
+                  onChange={(value) => handleInputChange('endereco.bairro', value)}
+                  data-test="perfil-campo-bairro"
+                />
+              </div>
 
-            <ProfileField
-              label="Complemento"
-              value={formData.endereco.complemento}
-              isEditing={isEditing}
-              placeholder="Apto, Bloco..."
-              onChange={(value) => handleInputChange('endereco.complemento', value)}
-              data-test="perfil-campo-complemento"
-            />
+              <div className="grid grid-cols-2 gap-4">
+                <ProfileField
+                  label="Complemento"
+                  value={formData.endereco.complemento}
+                  isEditing={isEditing}
+                  placeholder="Apto, Bloco..."
+                  onChange={(value) => handleInputChange('endereco.complemento', value)}
+                  data-test="perfil-campo-complemento"
+                />
 
-            <ProfileField
-              label="Bairro"
-              value={formData.endereco.bairro}
-              isEditing={isEditing}
-              placeholder="Nome do bairro"
-              onChange={(value) => handleInputChange('endereco.bairro', value)}
-              data-test="perfil-campo-bairro"
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <ProfileField
-                label="Cidade"
-                value={getUserEndereco(user as any, 'cidade')}
-                isEditing={false}
-                isDisabled
-                data-test="perfil-campo-cidade"
-              />
-
-              <ProfileField
-                label="Estado"
-                value={getUserEndereco(user as any, 'estado')}
-                isEditing={false}
-                isDisabled
-                data-test="perfil-campo-estado"
-              />
+                <ProfileField
+                  label="Cidade"
+                  value={getUserEndereco(user as any, 'cidade')}
+                  isEditing={false}
+                  isDisabled
+                  data-test="perfil-campo-cidade"
+                />
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="bg-white rounded-2xl shadow-sm p-8" data-test="perfil-acoes">
-          <h2 className="text-xl font-semibold mb-6 text-gray-800">
-            Ações da Conta
-          </h2>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button
-              onClick={handleLogout}
-              className="bg-red-600 text-white hover:bg-red-700"
-              data-test="button-sair"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair da Conta
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
       </div>
     </div>
   );
