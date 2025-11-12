@@ -68,7 +68,7 @@ export default function PedidosOperadorPage() {
         }
         return result;
       } catch (err) {
-        console.error("❌ Erro ao buscar demandas:", err);
+        console.error("Erro ao buscar demandas:", err);
         throw err;
       }
     },
