@@ -149,13 +149,13 @@ export default function PedidosSecretariaPage() {
   });
 
   // Remover o próprio usuário da lista de operadores (para o secretário não se auto-atribuir)
-  const operadores: Usuarios[] = (operadoresResponse?.data?.docs || []).filter((op: any) => {
+  const operadores: Usuarios[] = (operadoresResponse?.data?.docs || []).filter((op: Usuarios) => {
     try {
       const userId = session?.user?.id;
       if (!userId) return true; // se não tiver sessão, não filtra
 
-      // suportar formatos { _id } ou id ou string
-      const opId = (op && (op._id || op.id || op)).toString();
+      // suportar formatos { _id }
+      const opId = op._id;
       return opId !== userId.toString();
     } catch (e) {
       // em caso de erro, não filtrar esse item
@@ -282,7 +282,7 @@ export default function PedidosSecretariaPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[var(--global-bg)]">
+      <div className="min-h-screen bg-global-bg">
         <Banner
           icone={ClipboardList}
           titulo="Pedidos recebidos"
@@ -302,7 +302,7 @@ export default function PedidosSecretariaPage() {
     const isTokenExpired = error instanceof ApiError && error.status === 498;
     
     return (
-      <div className="min-h-screen bg-[var(--global-bg)]">
+      <div className="min-h-screen bg-global-bg">
         <Banner
           icone={ClipboardList}
           titulo="Pedidos recebidos"
@@ -335,14 +335,14 @@ export default function PedidosSecretariaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--global-bg)]">
+    <div className="min-h-screen bg-global-bg">
       <Banner
         icone={ClipboardList}
         titulo="Pedidos recebidos"
-        className="mb-6 md:mb-8"
+        className="mb-4"
       />
 
-      <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
+      <div className="px-6 sm:px-6 lg:px-40 py-4">
         <div className="mx-auto">
           {/* Abas de Status */}
           <div className="mb-6 border-b border-gray-200">
@@ -469,7 +469,7 @@ export default function PedidosSecretariaPage() {
         ) : (
           <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12">
             <ClipboardList className="h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-[var(--global-text-primary)] mb-2">
+            <h3 className="text-lg font-medium text-global-text-primary mb-2">
               Nenhum pedido encontrado
             </h3>
             <div className="text-sm text-gray-500 text-center">
@@ -489,7 +489,7 @@ export default function PedidosSecretariaPage() {
               <ChevronLeft size={20} />
             </button>
             
-            <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
+            <div className="flex items-center gap-2 text-sm text-global-text-primary">
               <span>Página {paginaAtual} de {totalPaginas}</span>
             </div>
             

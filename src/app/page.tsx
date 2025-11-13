@@ -187,6 +187,7 @@ export default function Home() {
                                     src={service.icon}
                                     alt={service.label}
                                     fill
+                                    sizes="32px"
                                     className="filter brightness-0 invert object-contain"
                                 />
                             </div>
