@@ -48,12 +48,12 @@ export function ProfilePhotoUpload({
 
     if (isActionsMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside as any);
+      document.addEventListener('touchstart', handleClickOutside as unknown as EventListener);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside as any);
+      document.removeEventListener('touchstart', handleClickOutside as unknown as EventListener);
     };
   }, [isActionsMenuOpen]);
 

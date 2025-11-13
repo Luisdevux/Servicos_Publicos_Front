@@ -248,12 +248,13 @@ export const authOptions: NextAuthOptions = {
   },
   cookies: {
     sessionToken: {
-      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
+      name: `${process.env.NEXTAUTH_URL?.startsWith('https://') ? '__Secure-' : ''}next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        // Só usa secure: true se NEXTAUTH_URL for HTTPS
+        secure: process.env.NEXTAUTH_URL?.startsWith('https://') ?? false,
         // maxAge será definido dinamicamente com base em lembrarDeMim
       },
     },

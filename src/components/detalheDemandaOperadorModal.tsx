@@ -155,7 +155,7 @@ export default function DetalhesDemandaOperadorModal({
     <>
       <Dialog open={isOpen && !showDevolverModal && !showResolverModal} onOpenChange={onClose}>
         <DialogContent 
-          className="!max-w-2xl !max-h-[90vh] overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
+          className="max-w-2xl! max-h-[90vh]! overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
         >
           {/* Background decorativo */}
           <div className="absolute inset-0 pointer-events-none opacity-5 z-0">

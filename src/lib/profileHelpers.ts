@@ -7,7 +7,7 @@ import type { Usuarios } from '@/types';
 /**
  * Formata uma data para o formato brasileiro (DD/MM/YYYY)
  */
-export function formatDate(date: any): string {
+export function formatDate(date: string | Date | null | undefined): string {
   if (!date || date === 'Não informado') return 'Não informado';
   
   try {
@@ -226,30 +226,33 @@ export function validateName(name: string): { valid: boolean; message?: string }
 /**
  * Obtém o tipo de usuário baseado no nível de acesso
  */
-export function getUserType(user: Usuarios | null | undefined): string {
-  if (!user || !('nivel_acesso' in user)) return 'Não informado';
-  if (user.nivel_acesso?.administrador) return 'Administrador';
-  if (user.nivel_acesso?.secretario) return 'Secretário';
-  if (user.nivel_acesso?.operador) return 'Operador';
-  if (user.nivel_acesso?.municipe) return 'Munícipe';
+export function getUserType(user: unknown): string {
+  if (!user || typeof user !== 'object' || !('nivel_acesso' in user)) return 'Não informado';
+  const nivelAcesso = user.nivel_acesso as { municipe?: boolean; operador?: boolean; secretario?: boolean; administrador?: boolean } | undefined;
+  if (!nivelAcesso) return 'Não informado';
+  if (nivelAcesso.administrador) return 'Administrador';
+  if (nivelAcesso.secretario) return 'Secretário';
+  if (nivelAcesso.operador) return 'Operador';
+  if (nivelAcesso.municipe) return 'Munícipe';
   return 'Não informado';
 }
 
 /**
  * Verifica se o usuário é munícipe
  */
-export function isMunicipe(user: Usuarios | null | undefined): boolean {
-  if (!user || !('nivel_acesso' in user)) return false;
-  return !!user.nivel_acesso?.municipe;
+export function isMunicipe(user: unknown): boolean {
+  if (!user || typeof user !== 'object' || !('nivel_acesso' in user)) return false;
+  const nivelAcesso = user.nivel_acesso as { municipe?: boolean } | undefined;
+  return !!nivelAcesso?.municipe;
 }
 
 /**
  * Obtém um dado do usuário com fallback para "Não informado"
  */
-export function getUserData(user: Usuarios | null | undefined, field: keyof Usuarios): string | null {
-  if (!user) return field === 'link_imagem' ? null : 'Não informado';
+export function getUserData(user: unknown, field: string): string | null {
+  if (!user || typeof user !== 'object') return field === 'link_imagem' ? null : 'Não informado';
   
-  const value = user[field];
+  const value = (user as Record<string, unknown>)[field];
   
   if (field === 'link_imagem') {
     return (value as string) || null;
@@ -262,13 +265,14 @@ export function getUserData(user: Usuarios | null | undefined, field: keyof Usua
  * Obtém um campo do endereço do usuário
  */
 export function getUserEndereco(
-  user: Usuarios | null | undefined, 
+  user: unknown, 
   field: string
 ): string | number {
-  if (!user || !('endereco' in user) || !user.endereco) {
+  if (!user || typeof user !== 'object' || !('endereco' in user) || !user.endereco) {
     return field === 'numero' ? 0 : 'Não informado';
   }
   
-  const value = (user.endereco as any)[field];
-  return value || (field === 'numero' ? 0 : 'Não informado');
+  const endereco = user.endereco as Record<string, unknown>;
+  const value = endereco[field] as string | number | undefined;
+  return value !== undefined && value !== null ? value : (field === 'numero' ? 0 : 'Não informado');
 }
