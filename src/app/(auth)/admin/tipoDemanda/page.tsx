@@ -26,7 +26,7 @@ export default function TipoDemandaAdminPage() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["tipoDemanda", page, searchTitulo, selectedTipo],
     queryFn: async () => {
-      const filters: Record<string, any> = {};
+      const filters: Record<string, string> = {};
       if (searchTitulo.trim()) {
         filters.titulo = searchTitulo.trim();
       }

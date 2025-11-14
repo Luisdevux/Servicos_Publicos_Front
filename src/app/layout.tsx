@@ -36,6 +36,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Vilhena + Pública",
   description: "Sistema de Gestão de Serviços Públicos",
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

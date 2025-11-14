@@ -4,22 +4,29 @@
 
 import { signOut, useSession } from "next-auth/react";
 import { useCallback } from "react";
-import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 
 // Hook para fazer logout completo 
 
 export function useLogout() {
-  const pathname = usePathname();
+  const { data: session } = useSession();
 
   const logout = useCallback(async (options?: { silent?: boolean }) => {
     const silent = options?.silent ?? false;
 
-    // Determina a URL de callback baseado na rota atual
-    const isSecretariaArea = pathname?.startsWith('/secretaria');
-    const isOperadorArea = pathname?.startsWith('/operador');
-    const isAdminArea = pathname?.startsWith('/admin');
-    const callbackUrl = (isSecretariaArea || isOperadorArea || isAdminArea) ? '/login/funcionario' : '/login/municipe';
+    // Determina a URL de callback baseado no nível de acesso do usuário
+    const user = session?.user;
+    let callbackUrl = '/login/municipe'; // Default para munícipe
+    
+    if (user?.nivel_acesso) {
+      if (user.nivel_acesso.administrador) {
+        callbackUrl = '/login/funcionario';
+      } else if (user.nivel_acesso.secretario) {
+        callbackUrl = '/login/funcionario';
+      } else if (user.nivel_acesso.operador) {
+        callbackUrl = '/login/funcionario';
+      }
+    }
 
     try {
       // Chama a API de logout do backend através da rota segura
@@ -70,7 +77,7 @@ export function useLogout() {
         window.location.href = callbackUrl;
       }, 1000);
     }
-  }, [pathname]);
+  }, [session]);
 
   return { logout };
 }

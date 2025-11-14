@@ -61,7 +61,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="!max-w-2xl !max-h-[90vh] overflow-hidden p-0 bg-white border-none flex flex-col"
+        className="max-w-2xl! max-h-[90vh]! overflow-hidden p-0 bg-white border-none flex flex-col"
         data-test="detalhe-demanda-modal"
       >
         {/* Background decorativo */}
@@ -79,7 +79,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
           <div className="absolute top-1/2 right-8 w-8 h-8 border-2 border-current rotate-45 opacity-30"></div>
         </div>
 
-        <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg flex-shrink-0 relative overflow-hidden">
+        <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -207,7 +207,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
              
              return isConcluido && imagensResolucao.length > 0 ? (
                <div className="space-y-2" data-test="imagens-conclusao-section">
-                 <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+                 <h3 className="text-lg font-medium text-global-text-primary">
                    {imagensResolucao.length > 1 ? 'Imagens da conclusão' : 'Imagem da conclusão'}
                  </h3>
                  <ImageCarousel 

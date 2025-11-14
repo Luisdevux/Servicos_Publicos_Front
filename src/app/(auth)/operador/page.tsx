@@ -7,11 +7,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Banner from "@/components/banner";
+import CardDemandaOperadorSkeleton from "@/components/CardDemandaOperadorSkeleton";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI } from "@/types";
+import type { Demanda } from "@/types/demanda";
 import DetalhesDemandaOperadorModal from "@/components/detalheDemandaOperadorModal";
 import { demandaService } from "@/services/demandaService";
 import { toast } from "sonner";
@@ -59,10 +61,10 @@ export default function PedidosOperadorPage() {
       try {
         // A API já deve retornar apenas as demandas do operador logado
         const result = await demandaService.buscarDemandas();
-        console.log("📋 Demandas carregadas do operador:", result);
-        console.log("📊 Total de demandas:", result?.data?.docs?.length || 0);
+        console.log("Demandas carregadas do operador:", result);
+        console.log("Total de demandas:", result?.data?.docs?.length || 0);
         if (result?.data?.docs) {
-          result.data.docs.forEach((d: any) => {
+          result.data.docs.forEach((d: Demanda) => {
             console.log(`  - Demanda ${d._id}: ${d.tipo} - Status: ${d.status}`);
           });
         }
@@ -124,7 +126,7 @@ export default function PedidosOperadorPage() {
       };
     }) || [];
 
-  console.log("✅ Demandas do operador:", demandas.length);
+  console.log("Demandas do operador:", demandas.length);
 
   const devolverMutation = useMutation({
     mutationFn: async ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
@@ -242,7 +244,7 @@ export default function PedidosOperadorPage() {
     return false;
   });
 
-  console.log(`📊 Filtro ativo: ${abaAtiva} - ${demandasPorStatus.length} demandas`);
+  console.log(`Filtro ativo: ${abaAtiva} - ${demandasPorStatus.length} demandas`);
 
   const demandasFiltradas = demandasPorStatus.filter(demanda => {
     if (filtroSelecionado === "todos") {
@@ -267,16 +269,17 @@ export default function PedidosOperadorPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[var(--global-bg)]">
+      <div className="min-h-screen bg-global-bg">
         <Banner
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
         />
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#337695] mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando demandas...</p>
+        <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <CardDemandaOperadorSkeleton key={index} />
+            ))}
           </div>
         </div>
       </div>
@@ -287,7 +290,7 @@ export default function PedidosOperadorPage() {
     const isTokenExpired = error instanceof ApiError && error.status === 498;
     
     return (
-      <div className="min-h-screen bg-[var(--global-bg)]">
+      <div className="min-h-screen bg-global-bg">
         <Banner
           icone={ClipboardList}
           titulo="Pedidos recebidos"
@@ -320,14 +323,14 @@ export default function PedidosOperadorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--global-bg)]">
+    <div className="min-h-screen bg-global-bg">
       <Banner
         icone={ClipboardList}
         titulo="Pedidos recebidos"
-        className="mb-6 md:mb-8"
+        className="mb-4"
       />
 
-      <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
+      <div className="px-6 sm:px-6 lg:px-40 py-4">
         <div className="mx-auto">
           {/* Abas de Status */}
           <div className="mb-6 border-b border-gray-200">
@@ -431,7 +434,7 @@ export default function PedidosOperadorPage() {
         ) : (
           <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12">
             <ClipboardList className="h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-[var(--global-text-primary)] mb-2">
+            <h3 className="text-lg font-medium text-global-text-primary mb-2">
               Nenhum pedido encontrado
             </h3>
             <p className="text-sm text-gray-500 text-center">
@@ -458,7 +461,7 @@ export default function PedidosOperadorPage() {
               <ChevronLeft size={20} />
             </button>
             
-            <div className="flex items-center gap-2 text-sm text-[var(--global-text-primary)]">
+            <div className="flex items-center gap-2 text-sm text-global-text-primary">
               <span>Página {paginaAtual} de {totalPaginas}</span>
             </div>
             
