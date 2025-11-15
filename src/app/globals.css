@@ -264,3 +264,35 @@ html {
 .animate-fade-in {
   animation: fadeIn 0.5s ease-in-out forwards;
 }
+
+/* Efeitos de transição para páginas de login */
+@keyframes liquidFlow {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  50% {
+    transform: translateX(-5px) scale(1.02);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+.liquid-flow {
+  animation: liquidFlow 3s ease-in-out infinite;
+}
+
+/* Gradiente animado para fundo */
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.gradient-animate {
+  background-size: 200% 200%;
+  animation: gradientShift 15s ease infinite;
+}

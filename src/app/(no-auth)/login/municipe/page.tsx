@@ -5,11 +5,14 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import LoginMunicipeForm from '@/components/LoginMunicipeForm';
+import SlideTransition from '@/components/SlideTransition';
 
 function LoginMunicipeContent() {
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row relative overflow-hidden bg-gray-50">
-      <div className="hidden lg:flex relative w-[54%] items-center justify-center p-12 overflow-hidden min-h-screen" style={{ backgroundColor: 'var(--global-accent)' }}>
+    <SlideTransition direction="left" duration={600}>
+      <div className="min-h-screen flex flex-col lg:flex-row relative overflow-hidden bg-gray-50">
+        {/* Painel Azul */}
+        <div className="hidden lg:flex relative w-[54%] items-center justify-center p-12 overflow-hidden min-h-screen" style={{ backgroundColor: 'var(--global-accent)' }}>
         {/* Padrão de pontos e formas geométricas */}
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -103,6 +106,7 @@ function LoginMunicipeContent() {
       </div>
       
     </div>
+    </SlideTransition>
   );
 }
 
