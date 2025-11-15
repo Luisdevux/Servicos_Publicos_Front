@@ -55,7 +55,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <Toaster position="top-right" richColors closeButton />
+        <Toaster position="top-right" closeButton richColors />
         <NuqsAdapter>
           <SessionWrapper>
             <QueryProvider>
