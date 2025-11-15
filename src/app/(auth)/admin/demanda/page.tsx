@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronLeft, ChevronRight, Eye, Pencil, Trash2 } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { ChevronLeft, ChevronRight, Eye, Pencil, Trash2, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { demandaService } from "@/services/demandaService";
 import type { Demanda as DemandaAPI } from "@/types";
@@ -32,38 +32,86 @@ export default function DemandasAdminPage() {
   const [selectedDemanda, setSelectedDemanda] = useState<DemandaExtendida | null>(null);
   const [openDetail, setOpenDetail] = useState(false);
   
-  // Filtros
+  // Filtros com debounce para busca
+  const [pendingSearchText, setPendingSearchText] = useState("");
+  const [searchText, setSearchText] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
-  const [filtroEndereco, setFiltroEndereco] = useState("");
-  const [filtroSecretaria, setFiltroSecretaria] = useState("");
-  const [filtroData, setFiltroData] = useState("");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["demandas-admin", page, filtroTipo, filtroStatus, filtroEndereco, filtroSecretaria, filtroData],
+    queryKey: ["demandas-admin"],
     queryFn: async () => {
-      const params: Record<string, string> = {
-        page: String(page),
-        limit: "10",
-      };
+      // Buscar todas as demandas (sem paginação no backend)
+      let allDocs: DemandaExtendida[] = [];
+      let page = 1;
+      let totalPages = 1;
 
-      if (filtroTipo && filtroTipo !== "todos") params.tipo = filtroTipo;
-      if (filtroStatus && filtroStatus !== "todos") params.status = filtroStatus;
-      if (filtroEndereco) params.endereco = filtroEndereco;
-      if (filtroSecretaria) params.secretaria = filtroSecretaria;
-      if (filtroData) params.data = filtroData;
+      do {
+        const response = await demandaService.buscarDemandas({ page: String(page), limit: "100" } as any);
+        const payload = response.data;
+        if (payload?.docs?.length) {
+          allDocs = allDocs.concat(payload.docs);
+        }
+        totalPages = payload?.totalPages || 1;
+        page++;
+      } while (page <= totalPages);
 
-      const response = await demandaService.buscarDemandas(params as any);
-      return response;
+      return allDocs;
     },
     placeholderData: (previousData) => previousData,
     staleTime: 60_000,
   });
 
-  const totalPages = data?.data?.totalPages ?? 1;
-  const hasNextPage = data?.data?.hasNextPage ?? false;
-  const hasPrevPage = data?.data?.hasPrevPage ?? false;
-  const demandas: DemandaExtendida[] = data?.data?.docs ?? [];
+  const demandas: DemandaExtendida[] = Array.isArray(data) ? data : [];
+
+  // Debounce para a busca
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setSearchText(pendingSearchText);
+    }, 300);
+    return () => clearTimeout(id);
+  }, [pendingSearchText]);
+
+  // Resetar página quando filtros mudarem
+  useEffect(() => {
+    setPage(1);
+  }, [searchText, filtroTipo, filtroStatus]);
+
+  // Filtrar demandas
+  const demandasFiltradas = useMemo(() => {
+    const termo = searchText.trim().toLowerCase();
+    return demandas.filter((demanda) => {
+      // Filtro por texto (tipo, bairro, secretaria)
+      const byTexto = termo
+        ? (demanda.tipo?.toLowerCase().includes(termo) ||
+           demanda.endereco?.bairro?.toLowerCase().includes(termo) ||
+           (typeof demanda.secretarias?.[0] === 'object' 
+             ? demanda.secretarias[0].nome?.toLowerCase().includes(termo)
+             : false))
+        : true;
+
+      // Filtro por tipo
+      const byTipo = filtroTipo === 'todos'
+        ? true
+        : demanda.tipo === filtroTipo;
+
+      // Filtro por status
+      const byStatus = filtroStatus === 'todos'
+        ? true
+        : demanda.status === filtroStatus;
+
+      return byTexto && byTipo && byStatus;
+    });
+  }, [demandas, searchText, filtroTipo, filtroStatus]);
+
+  // Paginação local
+  const ITENS_POR_PAGINA = 10;
+  const totalPaginas = Math.max(1, Math.ceil(demandasFiltradas.length / ITENS_POR_PAGINA));
+  const indiceInicial = (page - 1) * ITENS_POR_PAGINA;
+  const indiceFinal = indiceInicial + ITENS_POR_PAGINA;
+  const demandasPaginadas = demandasFiltradas.slice(indiceInicial, indiceFinal);
+  const hasPrevPage = page > 1;
+  const hasNextPage = page < totalPaginas;
 
   const formatarData = (data: string | Date | undefined) => {
     if (!data) return "N/A";
@@ -95,23 +143,28 @@ export default function DemandasAdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="px-6 sm:px-6 lg:px-8 py-6 md:py-8">
+    <div className="min-h-screen bg-global-bg">
+      <div className="px-6 sm:px-6 py-6 md:py-8">
         <div className="mx-auto space-y-6">
           
           {/* Filtros */}
-          <div className="flex flex-wrap items-end gap-4">
-            {/* Filtro por tipo */}
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Filtrar por tipo
-              </label>
+          <div className="flex flex-col md:flex-row gap-3 md:items-end">
+            <div className="relative flex gap-3 items-center flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Pesquisar por bairro ou secretaria"
+                  value={pendingSearchText}
+                  onChange={(e) => setPendingSearchText(e.target.value)}
+                  className="w-72 pl-9"
+                />
+              </div>
               <Select value={filtroTipo} onValueChange={setFiltroTipo}>
-                <SelectTrigger>
-                  <SelectValue placeholder="tipo" />
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="todos">Todos os tipos</SelectItem>
                   <SelectItem value="Coleta">Coleta</SelectItem>
                   <SelectItem value="Iluminação">Iluminação</SelectItem>
                   <SelectItem value="Saneamento">Saneamento</SelectItem>
@@ -120,64 +173,18 @@ export default function DemandasAdminPage() {
                   <SelectItem value="Pavimentação">Pavimentação</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Filtro por status */}
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Filtrar por status
-              </label>
               <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Available values: Em aberto, Em andamento, Concluída, Recusada" />
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="todos">Todos os status</SelectItem>
                   <SelectItem value="Em aberto">Em aberto</SelectItem>
                   <SelectItem value="Em andamento">Em andamento</SelectItem>
                   <SelectItem value="Concluída">Concluída</SelectItem>
                   <SelectItem value="Recusada">Recusada</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Filtro por bairro */}
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Filtrar por bairro
-              </label>
-              <Input
-                type="text"
-                placeholder="bairro"
-                value={filtroEndereco}
-                onChange={(e) => setFiltroEndereco(e.target.value)}
-              />
-            </div>
-
-            {/* Filtro por secretaria */}
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Filtrar por secretaria
-              </label>
-              <Input
-                type="text"
-                placeholder="secretaria"
-                value={filtroSecretaria}
-                onChange={(e) => setFiltroSecretaria(e.target.value)}
-              />
-            </div>
-
-            {/* Filtro por data */}
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Filtrar por data
-              </label>
-              <Input
-                type="text"
-                placeholder="data"
-                value={filtroData}
-                onChange={(e) => setFiltroData(e.target.value)}
-              />
             </div>
           </div>
 
@@ -214,15 +221,15 @@ export default function DemandasAdminPage() {
                         Carregando demandas...
                       </td>
                     </tr>
-                  ) : demandas.length === 0 ? (
+                  ) : demandasPaginadas.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                         Nenhuma demanda encontrada.
                       </td>
                     </tr>
                   ) : (
-                    demandas.map((demanda) => (
-                      <tr key={demanda._id} className="hover:bg-gray-50">
+                    demandasPaginadas.map((demanda, index) => (
+                      <tr key={`${demanda._id}-${index}`} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {demanda.tipo || "N/A"}
                         </td>
@@ -293,7 +300,7 @@ export default function DemandasAdminPage() {
 
             <div className="flex items-center gap-2 text-sm text-gray-700">
               <span>
-                Página {Math.min(page, totalPages)} de {totalPages}
+                Página {Math.min(page, totalPaginas)} de {totalPaginas}
               </span>
             </div>
 
