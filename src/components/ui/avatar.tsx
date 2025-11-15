@@ -49,7 +49,7 @@ export function Avatar({
       data-test="avatar"
     >
       {showFallback ? (
-        <div className="text-[var(--global-accent)]" data-test="avatar-fallback">
+        <div className="text-global-accent)" data-test="avatar-fallback">
           {fallbackIcon || <User className={iconSizeClasses[size]} />}
         </div>
       ) : (

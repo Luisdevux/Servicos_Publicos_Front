@@ -132,7 +132,7 @@ export default function LoginFuncionarioForm() {
               aria-describedby={errors.identificador ? 'identificador-error' : undefined}
             />
           </div>
-          <div className="min-h-[20px]">
+          <div className="min-h-5">
             {errors.identificador && (
               <p id="identificador-error" className="text-xs text-red-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
                 <AlertCircle className="h-3 w-3 shrink-0" />
@@ -181,7 +181,7 @@ export default function LoginFuncionarioForm() {
               )}
             </button>
           </div>
-          <div className="min-h-[20px]">
+          <div className="min-h-5">
             {errors.senha && (
               <p id="senha-error" className="text-xs text-red-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
                 <AlertCircle className="h-3 w-3 shrink-0" />

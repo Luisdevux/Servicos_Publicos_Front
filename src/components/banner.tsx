@@ -92,16 +92,16 @@ export default function Banner({
         <div className="absolute bottom-40 right-40 w-12 h-12 border-2 border-white/20 rounded-full"></div>
 
         {/* Conteúdo do banner */}
-        <div className="relative z-10 h-full flex items-center px-6 sm:px-6 lg:px-40 pt-8 pb-20 md:pt-10 md:pb-28 lg:pt-12 lg:pb-32">
-          <div className="flex items-center gap-6 md:gap-10 w-full">
+        <div className="relative z-10 h-full flex items-center px-4 sm:px-6 lg:px-40 pt-6 pb-16 md:pt-10 md:pb-28 lg:pt-12 lg:pb-32">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 md:gap-10 w-full">
             {/* Ícone circular - maior e mais elegante */}
-            <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full flex items-center justify-center shrink-0 shadow-2xl border-4 border-white/20">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-white rounded-full flex items-center justify-center shrink-0 shadow-2xl border-4 border-white/20">
               {typeof iconeUrl === 'string' ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={iconeUrl}
                   alt="Ícone do serviço"
-                  className="w-14 h-14 md:w-18 md:h-18 object-contain"
+                  className="w-10 h-10 sm:w-14 sm:h-14 md:w-18 md:h-18 object-contain"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -109,19 +109,19 @@ export default function Banner({
                 />
               ) : (
                 React.createElement(iconeUrl as LucideIcon, {
-                  className: "w-14 h-14 md:w-20 md:h-20",
+                  className: "w-10 h-10 sm:w-14 sm:h-14 md:w-20 md:h-20",
                   style: { color: 'var(--global-text-primary)' }
                 })
               )}
             </div>
 
             {/* Título e descrição */}
-            <div className="flex-1 space-y-1">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-white leading-tight tracking-wide">
+            <div className="flex-1 space-y-1 sm:space-y-2">
+              <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-white leading-tight tracking-wide">
                 {titulo}
               </h1>
               {descricao && (
-                <p className="text-sm md:text-base lg:text-lg text-white/85 leading-relaxed max-w-4xl font-light tracking-wide">
+                <p className="text-xs sm:text-sm md:text-base lg:text-lg text-white/85 leading-relaxed max-w-4xl font-light tracking-wide line-clamp-3 sm:line-clamp-none">
                   {descricao}
                 </p>
               )}

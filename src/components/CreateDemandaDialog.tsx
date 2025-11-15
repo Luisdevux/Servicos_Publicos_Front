@@ -34,7 +34,7 @@ import {
   validateImageMagicBytes,
   getAllowedImageTypesDisplay
 } from '@/lib/imageUtils';
-import type { TipoDemanda, EstadoBrasil } from '@/types';
+import type { TipoDemanda } from '@/types';
 
 interface CreateDemandaDialogProps {
   open: boolean;
@@ -49,12 +49,6 @@ const TIPOS_LOGRADOURO = [
   'Alameda',
   'Via',
   'Rodovia',
-];
-
-const ESTADOS_BRASIL = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
 ];
 
 export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: CreateDemandaDialogProps) {
@@ -127,8 +121,8 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
         
         // Preenche os campos automaticamente
         setBairro(endereco.bairro || '');
-        setCidade(endereco.cidade || 'Vilhena');
-        setEstado((endereco.estado as EstadoBrasil) || 'RO');
+        // Cidade e estado sempre fixos em Vilhena-RO (não atualiza mesmo com CEP)
+        // Não precisa setar cidade/estado pois são constantes
 
         // Extrai tipo e logradouro do campo "logradouro"
         if (endereco.logradouro) {
@@ -372,13 +366,6 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
       return;
     }
 
-    if (!cidade.trim()) {
-      toast.error('Campo obrigatório: Cidade', {
-        description: 'Preencha a cidade do endereço',
-      });
-      return;
-    }
-
     // Validar CEP de Vilhena, verifica se está no range e se foi encontrado no ViaCEP
     const cepValidation = validarCepEncontrado(cep);
     if (!cepValidation.valid) {
@@ -419,8 +406,8 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
           bairro: bairro.trim(),
           numero: numeroInt,
           complemento: complemento.trim() || undefined,
-          cidade: cidade.trim(),
-          estado: estado as EstadoBrasil,
+          cidade: 'Vilhena',
+          estado: 'RO',
         },
         imagens: imagens.length > 0 ? imagens : undefined,
         onUploadProgress: (progress) => {
@@ -495,7 +482,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
             {/* Linha 1: CEP e Bairro */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="cep" className="text-global-text-primary text-sm font-medium">
+                <Label htmlFor="cep" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   CEP
                 </Label>
                 <div className="relative">
@@ -538,7 +525,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                       }
                     }}
                     placeholder="Digite o bairro"
-                    className="border-global-border focus:border-global-accent focus:ring-global-accent"
+                    className="border-global-border focus:border-global-accent focus:ring-global-accent pr-10"
                     data-test="bairro-input"
                     required
                   />
@@ -576,12 +563,15 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                 </Label>
                 <Select value={tipoLogradouro} onValueChange={setTipoLogradouro}>
                   <SelectTrigger
-                    className="border-global-border focus:border-global-accent focus:ring-global-accent cursor-pointer"
+                    className="border border-global-accent hover:border-global-accent-hover! focus:border-global-accent! focus:ring-global-accent cursor-pointer"
                     data-test="tipo-logradouro-select"
                   >
                     <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
-                  <SelectContent data-test="tipo-logradouro-options">
+                  <SelectContent 
+                    className="border! border-global-accent"
+                    data-test="tipo-logradouro-options"
+                  >
                     {TIPOS_LOGRADOURO.map((tipo) => (
                       <SelectItem
                         key={tipo}
@@ -670,14 +660,14 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                     setNumero(value);
                   }}
                   placeholder="Ex: 5222"
-                  className="border-global-border focus:border-global-accent focus:ring-global-accent"
+                  className="border-global-border focus:border-global-accent focus:ring-global-accent pr-10"
                   data-test="numero-input"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="complemento" className="text-global-text-primary text-sm font-medium">
+                <Label htmlFor="complemento" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
                   Complemento
                 </Label>
                 <Input
@@ -685,7 +675,7 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                   value={complemento}
                   onChange={(e) => setComplemento(e.target.value)}
                   placeholder="Apto, bloco..."
-                  className="border-global-border focus:border-global-accent focus:ring-global-accent"
+                  className="border-global-border focus:border-global-accent focus:ring-global-accent pr-10"
                   data-test="complemento-input"
                 />
               </div>
@@ -701,12 +691,11 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                 <Input
                   id="cidade"
                   value={cidade}
-                  onChange={(e) => setCidade(e.target.value)}
-                  placeholder="Digite a cidade"
-                  className="border-global-border focus:border-global-accent focus:ring-global-accent"
+                  placeholder="Vilhena"
+                  className="border-global-border bg-gray-100 text-gray-500 cursor-not-allowed"
                   data-test="cidade-input"
-                  required
                   disabled
+                  readOnly
                 />
               </div>
 
@@ -715,26 +704,15 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
                   <span className="text-red-500">*</span>
                   Estado
                 </Label>
-                <Select value={estado} onValueChange={setEstado} disabled>
-                  <SelectTrigger
-                    className="border-global-border focus:border-global-accent focus:ring-global-accent cursor-pointer"
-                    data-test="estado-select"
-                  >
-                    <SelectValue placeholder="Selecione o estado" />
-                  </SelectTrigger>
-                  <SelectContent data-test="estado-options">
-                    {ESTADOS_BRASIL.map((uf) => (
-                      <SelectItem
-                        key={uf}
-                        value={uf}
-                        className="cursor-pointer"
-                        data-test={`estado-option-\${uf.toLowerCase()}`}
-                      >
-                        {uf}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="estado"
+                  value="RO"
+                  placeholder="Rondônia"
+                  className="border-global-border bg-gray-100 text-gray-500 cursor-not-allowed"
+                  data-test="estado-input"
+                  disabled
+                  readOnly
+                />
               </div>
             </div>
           </div>
