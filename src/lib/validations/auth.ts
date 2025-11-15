@@ -182,7 +182,7 @@ export const loginSchema = z.object({
     .string()
     .min(1, 'Por favor, digite sua senha')
     .min(1, 'A senha não pode estar vazia'),
-  lembrarDeMim: z.boolean().optional().default(false),
+  lembrarDeMim: z.boolean(),
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
