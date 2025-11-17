@@ -21,6 +21,8 @@ services:
     image: ruanlopes1350/mailsender:latest
     ports:
       - 5016:5016
+    environment:
+      MONGODB_URI: "mongodb://mongodb-servicos:27017/servicosPublicos"
     env_file:
       - ../servicos-publicos-api/.env
     restart: always
@@ -53,7 +55,7 @@ services:
     volumes:
       - ../servicos-publicos-api:/app:cached
       - /app/node_modules
-    entrypoint: ["/app/scripts/init-mailsender.sh", "npm", "run", "dev"]
+    command: npm run dev:init
     depends_on:
       mongodb:
         condition: service_healthy

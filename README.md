@@ -58,7 +58,7 @@ docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
 ```bash
 cd servicos-publicos-front
-docker compose -f docker-compose-dev.yml up --build
+docker compose -f docker-compose-dev.yml up --build --force-recreate
 ```
 
 Aguarde até ver:
