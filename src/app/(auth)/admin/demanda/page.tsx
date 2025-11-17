@@ -38,9 +38,6 @@ export default function DemandasAdminPage() {
   const [openDetail, setOpenDetail] = useState(false);
   
   // Modais de ações
-  const [openDevolverModal, setOpenDevolverModal] = useState(false);
-  const [demandaParaDevolver, setDemandaParaDevolver] = useState<DemandaExtendida | null>(null);
-  const [motivoDevolucao, setMotivoDevolucao] = useState("");
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [demandaParaDeletar, setDemandaParaDeletar] = useState<DemandaExtendida | null>(null);
   
@@ -78,24 +75,6 @@ export default function DemandasAdminPage() {
 
   const demandas: DemandaExtendida[] = Array.isArray(data) ? data : [];
 
-  // Mutation para devolver demanda
-  const devolverMutation = useMutation({
-    mutationFn: ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
-      return demandaService.rejeitarDemanda(demandaId, motivo);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["demandas-admin"] });
-      toast.success("Demanda devolvida com sucesso!");
-      setOpenDevolverModal(false);
-      setDemandaParaDevolver(null);
-      setMotivoDevolucao("");
-    },
-    onError: (error) => {
-      console.error("Erro ao devolver demanda:", error);
-      toast.error("Erro ao devolver demanda. Tente novamente.");
-    },
-  });
-
   // Mutation para deletar demanda
   const deletarMutation = useMutation({
     mutationFn: (demandaId: string) => {
@@ -114,15 +93,6 @@ export default function DemandasAdminPage() {
   });
 
   // Handlers
-  const handleDevolver = () => {
-    if (demandaParaDevolver && motivoDevolucao.trim()) {
-      devolverMutation.mutate({
-        demandaId: demandaParaDevolver._id,
-        motivo: motivoDevolucao.trim(),
-      });
-    }
-  };
-
   const handleDeletar = async () => {
     if (demandaParaDeletar) {
       deletarMutation.mutate(demandaParaDeletar._id);
@@ -428,47 +398,6 @@ export default function DemandasAdminPage() {
           }}
         />
       )}
-
-      {/* Modal de Devolução */}
-      <Dialog open={openDevolverModal} onOpenChange={setOpenDevolverModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Devolver Demanda</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <p className="text-sm text-gray-600">
-              Você está prestes a devolver a demanda sobre <strong>{demandaParaDevolver?.tipo}</strong>.
-              Por favor, informe o motivo da devolução:
-            </p>
-            <Textarea
-              placeholder="Digite o motivo da devolução..."
-              value={motivoDevolucao}
-              onChange={(e) => setMotivoDevolucao(e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              onClick={() => {
-                setOpenDevolverModal(false);
-                setDemandaParaDevolver(null);
-                setMotivoDevolucao("");
-              }}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-700"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleDevolver}
-              disabled={!motivoDevolucao.trim() || devolverMutation.isPending}
-              className="bg-orange-600 hover:bg-orange-700"
-            >
-              {devolverMutation.isPending ? "Devolvendo..." : "Devolver"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Modal de Confirmação de Exclusão */}
       <DeleteConfirmModal
         open={openDeleteModal}
