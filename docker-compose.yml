@@ -10,6 +10,27 @@ services:
     networks:
       - servicos-network
 
+  # Mailsender - Serviço de envio de emails (Production)
+  mailsender:
+    container_name: mailsender-servicos
+    image: ruanlopes1350/mailsender:latest
+    platform: linux/arm64
+    ports:
+      - 5016:5016
+    env_file:
+      - ../servicos-publicos-api/.env
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5016/api/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - servicos-network
+
   # API Backend - Node.js Express (Production)
   api:
     container_name: api-servicos
@@ -23,8 +44,10 @@ services:
       - 5011:5011
     env_file:
       - ../servicos-publicos-api/.env
+    entrypoint: ["/app/scripts/init-mailsender.sh", "npm", "start"]
     depends_on:
       - mongodb
+      - mailsender
     networks:
       - servicos-network
     restart: unless-stopped

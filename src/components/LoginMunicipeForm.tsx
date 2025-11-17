@@ -151,7 +151,7 @@ export default function LoginMunicipeForm() {
               )}
             />
             <Link
-              href="/recuperar-senha"
+              href="/esqueci-senha"
               className="text-sm text-[#337695] hover:underline transition-colors"
               data-test="link-esqueceu-senha"
             >
