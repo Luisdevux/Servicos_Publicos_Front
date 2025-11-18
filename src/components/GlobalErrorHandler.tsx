@@ -20,6 +20,17 @@ export function GlobalErrorHandler() {
       if (event.type === "updated" && event.action.type === "error") {
         const error = event.action.error as { status?: number; message?: string };
         
+        // Tratamento de rate limit (429)
+        if (error?.status === 429) {
+          console.warn("[GlobalErrorHandler] Rate limit detectado.");
+          
+          toast.error("Muitas requisições", {
+            description: error.message || "Você fez muitas requisições. Por favor, aguarde alguns minutos e tente novamente.",
+            duration: 8000,
+          });
+          return; // Não continua para outros tratamentos
+        }
+        
         // Verifica se é erro de autenticação (token expirado)
         if (error?.status === 498 || error?.status === 401) {
           console.warn("[GlobalErrorHandler] Token expirado detectado. Redirecionando para login...");
@@ -41,6 +52,17 @@ export function GlobalErrorHandler() {
     const unsubscribeMutation = queryClient.getMutationCache().subscribe((event) => {
       if (event.type === "updated" && event.action.type === "error") {
         const error = event.action.error as { status?: number; message?: string };
+        
+        // Tratamento de rate limit (429)
+        if (error?.status === 429) {
+          console.warn("[GlobalErrorHandler] Rate limit detectado em mutation.");
+          
+          toast.error("Muitas requisições", {
+            description: error.message || "Você fez muitas requisições. Por favor, aguarde alguns minutos e tente novamente.",
+            duration: 8000,
+          });
+          return; // Não continua para outros tratamentos
+        }
         
         // Verifica se é erro de autenticação (token expirado)
         if (error?.status === 498 || error?.status === 401) {

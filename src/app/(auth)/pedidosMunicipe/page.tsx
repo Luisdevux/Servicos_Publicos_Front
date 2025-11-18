@@ -35,92 +35,58 @@ export default function MeusPedidosPage() {
   const { data: contadoresData } = useQuery({
     queryKey: ['demandas-contadores'],
     queryFn: async () => {
-      const result = await demandaService.buscarDemandas({ page: 1, limit: 1000 });
-      return result.data?.docs || [];
+      // Buscar primeira página para saber o total
+      const firstPage = await demandaService.buscarDemandas({ 
+        page: 1, 
+        limit: 100 
+      });
+
+      if (!firstPage.data) return [];
+
+      const totalPages = firstPage.data.totalPages;
+      const todasDemandas: Demanda[] = [...(firstPage.data.docs || [])];
+
+      // Se houver mais páginas, buscar todas em paralelo
+      if (totalPages > 1) {
+        const promises = [];
+        for (let page = 2; page <= totalPages; page++) {
+          promises.push(
+            demandaService.buscarDemandas({ page, limit: 100 })
+          );
+        }
+
+        const results = await Promise.all(promises);
+        results.forEach(result => {
+          if (result.data?.docs) {
+            todasDemandas.push(...result.data.docs);
+          }
+        });
+      }
+
+      return todasDemandas;
     },
     enabled: !isAuthLoading && isAuthenticated,
     staleTime: 5 * 60 * 1000,
   });
 
-  const {data: response, isLoading, error } = useQuery ({
+  const {data: response, isLoading } = useQuery ({
     queryKey: ['demandas', paginaAtual, filtroSelecionado],
     queryFn: async () => {
       const statusFilters = obterStatusPorFiltro(filtroSelecionado);
       const limit = ITENS_POR_PAGINA;
       
-      if (filtroSelecionado === "aceito" && statusFilters) {
-        const buscarTodasPaginas = async (status: string) => {
-          let todasPaginas: Demanda[] = [];
-          let paginaAtual = 1;
-          let temMaisPaginas = true;
-
-          while (temMaisPaginas) {
-            const resultado = await demandaService.buscarDemandas({ 
-              page: paginaAtual, 
-              limit: 100,
-              status: status 
-            });
-            
-            if (resultado.data?.docs) {
-              todasPaginas = [...todasPaginas, ...resultado.data.docs];
-            }
-
-            temMaisPaginas = resultado.data?.hasNextPage || false;
-            paginaAtual++;
-          }
-
-          return todasPaginas;
-        };
-
-        const [docsEmAndamento, docsConcluida] = await Promise.all([
-          buscarTodasPaginas(statusFilters[0]),
-          buscarTodasPaginas(statusFilters[1])
-        ]);
-
-        const allDocs = [...docsEmAndamento, ...docsConcluida];
-
-        allDocs.sort((a, b) => {
-          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return dateB - dateA;
-        });
-
-        const totalDocs = allDocs.length;
-        const totalPages = Math.ceil(totalDocs / limit);
-        const startIndex = (paginaAtual - 1) * limit;
-        const endIndex = startIndex + limit;
-        const paginatedDocs = allDocs.slice(startIndex, endIndex);
-
-        return {
-          message: "Demandas buscadas com sucesso",
-          errors: [],
-          data: {
-            docs: paginatedDocs,
-            totalDocs,
-            totalPages,
-            page: paginaAtual,
-            limit,
-            hasNextPage: paginaAtual < totalPages,
-            hasPrevPage: paginaAtual > 1,
-            nextPage: paginaAtual < totalPages ? paginaAtual + 1 : null,
-            prevPage: paginaAtual > 1 ? paginaAtual - 1 : null,
-            pagingCounter: startIndex + 1,
-          }
-        };
-      } else {
-        const params: BuscarDemandasParams = { 
-          page: paginaAtual,
-          limit: limit
-        };
-        
-        // Só adiciona o filtro de status se não for "todos"
-        if (statusFilters && statusFilters.length > 0) {
-          params.status = statusFilters[0];
-        }
-        
-        const result = await demandaService.buscarDemandas(params);
-        return result;
+      const params: BuscarDemandasParams = { 
+        page: paginaAtual,
+        limit: limit
+      };
+      
+      // Só adiciona o filtro de status se não for "todos"
+      if (statusFilters && statusFilters.length > 0) {
+        params.status = statusFilters[0];
       }
+
+      const result = await demandaService.buscarDemandas(params);
+      return result;
     },
     enabled: !isAuthLoading && isAuthenticated,
     staleTime: 5 * 60 * 1000,
@@ -136,11 +102,6 @@ export default function MeusPedidosPage() {
   const pedidos = response?.data?.docs 
     ? response.data.docs.map(transformarDemandaParaPedido) 
     : [];
-
-  const handleFiltroChange = (value: string) => {
-    setFiltroSelecionado(value);
-    setPaginaAtual(1); 
-  };
 
   const handlePaginaAnterior = () => {
     if (response?.data?.hasPrevPage) {
@@ -174,7 +135,10 @@ export default function MeusPedidosPage() {
   const todasDemandas = (contadoresData as Demanda[]) || [];
   const contadorTodos = todasDemandas.length;
   const contadorAceitos = todasDemandas.filter((d: Demanda) => 
-    d.status === "Em andamento" || d.status === "Concluída"
+    d.status === "Em andamento"
+  ).length;
+  const contadorConcluidas = todasDemandas.filter((d: Demanda) => 
+    d.status === "Concluída"
   ).length;
   const contadorRecusados = todasDemandas.filter((d: Demanda) => 
     d.status === "Recusada"
@@ -271,6 +235,27 @@ export default function MeusPedidosPage() {
 
               <button
                 onClick={() => {
+                  setFiltroSelecionado("concluida");
+                  setPaginaAtual(1);
+                }}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                  filtroSelecionado === "concluida"
+                    ? "border-[#337695] text-[#337695]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Concluídas
+                {contadorConcluidas > 0 && (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    filtroSelecionado === "concluida" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
+                  }`}>
+                    {contadorConcluidas}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
                   setFiltroSelecionado("recusado");
                   setPaginaAtual(1);
                 }}
@@ -298,6 +283,7 @@ export default function MeusPedidosPage() {
             </span>
           </div>
 
+          <div className="min-h-[600px] flex flex-col justify-between">
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, index) => (
@@ -330,7 +316,7 @@ export default function MeusPedidosPage() {
           )}
 
           {pedidos.length > 0 && (
-            <div className="flex items-center justify-center gap-4 pt-4">
+            <div className="flex items-center justify-center gap-4 pt-8">
               <button
                 onClick={handlePaginaAnterior}
                 disabled={!response?.data?.hasPrevPage}
@@ -354,6 +340,7 @@ export default function MeusPedidosPage() {
               </button>
             </div>
           )}
+          </div>
         </div>
       </div>
 

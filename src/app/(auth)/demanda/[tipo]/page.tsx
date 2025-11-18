@@ -5,7 +5,7 @@
 import CardDemandaSkeleton from "@/components/CardDemandaSkeleton";
 import CardDemanda from "@/components/cardDemanda";
 import Banner from "@/components/banner";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { CreateDemandaDialog } from "@/components/CreateDemandaDialog";
@@ -34,7 +34,6 @@ export default function DemandaPage() {
   const {
     data: tiposData,
     isLoading: tiposIsLoading,
-    isError: tiposIsError,
   } = useQuery({
     queryKey: ['tiposDemandaAll'],
     queryFn: async () => {

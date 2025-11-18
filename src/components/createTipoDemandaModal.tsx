@@ -1,7 +1,7 @@
 // src/components/createTipoDemandaModal.tsx
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Upload, X, Loader2, CheckCircle2 } from 'lucide-react';
@@ -41,11 +41,10 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
   const [icone, setIcone] = useState('');
   const [linkImagem, setLinkImagem] = useState('');
   const [tipo, setTipo] = useState('');
-  const [usuariosSelecionados, setUsuariosSelecionados] = useState<string[]>([]);
   const [imagem, setImagem] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const { data: usuariosAll, isLoading: isLoadingUsuarios } = useQuery({
+  useQuery({
     queryKey: ['usuarios', 'all-for-tipo-demanda', open],
     enabled: open,
     queryFn: async () => {
@@ -66,8 +65,6 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
     staleTime: 5 * 60 * 1000,
   });
 
-  const usuarios: Usuarios[] = useMemo(() => Array.isArray(usuariosAll) ? usuariosAll : [], [usuariosAll]);
-
   useEffect(() => {
     if (open && tipoDemanda) {
       setTitulo(tipoDemanda.titulo || '');
@@ -76,7 +73,6 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
       setIcone(tipoDemanda.icone || '');
       setLinkImagem(tipoDemanda.link_imagem || '');
       setTipo(tipoDemanda.tipo || '');
-      setUsuariosSelecionados(Array.isArray(tipoDemanda.usuarios) ? tipoDemanda.usuarios : []);
       setImagem(null);
       if (tipoDemanda.link_imagem && (tipoDemanda.link_imagem.startsWith('http://') || tipoDemanda.link_imagem.startsWith('https://') || tipoDemanda.link_imagem.startsWith('data:'))) {
         setPreviewUrl(tipoDemanda.link_imagem);
@@ -292,6 +288,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
 
             {previewUrl && (
               <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-global-border group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={previewUrl}
                   alt="Preview"

@@ -33,6 +33,30 @@ export default function useLogin() {
         console.log('[useLogin] shouldRememberSession salvo:', lembrarDeMim ? 'true' : 'false');
       }
 
+      // Verifica rate limit ANTES de processar login
+      try {
+        const rateLimitCheck = await fetch('/api/auth/check-rate-limit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identificador, senha }),
+        });
+
+        if (rateLimitCheck.status === 429) {
+          const data = await rateLimitCheck.json();
+          const error = new Error(data.message || 'Muitas tentativas. Aguarde alguns minutos.') as Error & { status: number };
+          error.status = 429;
+          throw error;
+        }
+      } catch (error) {
+        // Se for rate limit, propaga
+        if ((error as Error & { status?: number }).status === 429) {
+          throw error;
+        }
+        // Outros erros de rede, continua normalmente
+        console.warn('[useLogin] Erro ao verificar rate limit:', error);
+      }
+
+      // Autenticação via NextAuth
       const res = await signIn("credentials", {
         identificador,
         senha,
@@ -95,6 +119,18 @@ export default function useLogin() {
       router.push(callbackUrl);
     },
     onError: (error) => {
+      const errorWithStatus = error as Error & { status?: number };
+      
+      // Rate limit - mostra mensagem específica e duradoura
+      if (errorWithStatus.status === 429) {
+        toast.error("Muitas requisições", {
+          description: errorWithStatus.message || "Você fez muitas tentativas. Por favor, aguarde alguns minutos e tente novamente.",
+          duration: 8000,
+        });
+        return;
+      }
+      
+      // Outros erros
       const message = error?.message || "Erro ao efetuar login";
       toast.error(message);
     },

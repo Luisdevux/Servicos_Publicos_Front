@@ -67,7 +67,8 @@ export function transformarDemandaParaPedido(demanda: Demanda): Pedido {
 export function obterStatusPorFiltro(filtro: string): string[] | undefined {
   const FILTROS_STATUS: Record<string, string[] | undefined> = {
     todos: undefined,
-    aceito: ["Em andamento", "Concluída"],
+    aceito: ["Em andamento"],
+    concluida: ["Concluída"],
     recusado: ["Recusada"],
     aguardando: ["Em aberto"]
   };

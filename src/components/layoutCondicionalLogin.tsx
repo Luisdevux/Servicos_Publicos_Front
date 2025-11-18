@@ -28,8 +28,14 @@ export default function ConditionalLayout({ children, dadosFooter }: Conditional
   const pathname = usePathname();
   
   // Rotas onde não devemos mostrar header e footer
-  const hideHeaderFooter = pathname?.startsWith('/login') || pathname?.startsWith('/cadastro') || pathname?.startsWith('/admin');
-
+  const hideHeaderFooter = 
+    pathname?.startsWith('/login') || 
+    pathname?.startsWith('/cadastro') || 
+    pathname?.startsWith('/esqueci-senha') || 
+    pathname?.startsWith('/nova-senha') || 
+    pathname?.startsWith('/admin') || 
+    pathname?.startsWith('/admin/dashboard');
+    
   if (hideHeaderFooter) {
     return <>{children}</>;
   }
