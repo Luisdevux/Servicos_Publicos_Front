@@ -17,7 +17,7 @@ interface DetalhesDemandaModalProps {
   pedido: Pedido | null;
   isOpen: boolean;
   onClose: () => void;
-  disableAvaliacaoForm?: boolean; // Nova prop opcional para desabilitar formulário de avaliação
+  disableAvaliacaoForm?: boolean; 
 }
 
 export default function DetalhesDemandaModal({ pedido, isOpen, onClose, disableAvaliacaoForm = false }: DetalhesDemandaModalProps) {
