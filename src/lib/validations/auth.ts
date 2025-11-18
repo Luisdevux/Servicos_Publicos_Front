@@ -182,7 +182,37 @@ export const loginSchema = z.object({
     .string()
     .min(1, 'Por favor, digite sua senha')
     .min(1, 'A senha não pode estar vazia'),
-  lembrarDeMim: z.boolean().optional().default(false),
+  lembrarDeMim: z.boolean(),
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
+
+// Schema para solicitar recuperação de senha
+export const esqueceuSenhaSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Por favor, digite seu e-mail')
+    .email('Digite um e-mail válido (ex: seunome@email.com)'),
+});
+
+export type EsqueceuSenhaFormValues = z.infer<typeof esqueceuSenhaSchema>;
+
+// Schema para redefinir senha
+export const novaSenhaSchema = z.object({
+  senha: z
+    .string()
+    .min(1, 'Por favor, digite sua nova senha')
+    .min(8, 'A senha deve ter no mínimo 8 caracteres')
+    .regex(/[A-Z]/, 'A senha deve conter pelo menos uma letra maiúscula')
+    .regex(/[a-z]/, 'A senha deve conter pelo menos uma letra minúscula')
+    .regex(/[0-9]/, 'A senha deve conter pelo menos um número')
+    .regex(/[@$!%*?&]/, 'A senha deve conter pelo menos um caractere especial (@, $, !, %, *, ?, &)'),
+  confirmarSenha: z
+    .string()
+    .min(1, 'Por favor, confirme sua senha'),
+}).refine((data) => data.senha === data.confirmarSenha, {
+  message: 'As senhas não coincidem',
+  path: ['confirmarSenha'],
+});
+
+export type NovaSenhaFormValues = z.infer<typeof novaSenhaSchema>;
