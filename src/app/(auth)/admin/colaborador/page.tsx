@@ -16,9 +16,6 @@ import { toast } from "sonner";
 export default function ColaboradorAdminPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [hasPrevPage, setHasPrevPage] = useState(false);
-  const [hasNextPage, setHasNextPage] = useState(false);
   const [pendingSearchText, setPendingSearchText] = useState("");
   const [searchText, setSearchText] = useState("");
   const [nivelFilter, setNivelFilter] = useState<string>(""); 
@@ -93,6 +90,17 @@ export default function ColaboradorAdminPage() {
       return byTexto && byNivel && byStatus;
     });
   }, [colaboradores, searchText, nivelFilter, statusFilter]);
+
+  // Cálculos de paginação
+  const ITENS_POR_PAGINA = 15;
+  const totalPages = Math.ceil(colaboradoresFiltrados.length / ITENS_POR_PAGINA);
+  const hasPrevPage = page > 1;
+  const hasNextPage = page < totalPages;
+  const paginatedColaboradores = colaboradoresFiltrados.slice(
+    (page - 1) * ITENS_POR_PAGINA,
+    page * ITENS_POR_PAGINA
+  );
+
   return (
     <div className="min-h-screen bg-global-bg">
       <div className="px-6 sm:px-6 py-6 md:py-8">
@@ -166,7 +174,7 @@ export default function ColaboradorAdminPage() {
                       <td colSpan={10} className="px-6 py-8 text-center text-gray-500">Nenhum colaborador encontrado.</td>
                     </tr>
                   ) : (
-                    colaboradoresFiltrados.map((c) => {
+                    paginatedColaboradores.map((c) => {
                       const niveis: string[] = [];
                       if (c?.nivel_acesso?.secretario) niveis.push('Secretário');
                       if (c?.nivel_acesso?.operador) niveis.push('Operador');
@@ -177,13 +185,13 @@ export default function ColaboradorAdminPage() {
                           className="hover:bg-gray-50 cursor-pointer"
                           onClick={() => { setUsuarioDetails(c); setOpenDetails(true); }}
                         >
-                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">{c.nome}</td>
-                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">{c.email}</td>
-                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900 hidden md:table-cell">{c.cpf}</td>
-                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">{c.celular}</td>
-                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900 hidden md:table-cell">{c.portaria_nomeacao || '-'}</td>
-                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900 hidden md:table-cell">{c.cargo || '-'}</td>
-                          <td className="px-3 md:px-6 py-3 whitespace-normal break-words text-sm text-gray-900">
+                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">{c.nome}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">{c.email}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900 hidden md:table-cell">{c.cpf}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">{c.celular}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900 hidden md:table-cell">{c.portaria_nomeacao || '-'}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900 hidden md:table-cell">{c.cargo || '-'}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">
                             {c.ativo ? (
                               <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 px-2.5 py-0.5 text-xs font-medium">
                                 Ativo

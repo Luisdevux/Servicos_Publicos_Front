@@ -3,7 +3,6 @@
 "use client";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { MetricCard } from "@/components/MetricCard";
 import { ChartCard } from "@/components/ChartCard";
 import { DonutChartCard } from "@/components/DonutChartCard";
@@ -14,16 +13,11 @@ import {
   Building2 
 } from "lucide-react";
 import { adminService } from "@/services/adminService";
-import { useAuth } from "@/hooks/useAuth";
 import type { DashboardMetrics, DemandaPorBairro, DemandaPorCategoria } from "@/types/admin";
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const { isAuthenticated } = useAuth();
-
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['dashboard-metrics'],
     queryFn: async () => {

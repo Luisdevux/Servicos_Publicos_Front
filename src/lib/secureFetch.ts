@@ -23,6 +23,17 @@ export async function secureFetch<T>(options: SecureFetchOptions): Promise<T> {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Request failed' }));
+    
+    // Tratamento específico para rate limit (429)
+    if (response.status === 429) {
+      const errorMessage = error.message || 
+                          'Muitas requisições. Por favor, aguarde alguns minutos e tente novamente.';
+      const customError = new Error(errorMessage) as Error & { status: number; data: unknown };
+      customError.status = 429;
+      customError.data = error;
+      throw customError;
+    }
+    
     const errorMessage = error.message || error.error || 'Request failed';
     const customError = new Error(errorMessage) as Error & { status: number; data: unknown };
     customError.status = response.status;

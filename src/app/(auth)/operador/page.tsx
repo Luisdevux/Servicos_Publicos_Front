@@ -44,7 +44,7 @@ export default function PedidosOperadorPage() {
   const [demandaSelecionada, setDemandaSelecionada] = useState<DemandaCard | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const queryClient = useQueryClient();
 
   const ITENS_POR_PAGINA = 6;

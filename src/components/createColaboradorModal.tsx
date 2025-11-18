@@ -9,7 +9,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,9 +18,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { secretariaService } from '@/services/secretariaService';
 import { usuarioService } from '@/services/usuarioService';
 import { useCepVilhena } from '@/hooks/useCepVilhena';
+import { validateIdentificador } from '@/lib/validations/auth';
 import type { CreateUsuariosData, Secretaria, Usuarios, EstadoBrasil } from '@/types';
 import type { Endereco } from '@/types/endereco';
-import { ESTADOS_BRASIL } from '@/types';
 
 interface CreateColaboradorModalProps {
   open: boolean;
@@ -136,6 +135,15 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
     if (!nome.trim()) return toast.error('Informe o nome');
     if (!email.trim()) return toast.error('Informe o email');
     if (!cpf.trim()) return toast.error('Informe o CPF');
+    
+    // Validar CPF
+    const cpfValidation = validateIdentificador(cpf.trim());
+    if (!cpfValidation.isValid) {
+      toast.error(cpfValidation.message || 'CPF inválido');
+      setIsSubmitting(false);
+      return;
+    }
+    
     if (!cnh.trim()) return toast.error('Informe a CNH');
     if (!nivel) return toast.error('Selecione o nível de acesso');
 
@@ -156,13 +164,8 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
         return;
       }
 
-      const estadoUf = (estado || '').toUpperCase() as EstadoBrasil;
-      if (!ESTADOS_BRASIL.includes(estadoUf)) {
-        toast.error('Estado inválido (use UF, ex: RO)');
-        setIsSubmitting(false);
-        return;
-      }
-
+      // Estado sempre será RO (Rondônia) - não precisa validar
+      
       const celularNumeros = (celular || '').replace(/\D/g, '');
       if (celularNumeros.length !== 11) {
         toast.error('O celular deve conter 11 dígitos (69)999999999');
@@ -194,8 +197,8 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
           bairro: bairro || '',
           numero: numeroParsed,
           complemento: complemento || '',
-          cidade: cidade || '',
-          estado: estadoUf,
+          cidade: 'Vilhena', // Sempre Vilhena
+          estado: 'RO' as EstadoBrasil, // Sempre RO
         },
         secretarias: secretariasSelecionadas.length ? secretariasSelecionadas : undefined,
       };
@@ -292,15 +295,20 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
 
     const apenasNumeros = formatted.replace(/\D/g, '');
     if (apenasNumeros.length === 8) {
-      const endereco = await buscarCep(apenasNumeros);
-      
-      if (endereco) {
-        setBairro(endereco.bairro || '');
-        setCidade(endereco.cidade || 'Vilhena');
-        setEstado((endereco.estado as EstadoBrasil) || 'RO');
-        if (endereco.logradouro) {
-          setLogradouro(endereco.logradouro);
+      setLoadingCep(true);
+      try {
+        const endereco = await buscarCep(apenasNumeros);
+        
+        if (endereco) {
+          setBairro(endereco.bairro || '');
+          // Cidade e Estado são fixos em Vilhena/RO - não devem ser alterados
+          // setCidade e setEstado removidos para garantir que sempre sejam Vilhena/RO
+          if (endereco.logradouro) {
+            setLogradouro(endereco.logradouro);
+          }
         }
+      } finally {
+        setLoadingCep(false);
       }
     }
   };
@@ -419,10 +427,10 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <Input placeholder="Complemento" value={complemento} onChange={(e) => setComplemento(e.target.value)} disabled={isSubmitting} />
               <Input placeholder="Bairro" value={bairro} onChange={(e) => setBairro(e.target.value)} disabled={isSubmitting} />
-              <Input placeholder="Cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} disabled={isSubmitting} />
+              <Input placeholder="Cidade" value={cidade || 'Vilhena'} disabled readOnly className="bg-gray-100 text-gray-500 cursor-not-allowed" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-              <Input placeholder="Estado" value={estado} onChange={(e) => setEstado(e.target.value)} disabled={isSubmitting} className="md:col-span-2" />
+              <Input placeholder="Estado" value={estado || 'RO'} disabled readOnly className="md:col-span-2 bg-gray-100 text-gray-500 cursor-not-allowed" />
             </div>
           </div>
 

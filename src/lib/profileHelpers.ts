@@ -2,8 +2,6 @@
  * Helpers para página de perfil do usuário
  */
 
-import type { Usuarios } from '@/types';
-
 /**
  * Formata uma data para o formato brasileiro (DD/MM/YYYY)
  */

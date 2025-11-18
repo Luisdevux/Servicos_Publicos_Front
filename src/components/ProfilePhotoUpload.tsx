@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Camera, Upload, X, Loader2, Trash2 } from 'lucide-react';
+import { Camera, Upload, Loader2, Trash2 } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -265,6 +265,7 @@ export function ProfilePhotoUpload({
             <div className="flex justify-center">
               {previewUrl && (
                 <div className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={previewUrl}
                     alt="Preview"
