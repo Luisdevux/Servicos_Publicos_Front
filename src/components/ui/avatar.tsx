@@ -53,6 +53,7 @@ export function Avatar({
           {fallbackIcon || <User className={iconSizeClasses[size]} />}
         </div>
       ) : (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={src}
           alt={alt}

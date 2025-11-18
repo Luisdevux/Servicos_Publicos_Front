@@ -5,13 +5,8 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Lock, User as UserIcon } from 'lucide-react';
 import useLogin from '@/hooks/useLogin';
-import type { UserType } from '@/lib/auth';
 
-interface LoginFormProps {
-  userType: UserType;
-}
-
-export default function LoginForm({ userType }: LoginFormProps) {
+export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');

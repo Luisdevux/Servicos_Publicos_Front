@@ -23,7 +23,6 @@ import {
   cleanCEP,
   validatePhoneNumber,
   validateName,
-  validateCEPVilhena,
   getUserType,
   isMunicipe,
   getUserData,
@@ -53,7 +52,6 @@ export default function PerfilPage() {
     isUpdating,
     isUploadingPhoto,
     isDeletingPhoto,
-    updateError,
   } = useProfileUpdate(sessionUser?.id || '');
 
   // Estados para campos editáveis
@@ -104,6 +102,7 @@ export default function PerfilPage() {
         initialCepMarked.current = true;
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   useEffect(() => {

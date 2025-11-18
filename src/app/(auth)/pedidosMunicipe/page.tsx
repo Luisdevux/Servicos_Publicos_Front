@@ -69,7 +69,7 @@ export default function MeusPedidosPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const {data: response, isLoading, error } = useQuery ({
+  const {data: response, isLoading } = useQuery ({
     queryKey: ['demandas', paginaAtual, filtroSelecionado],
     queryFn: async () => {
       const statusFilters = obterStatusPorFiltro(filtroSelecionado);
@@ -102,11 +102,6 @@ export default function MeusPedidosPage() {
   const pedidos = response?.data?.docs 
     ? response.data.docs.map(transformarDemandaParaPedido) 
     : [];
-
-  const handleFiltroChange = (value: string) => {
-    setFiltroSelecionado(value);
-    setPaginaAtual(1); 
-  };
 
   const handlePaginaAnterior = () => {
     if (response?.data?.hasPrevPage) {

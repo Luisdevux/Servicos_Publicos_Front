@@ -51,11 +51,6 @@ export function normalizeImageUrl(url: string | undefined | null): string {
  */
 export function optimizeImageUrl(
   url: string,
-  options?: {
-    width?: number;
-    height?: number;
-    quality?: number;
-  }
 ): string {
   if (!isValidImageUrl(url)) return '';
   
