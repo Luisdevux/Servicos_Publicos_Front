@@ -104,6 +104,13 @@ export const authOptions: NextAuthOptions = {
             }),
           });
 
+          // Rate limit específico (429)
+          if (res.status === 429) {
+            console.warn('[NextAuth] Rate limit detectado');
+            // Retorna null e sinaliza rate limit via error no JWT
+            return null;
+          }
+
           if (!res.ok) {
             console.warn('[NextAuth] Login falhou:', res.status);
             return null;

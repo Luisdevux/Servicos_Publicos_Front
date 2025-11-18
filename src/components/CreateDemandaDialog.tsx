@@ -62,7 +62,6 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
   const [numero, setNumero] = useState('');
   const [complemento, setComplemento] = useState('');
   const [cidade, setCidade] = useState('Vilhena');
-  const [estado, setEstado] = useState('RO');
   const [cep, setCep] = useState('');
   const [loadingCep, setLoadingCep] = useState(false);
   const [imagens, setImagens] = useState<File[]>([]);
@@ -88,7 +87,6 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
       setNumero('');
       setComplemento('');
       setCidade('Vilhena');
-      setEstado('RO');
       setCep('');
       setImagens([]);
       setUploadProgress(null);
@@ -113,30 +111,35 @@ export function CreateDemandaDialog({ open, onOpenChange, tipoDemanda = '' }: Cr
     // Se tiver 8 dígitos, busca o endereço automaticamente
     const apenasNumeros = formatted.replace(/\D/g, '');
     if (apenasNumeros.length === 8) {
-      const endereco = await buscarCep(apenasNumeros);
+      setLoadingCep(true);
+      try {
+        const endereco = await buscarCep(apenasNumeros);
 
-      if (endereco) {
-        // Marca que o endereço veio da busca por CEP
-        setEnderecoPorCep(true);
-        
-        // Preenche os campos automaticamente
-        setBairro(endereco.bairro || '');
-        // Cidade e estado sempre fixos em Vilhena-RO (não atualiza mesmo com CEP)
-        // Não precisa setar cidade/estado pois são constantes
+        if (endereco) {
+          // Marca que o endereço veio da busca por CEP
+          setEnderecoPorCep(true);
+          
+          // Preenche os campos automaticamente
+          setBairro(endereco.bairro || '');
+          // Cidade e estado sempre fixos em Vilhena-RO (não atualiza mesmo com CEP)
+          // Não precisa setar cidade/estado pois são constantes
 
-        // Extrai tipo e logradouro do campo "logradouro"
-        if (endereco.logradouro) {
-          const palavras = endereco.logradouro.split(' ');
-          const primeiroTermo = palavras[0];
+          // Extrai tipo e logradouro do campo "logradouro"
+          if (endereco.logradouro) {
+            const palavras = endereco.logradouro.split(' ');
+            const primeiroTermo = palavras[0];
 
-          // Verifica se o primeiro termo é um tipo conhecido
-          if (TIPOS_LOGRADOURO.includes(primeiroTermo)) {
-            setTipoLogradouro(primeiroTermo);
-            setLogradouro(palavras.slice(1).join(' '));
-          } else {
-            setLogradouro(endereco.logradouro);
+            // Verifica se o primeiro termo é um tipo conhecido
+            if (TIPOS_LOGRADOURO.includes(primeiroTermo)) {
+              setTipoLogradouro(primeiroTermo);
+              setLogradouro(palavras.slice(1).join(' '));
+            } else {
+              setLogradouro(endereco.logradouro);
+            }
           }
         }
+      } finally {
+        setLoadingCep(false);
       }
     }
   };

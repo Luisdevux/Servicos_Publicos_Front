@@ -117,9 +117,7 @@ export const usuarioService = {
    * Busca usuários do tipo operador
    * GET /usuarios?nivel_acesso=operador
    */
-  async buscarOperadores(
-    token: string
-  ): Promise<ApiResponse<PaginatedResponse<Usuarios>>> {
+  async buscarOperadores(): Promise<ApiResponse<PaginatedResponse<Usuarios>>> {
     return getSecure<ApiResponse<PaginatedResponse<Usuarios>>>('/usuarios?nivel_acesso=operador');
   },
 };

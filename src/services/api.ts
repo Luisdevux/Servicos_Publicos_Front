@@ -76,6 +76,13 @@ export async function fetchData<T>(
 
     // Se a resposta não for OK, lança erro
     if (!response.ok) {
+      // Tratamento específico para rate limit (429)
+      if (response.status === 429) {
+        const errorMessage = (json as { message?: string })?.message || 
+                            'Muitas requisições. Por favor, aguarde alguns minutos e tente novamente.';
+        throw new ApiError(errorMessage, 429, json);
+      }
+      
       const errorMessage = (json as { message?: string })?.message || 
                           `Erro ${response.status}: ${response.statusText}`;
       

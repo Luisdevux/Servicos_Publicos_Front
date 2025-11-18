@@ -14,7 +14,6 @@ import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI, Usuarios } from "@/types";
 import DetalhesDemandaSecretariaModal from "@/components/detalheDemandaSecretariaModal";
 import { demandaService } from "@/services/demandaService";
-import { usuarioService } from "@/services/usuarioService";
 import { toast } from "sonner";
 
 interface DemandaCard {

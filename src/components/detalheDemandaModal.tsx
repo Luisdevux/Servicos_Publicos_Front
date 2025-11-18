@@ -35,6 +35,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose, disableA
       setRating(0);
       setAvaliacao("");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pedido?.id, isOpen]);
 
   if (!pedido) return null;
