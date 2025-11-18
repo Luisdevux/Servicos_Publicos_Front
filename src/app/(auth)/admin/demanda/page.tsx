@@ -386,11 +386,14 @@ export default function DemandasAdminPage() {
                 : undefined,
               dataConclusao: selectedDemanda.updatedAt ? new Date(selectedDemanda.updatedAt).toLocaleDateString('pt-BR') : ""
             } : undefined,
-            avaliacao: selectedDemanda.status === "Concluída" && selectedDemanda.feedback && selectedDemanda.avaliacao_resolucao ? {
+            // Admin só vê avaliação se ela JÁ existir (não pode criar nova)
+            avaliacao: selectedDemanda.feedback && selectedDemanda.avaliacao_resolucao ? {
               feedback: selectedDemanda.feedback,
               avaliacao_resolucao: selectedDemanda.avaliacao_resolucao
             } : undefined
           }}
+          // Desabilita formulário de avaliação se não houver avaliação cadastrada
+          disableAvaliacaoForm={!(selectedDemanda.feedback && selectedDemanda.avaliacao_resolucao)}
           isOpen={openDetail}
           onClose={() => {
             setOpenDetail(false);

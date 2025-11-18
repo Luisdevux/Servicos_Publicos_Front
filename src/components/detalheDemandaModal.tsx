@@ -17,9 +17,10 @@ interface DetalhesDemandaModalProps {
   pedido: Pedido | null;
   isOpen: boolean;
   onClose: () => void;
+  disableAvaliacaoForm?: boolean; // Nova prop opcional para desabilitar formulário de avaliação
 }
 
-export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: DetalhesDemandaModalProps) {
+export default function DetalhesDemandaModal({ pedido, isOpen, onClose, disableAvaliacaoForm = false }: DetalhesDemandaModalProps) {
   const [rating, setRating] = useState(0);
   const [avaliacao, setAvaliacao] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -218,7 +219,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
              ) : null;
            })()}
 
-        {isConcluido && (
+        {isConcluido && !disableAvaliacaoForm && (
             <div className="space-y-4" data-test="avaliacao-section">
               <h3 className="text-lg font-medium text-global-text-primary">
                 {pedido.avaliacao ? "Sua avaliação" : "Avalie esse serviço"}
