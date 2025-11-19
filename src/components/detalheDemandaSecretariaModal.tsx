@@ -100,7 +100,7 @@ export default function DetalhesDemandaSecretariaModal({
     <>
       <Dialog open={isOpen && !showRejeitarModal && !showConfirmarModal} onOpenChange={onClose}>
         <DialogContent 
-          className="max-w-2xl! !max-h-[90vh]! overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
+          className="max-w-2xl! max-h-[90vh]! overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
         >
           {/* Background decorativo */}
           <div className="absolute inset-0 pointer-events-none opacity-5 z-0">
@@ -292,7 +292,7 @@ export default function DetalhesDemandaSecretariaModal({
               </Button>
               <Button
                 onClick={() => setShowConfirmarModal(true)}
-                className="flex-1 bg-global-accent hover:bg-purple-700 text-white"
+                className="flex-1 bg-global-accent hover:bg-global-accent-hover text-white"
               >
                 Confirmar
               </Button>
@@ -385,7 +385,7 @@ export default function DetalhesDemandaSecretariaModal({
               <Button
                 onClick={handleConfirmar}
                 disabled={!operadorSelecionado || isConfirmando}
-                className="flex-1 bg-global-accent hover:bg-purple-700 text-white disabled:opacity-50"
+                className="flex-1 bg-global-accent hover:bg-global-accent-hover text-white disabled:opacity-50"
               >
                 {isConfirmando ? "Atribuindo..." : "Atribuir ao Operador"}
               </Button>
