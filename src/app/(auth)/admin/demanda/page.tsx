@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Eye, RotateCcw, Trash2, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Trash2, Search } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { demandaService } from "@/services/demandaService";
 import type { Demanda as DemandaAPI } from "@/types";
@@ -9,9 +9,6 @@ import DetalhesDemandaModal from "@/components/detalheDemandaModal";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 interface SecretariaPopulated {
@@ -53,19 +50,22 @@ export default function DemandasAdminPage() {
     queryKey: ["demandas-admin"],
     queryFn: async () => {
       // Buscar todas as demandas (sem paginação no backend)
-      let allDocs: DemandaExtendida[] = [];
-      let page = 1;
+      const allDocs: DemandaExtendida[] = [];
+      let currentPage = 1;
       let totalPages = 1;
 
       do {
-        const response = await demandaService.buscarDemandas({ page: String(page), limit: "100" } as any);
+        const response = await demandaService.buscarDemandas({ 
+          page: currentPage, 
+          limit: 100
+        });
         const payload = response.data;
         if (payload?.docs?.length) {
-          allDocs = allDocs.concat(payload.docs);
+          allDocs.push(...payload.docs);
         }
         totalPages = payload?.totalPages || 1;
-        page++;
-      } while (page <= totalPages);
+        currentPage++;
+      } while (currentPage <= totalPages);
 
       return allDocs;
     },
@@ -73,7 +73,9 @@ export default function DemandasAdminPage() {
     staleTime: 60_000,
   });
 
-  const demandas: DemandaExtendida[] = Array.isArray(data) ? data : [];
+  const demandas: DemandaExtendida[] = useMemo(() => {
+    return Array.isArray(data) ? data : [];
+  }, [data]);
 
   // Mutation para deletar demanda
   const deletarMutation = useMutation({

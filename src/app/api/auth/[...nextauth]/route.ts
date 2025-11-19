@@ -52,7 +52,11 @@ async function refreshAccessToken(token: JWT, retryCount = 0): Promise<JWT> {
     // Backend retorna tokens sob data.user
     const userData = data?.user || data || null;
 
-    if (!userData || !userData.accessToken) {
+    // Backend usa "accesstoken" e "refreshtoken"
+    const newAccess = userData.accesstoken ?? userData.accessToken;
+    const newRefresh = userData.refreshtoken ?? userData.refreshToken;
+
+    if (!newAccess) {
       console.error('[NextAuth] Formato de resposta inesperado:', json);
       throw new Error('Formato de resposta inesperado ao renovar token');
     }
@@ -62,9 +66,9 @@ async function refreshAccessToken(token: JWT, retryCount = 0): Promise<JWT> {
 
     return {
       ...token,
-      accesstoken: userData.accessToken,
-      refreshtoken: userData.refreshtoken ?? token.refreshtoken,
-      accessTokenExpires: Date.now() + 60 * 60 * 1000, // 1 hora
+      accesstoken: newAccess,
+      refreshtoken: newRefresh ?? token.refreshtoken,
+      accessTokenExpires: Date.now() + 60 * 60 * 1000,
       error: undefined,
       errorDetails: undefined,
     };
@@ -150,8 +154,8 @@ export const authOptions: NextAuthOptions = {
               celular: user.celular ?? "",
               nivel_acesso: user.nivel_acesso ?? {},
               ativo: user.ativo ?? true,
-              accesstoken: user.accessToken ?? "",
-              refreshtoken: user.refreshtoken ?? "",
+              accesstoken: user.accesstoken,
+              refreshtoken: user.refreshtoken,
               lembrarDeMim: credentials.lembrarDeMim === "true",
             };
           }
