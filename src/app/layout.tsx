@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/providers/queryProvider";
 import { SessionWrapper } from "@/components/SessionWrapper";
+import { SessionRefresher } from "@/components/SessionRefresher";
 import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Toaster } from 'sonner';
@@ -58,6 +59,7 @@ export default function RootLayout({
         <Toaster position="top-right" closeButton richColors />
         <NuqsAdapter>
           <SessionWrapper>
+            <SessionRefresher />
             <QueryProvider>
               <GlobalErrorHandler />
               <ConditionalLayout dadosFooter={dadosFooter}>
