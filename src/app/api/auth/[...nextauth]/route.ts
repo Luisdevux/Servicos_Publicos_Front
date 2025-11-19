@@ -154,7 +154,7 @@ export const authOptions: NextAuthOptions = {
               celular: user.celular ?? "",
               nivel_acesso: user.nivel_acesso ?? {},
               ativo: user.ativo ?? true,
-              accesstoken: user.accesstoken,
+              accesstoken: user.accessToken,
               refreshtoken: user.refreshtoken,
               lembrarDeMim: credentials.lembrarDeMim === "true",
             };

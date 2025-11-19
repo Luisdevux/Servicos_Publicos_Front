@@ -2,22 +2,30 @@
 
 type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
-interface SecureFetchOptions {
+interface SecureFetchOptions<TBody = unknown> {
   endpoint: string;
   method?: FetchMethod;
-  body?: unknown;
+  body?: TBody;
+  bodyType?: 'json' | 'formData';
+  formData?: {
+    file: string | File;
+    fileName?: string;
+  };
 }
 
-export async function secureFetch<T>(options: SecureFetchOptions): Promise<T> {
-  const { endpoint, method = 'GET', body } = options;
+export async function secureFetch<T, TBody = unknown>(options: SecureFetchOptions<TBody>): Promise<T> {
+  const { endpoint, method = 'GET', body, bodyType, formData } = options;
 
   const response = await fetch('/api/auth/secure-fetch', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: "include",
     body: JSON.stringify({
       endpoint,
       method,
-      body
+      body,
+      bodyType,
+      formData
     })
   });
 
