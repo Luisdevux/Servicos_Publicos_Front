@@ -36,7 +36,7 @@ const data = {
     },
     {
       title: "Demandas",
-      path: "#",
+      path: "/admin/demanda",
       icon: FolderKanban,
     },
     {
