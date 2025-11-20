@@ -541,7 +541,7 @@
       </Polygon>
     </Placemark>
     <Placemark>
-      <name>Centro</name>
+      <name>Centro (S-01)</name>
       <styleUrl>#poly-E65100-2000-77-nodesc</styleUrl>
       <Polygon>
         <outerBoundaryIs>
@@ -571,7 +571,7 @@
       </Polygon>
     </Placemark>
     <Placemark>
-      <name>5° BEC</name>
+      <name>Centro (5º BEC)</name>
       <styleUrl>#poly-FFD600-2000-77-nodesc</styleUrl>
       <Polygon>
         <outerBoundaryIs>
