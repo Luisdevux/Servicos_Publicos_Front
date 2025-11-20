@@ -99,19 +99,18 @@ export default function SecretariaAdminPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                         Carregando secretarias...
                       </td>
                     </tr>
                   ) : secretariasFiltradas.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                         Nenhuma secretaria encontrada.
                       </td>
                     </tr>
@@ -123,31 +122,31 @@ export default function SecretariaAdminPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.email}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.telefone}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.tipo}</td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedSecretaria(s);
-                              setOpenEdit(true);
-                            }}
-                            className="p-1 hover:bg-gray-100 rounded"
-                            aria-label={`Editar ${s.nome}`}
-                          >
-                            <Pencil className="h-4 w-4 text-global-text-primary" />
-                          </button>
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSecretariaToDelete(s);
-                              setOpenDelete(true);
-                            }}
-                            className="p-1 hover:bg-gray-100 rounded"
-                            aria-label={`Excluir ${s.nome}`}
-                          >
-                            <Trash className="h-4 w-4 text-global-text-primary" />
-                          </button>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedSecretaria(s);
+                                setOpenEdit(true);
+                              }}
+                              className="p-1.5 hover:bg-gray-100 rounded cursor-pointer"
+                              aria-label={`Editar ${s.nome}`}
+                            >
+                              <Pencil className="h-4 w-4 text-global-text-primary" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSecretariaToDelete(s);
+                                setOpenDelete(true);
+                              }}
+                              className="p-1.5 hover:bg-red-50 rounded cursor-pointer"
+                              aria-label={`Excluir ${s.nome}`}
+                            >
+                              <Trash className="h-4 w-4 text-red-600" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

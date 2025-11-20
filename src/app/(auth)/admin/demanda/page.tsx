@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Eye, Trash2, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Search, Trash } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { demandaService } from "@/services/demandaService";
 import type { Demanda as DemandaAPI } from "@/types";
@@ -247,7 +247,7 @@ export default function DemandasAdminPage() {
                       DATA
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      AÇÕES
+
                     </th>
                   </tr>
                 </thead>
@@ -296,7 +296,7 @@ export default function DemandasAdminPage() {
                                 setSelectedDemanda(demanda);
                                 setOpenDetail(true);
                               }}
-                              className="p-1.5 hover:bg-blue-50 rounded text-blue-600"
+                              className="p-1.5 hover:bg-blue-50 rounded text-blue-600 cursor-pointer"
                               aria-label="Ver detalhes"
                             >
                               <Eye className="h-4 w-4" />
@@ -307,10 +307,10 @@ export default function DemandasAdminPage() {
                                 setDemandaParaDeletar(demanda);
                                 setOpenDeleteModal(true);
                               }}
-                              className="p-1.5 hover:bg-red-50 rounded text-red-600"
+                              className="p-1.5 hover:bg-red-50 rounded text-red-600 cursor-pointer"
                               aria-label="Excluir"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash className="h-4 w-4" />
                             </button>
                           </div>
                         </td>
