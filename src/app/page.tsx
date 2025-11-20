@@ -38,8 +38,6 @@ export default function Home() {
               <rect width="100%" height="100%" fill="url(#hero-grid)"/>
             </svg>
           </div>
-          <div className="absolute top-20 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse-slow"></div>
-          <div className="absolute bottom-10 left-10 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
           <div className="absolute top-32 left-32 w-16 h-16 border-2 border-white/20 rounded-lg rotate-12"></div>
           <div className="absolute bottom-40 right-40 w-12 h-12 border-2 border-white/20 rounded-full"></div>
         </div>
@@ -116,7 +114,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="servicos" className="pt-18 pb-32 px-6 sm:px-6 lg:px-40 bg-linear-to-b from-gray-50 to-blue-100/20 relative" data-test="secao-servicos">
+      <section id="servicos" className="pt-10 pb-32 px-6 sm:px-6 lg:px-40 bg-linear-to-b from-gray-50 to-blue-100/20 relative" data-test="secao-servicos">
         <div className="text-center mb-16">
           <div className="inline-block px-4 py-2 bg-global-accent/10 rounded-full mb-4">
             <span className="text-sm font-semibold text-global-accent uppercase tracking-wider">Serviços Disponíveis</span>
@@ -189,6 +187,7 @@ export default function Home() {
                                     src={service.icon}
                                     alt={service.label}
                                     fill
+                                    sizes="32px"
                                     className="filter brightness-0 invert object-contain"
                                 />
                             </div>
@@ -461,9 +460,6 @@ export default function Home() {
               <rect width="100%" height="100%" fill="url(#grid)"/>
             </svg>
           </div>
-          
-          <div className="absolute top-10 right-10 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 left-10 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl"></div>
           <div className="absolute top-20 left-20 w-20 h-20 border-2 border-white/20 rounded-lg rotate-12"></div>
           <div className="absolute bottom-32 right-32 w-16 h-16 border-2 border-white/20 rounded-full"></div>
         </div>

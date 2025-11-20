@@ -8,7 +8,8 @@ export interface Usuarios {
   email: string;
   celular: string;
   cnh?: string;
-  data_nomeacao?: Date;
+  data_nascimento?: string;
+  data_nomeacao?: string;
   cargo?: string;
   formacao?: string;
   link_imagem?: string;
@@ -44,6 +45,7 @@ export interface CreateUsuariosData {
   email: string;
   celular: string;
   cnh?: string;
+  data_nascimento?: string;
   data_nomeacao?: string;
   cargo?: string;
   formacao?: string;

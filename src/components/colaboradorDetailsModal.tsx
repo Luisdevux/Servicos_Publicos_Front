@@ -1,7 +1,7 @@
 'use client';
 
 import type { Usuarios } from '@/types';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface ColaboradorDetailsModalProps {
   open: boolean;
@@ -44,7 +44,7 @@ export function ColaboradorDetailsModal({ open, onOpenChange, usuario }: Colabor
             </div>
             <div>
               <div className="text-gray-500">Email</div>
-              <div className="font-medium break-words">{usuario.email}</div>
+              <div className="font-medium wrap-break-words">{usuario.email}</div>
             </div>
             <div>
               <div className="text-gray-500">CPF</div>
@@ -80,7 +80,7 @@ export function ColaboradorDetailsModal({ open, onOpenChange, usuario }: Colabor
             </div>
             <div>
               <div className="text-gray-500">Endereço</div>
-              <div className="font-medium break-words">
+              <div className="font-medium wrap-break-words">
                 {usuario.endereco ? (
                   <>
                     {usuario.endereco.logradouro}, {usuario.endereco.numero}

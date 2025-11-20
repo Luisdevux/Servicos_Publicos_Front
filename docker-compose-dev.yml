@@ -15,6 +15,29 @@ services:
     networks:
       - servicos-network
 
+  # Mailsender - Serviço de envio de emails
+  mailsender:
+    container_name: mailsender-servicos
+    image: ruanlopes1350/mailsender:latest
+    ports:
+      - 5016:5016
+    environment:
+      MONGODB_URI: "mongodb://mongodb-servicos:27017/servicosPublicos"
+    env_file:
+      - ../servicos-publicos-api/.env
+    restart: always
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5016/api/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - servicos-network
+
   # API Backend - Node.js Express
   api:
     container_name: api-servicos
@@ -22,7 +45,7 @@ services:
       context: ../servicos-publicos-api
       dockerfile: Dockerfile
     environment:
-      DB_URL: "mongodb://mongodb-servicos:27017/exemplo"
+      DB_URL: "mongodb://mongodb-servicos:27017/servicosPublicos"
       NODE_ENV: "development"
       TERM: "xterm"
     ports:
@@ -32,8 +55,11 @@ services:
     volumes:
       - ../servicos-publicos-api:/app:cached
       - /app/node_modules
+    command: npm run dev:init
     depends_on:
       mongodb:
+        condition: service_healthy
+      mailsender:
         condition: service_healthy
     networks:
       - servicos-network
@@ -44,7 +70,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: sh -c "if [ ! -f 'node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node' ]; then rm -rf node_modules/* 2>/dev/null || true; npm install --include=optional --legacy-peer-deps; fi && npm run dev"
+    command: sh -c "npm install --include=optional --legacy-peer-deps && npm run dev"
     environment:
       # Server-side: Container → Container (usa nome do serviço)
       API_URL_SERVER_SIDED: "http://api-servicos:5011"
@@ -70,8 +96,9 @@ services:
     volumes:
       # Bind mount para hot reload
       - .:/app
-      # Named volume para node_modules
-      - /app/node_modules
+      # Named volume para node_modules e .next build
+      - vol-frontend-node-modules:/app/node_modules
+      - vol-frontend-next:/app/.next
     depends_on:
       - api
     networks:
@@ -80,6 +107,8 @@ services:
 # Volumes - Persistência de dados
 volumes:
   vol-mongodb-servicos:
+  vol-frontend-node-modules:
+  vol-frontend-next:
 
 # Networks - Rede compartilhada
 networks:

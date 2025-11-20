@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { 
   Home as HomeIcon, 
@@ -37,7 +36,7 @@ const data = {
     },
     {
       title: "Demandas",
-      path: "#",
+      path: "/admin/demanda",
       icon: FolderKanban,
     },
     {

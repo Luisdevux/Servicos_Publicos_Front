@@ -5,6 +5,23 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
+/**
+ * Decodifica um JWT para extrair a expiração
+ * Não valida assinatura, apenas lê o payload
+ */
+function decodeJWT(token: string): { exp?: number } | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    
+    const payload = parts[1];
+    const decoded = JSON.parse(Buffer.from(payload, 'base64').toString('utf-8'));
+    return decoded;
+  } catch {
+    return null;
+  }
+}
+
 // Função auxiliar para renovar o access token usando o refresh token.
 async function refreshAccessToken(token: JWT, retryCount = 0): Promise<JWT> {
   const MAX_RETRIES = 2;
@@ -52,19 +69,28 @@ async function refreshAccessToken(token: JWT, retryCount = 0): Promise<JWT> {
     // Backend retorna tokens sob data.user
     const userData = data?.user || data || null;
 
-    if (!userData || !userData.accessToken) {
+    // Backend usa "accesstoken" e "refreshtoken"
+    const newAccess = userData.accesstoken ?? userData.accessToken;
+    const newRefresh = userData.refreshtoken ?? userData.refreshToken;
+
+    if (!newAccess) {
       console.error('[NextAuth] Formato de resposta inesperado:', json);
       throw new Error('Formato de resposta inesperado ao renovar token');
     }
 
+    // Decodifica o JWT para pegar a expiração real do backend
+    const decoded = decodeJWT(newAccess);
+    const expiresAt = decoded?.exp ? decoded.exp * 1000 : Date.now() + 60 * 60 * 1000; // Fallback: 1h
+    
     console.log('[NextAuth] Token renovado com sucesso');
-    console.log('[NextAuth] Novo expiry em:', new Date(Date.now() + 60 * 60 * 1000).toISOString());
+    console.log('[NextAuth] Expiração do novo token:', decoded?.exp ? new Date(decoded.exp * 1000).toISOString() : 'Não encontrado');
+    console.log('[NextAuth] Usando expiresAt:', new Date(expiresAt).toISOString());
 
     return {
       ...token,
-      accesstoken: userData.accessToken,
-      refreshtoken: userData.refreshtoken ?? token.refreshtoken,
-      accessTokenExpires: Date.now() + 60 * 60 * 1000, // 1 hora
+      accesstoken: newAccess,
+      refreshtoken: newRefresh ?? token.refreshtoken,
+      accessTokenExpires: expiresAt,
       error: undefined,
       errorDetails: undefined,
     };
@@ -104,6 +130,13 @@ export const authOptions: NextAuthOptions = {
             }),
           });
 
+          // Rate limit específico (429)
+          if (res.status === 429) {
+            console.warn('[NextAuth] Rate limit detectado');
+            // Retorna null e sinaliza rate limit via error no JWT
+            return null;
+          }
+
           if (!res.ok) {
             console.warn('[NextAuth] Login falhou:', res.status);
             return null;
@@ -133,6 +166,14 @@ export const authOptions: NextAuthOptions = {
             }
 
             console.log('[NextAuth] Login bem-sucedido para usuário:', user._id);
+            
+            // Decodifica o accessToken para pegar a expiração real do backend
+            const decoded = decodeJWT(user.accessToken);
+            const expiresAt = decoded?.exp ? decoded.exp * 1000 : Date.now() + 60 * 60 * 1000; // Fallback: 1h
+            
+            console.log('[NextAuth] Expiração do novo token:', decoded?.exp ? new Date(decoded.exp * 1000).toISOString() : 'Não encontrado');
+            console.log('[NextAuth] Usando expiresAt:', new Date(expiresAt).toISOString());
+            
             return {
               id: user._id,
               nome: user.nome ?? "",
@@ -143,9 +184,10 @@ export const authOptions: NextAuthOptions = {
               celular: user.celular ?? "",
               nivel_acesso: user.nivel_acesso ?? {},
               ativo: user.ativo ?? true,
-              accesstoken: user.accessToken ?? "",
-              refreshtoken: user.refreshtoken ?? "",
+              accesstoken: user.accessToken,
+              refreshtoken: user.refreshtoken,
               lembrarDeMim: credentials.lembrarDeMim === "true",
+              accessTokenExpires: expiresAt,
             };
           }
 
@@ -167,6 +209,11 @@ export const authOptions: NextAuthOptions = {
       // Primeiro login ou update manual
       if (user) {
         console.log('[NextAuth] JWT callback - Novo login para usuário:', user.id);
+        
+        // accessTokenExpires vem do authorize()
+        const expiresAt = (user as typeof user & { accessTokenExpires?: number }).accessTokenExpires 
+          ?? Date.now() + 60 * 60 * 1000;
+        
         return {
           id: user.id,
           nome: user.nome,
@@ -180,7 +227,7 @@ export const authOptions: NextAuthOptions = {
           accesstoken: user.accesstoken,
           refreshtoken: user.refreshtoken,
           lembrarDeMim: user.lembrarDeMim,
-          accessTokenExpires: Date.now() + 60 * 60 * 1000, // 1 hora
+          accessTokenExpires: expiresAt,
         };
       }
 
@@ -245,15 +292,17 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 dias
+    updateAge: 5 * 60, // 5 minutos
   },
   cookies: {
     sessionToken: {
-      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
+      name: `${process.env.NEXTAUTH_URL?.startsWith('https://') ? '__Secure-' : ''}next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        // Só usa secure: true se NEXTAUTH_URL for HTTPS
+        secure: process.env.NEXTAUTH_URL?.startsWith('https://') ?? false,
         // maxAge será definido dinamicamente com base em lembrarDeMim
       },
     },

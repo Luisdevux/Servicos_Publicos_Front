@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/providers/queryProvider";
 import { SessionWrapper } from "@/components/SessionWrapper";
+import { SessionRefresher } from "@/components/SessionRefresher";
 import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Toaster } from 'sonner';
@@ -36,6 +37,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Vilhena + Pública",
   description: "Sistema de Gestão de Serviços Públicos",
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
@@ -49,9 +56,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <Toaster position="top-right" richColors closeButton />
+        <Toaster position="top-right" closeButton richColors />
         <NuqsAdapter>
           <SessionWrapper>
+            <SessionRefresher />
             <QueryProvider>
               <GlobalErrorHandler />
               <ConditionalLayout dadosFooter={dadosFooter}>

@@ -51,11 +51,6 @@ export function normalizeImageUrl(url: string | undefined | null): string {
  */
 export function optimizeImageUrl(
   url: string,
-  options?: {
-    width?: number;
-    height?: number;
-    quality?: number;
-  }
 ): string {
   if (!isValidImageUrl(url)) return '';
   
@@ -139,5 +134,17 @@ export async function validateImageMagicBytes(file: File): Promise<boolean> {
     
     reader.onerror = () => resolve(false);
     reader.readAsArrayBuffer(file.slice(0, 4));
+  });
+}
+
+/**
+ * Converte um arquivo para Base64
+ */
+export function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
   });
 }

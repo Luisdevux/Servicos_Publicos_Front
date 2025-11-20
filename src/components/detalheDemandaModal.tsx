@@ -17,9 +17,10 @@ interface DetalhesDemandaModalProps {
   pedido: Pedido | null;
   isOpen: boolean;
   onClose: () => void;
+  disableAvaliacaoForm?: boolean; 
 }
 
-export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: DetalhesDemandaModalProps) {
+export default function DetalhesDemandaModal({ pedido, isOpen, onClose, disableAvaliacaoForm = false }: DetalhesDemandaModalProps) {
   const [rating, setRating] = useState(0);
   const [avaliacao, setAvaliacao] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +35,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
       setRating(0);
       setAvaliacao("");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pedido?.id, isOpen]);
 
   if (!pedido) return null;
@@ -61,7 +63,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="!max-w-2xl !max-h-[90vh] overflow-hidden p-0 bg-white border-none flex flex-col"
+        className="max-w-2xl! max-h-[90vh]! overflow-hidden p-0 bg-white border-none flex flex-col"
         data-test="detalhe-demanda-modal"
       >
         {/* Background decorativo */}
@@ -79,7 +81,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
           <div className="absolute top-1/2 right-8 w-8 h-8 border-2 border-current rotate-45 opacity-30"></div>
         </div>
 
-        <DialogHeader className="bg-[var(--global-accent)] py-6 px-6 rounded-t-lg flex-shrink-0 relative overflow-hidden">
+        <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -207,7 +209,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
              
              return isConcluido && imagensResolucao.length > 0 ? (
                <div className="space-y-2" data-test="imagens-conclusao-section">
-                 <h3 className="text-lg font-medium text-[var(--global-text-primary)]">
+                 <h3 className="text-lg font-medium text-global-text-primary">
                    {imagensResolucao.length > 1 ? 'Imagens da conclusão' : 'Imagem da conclusão'}
                  </h3>
                  <ImageCarousel 
@@ -218,7 +220,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose }: Detalh
              ) : null;
            })()}
 
-        {isConcluido && (
+        {isConcluido && !disableAvaliacaoForm && (
             <div className="space-y-4" data-test="avaliacao-section">
               <h3 className="text-lg font-medium text-global-text-primary">
                 {pedido.avaliacao ? "Sua avaliação" : "Avalie esse serviço"}

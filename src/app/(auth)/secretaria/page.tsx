@@ -14,7 +14,6 @@ import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI, Usuarios } from "@/types";
 import DetalhesDemandaSecretariaModal from "@/components/detalheDemandaSecretariaModal";
 import { demandaService } from "@/services/demandaService";
-import { usuarioService } from "@/services/usuarioService";
 import { toast } from "sonner";
 
 interface DemandaCard {
@@ -92,7 +91,11 @@ export default function PedidosSecretariaPage() {
       descricao: demanda.descricao,
       tipo: demanda.tipo.toLowerCase(),
       status: demanda.status || 'Em aberto',
-      imagem: demanda.link_imagem,
+      imagem: demanda.link_imagem 
+        ? (Array.isArray(demanda.link_imagem) 
+            ? demanda.link_imagem 
+            : [demanda.link_imagem])
+        : undefined,
       endereco: demanda.endereco ? {
         bairro: demanda.endereco.bairro,
         tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
@@ -102,7 +105,11 @@ export default function PedidosSecretariaPage() {
       usuarios: demanda.usuarios,
       resolucao: demanda.resolucao,
       motivo_devolucao: demanda.motivo_devolucao,
-      link_imagem_resolucao: demanda.link_imagem_resolucao,
+      link_imagem_resolucao: demanda.link_imagem_resolucao 
+        ? (Array.isArray(demanda.link_imagem_resolucao) 
+            ? demanda.link_imagem_resolucao 
+            : [demanda.link_imagem_resolucao])
+        : undefined,
     };
   }) || [];
 
@@ -140,7 +147,21 @@ export default function PedidosSecretariaPage() {
     retry: 1,
   });
 
-  const operadores: Usuarios[] = operadoresResponse?.data?.docs || [];
+  // Remover o próprio usuário da lista de operadores (para o secretário não se auto-atribuir)
+  const operadores: Usuarios[] = (operadoresResponse?.data?.docs || []).filter((op: Usuarios) => {
+    try {
+      const userId = session?.user?.id;
+      if (!userId) return true; // se não tiver sessão, não filtra
+
+      // suportar formatos { _id }
+      const opId = op._id;
+      return opId !== userId.toString();
+    } catch (e) {
+      // em caso de erro, não filtrar esse item
+      console.error('Erro ao filtrar operadores:', e);
+      return true;
+    }
+  });
 
   const atribuirMutation = useMutation({
     mutationFn: async ({ demandaId, operadorId }: { demandaId: string; operadorId: string }) => {
@@ -265,11 +286,10 @@ export default function PedidosSecretariaPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="#5b21b6"
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#337695] mx-auto mb-4"></div>
             <div className="text-gray-600">Carregando demandas...</div>
           </div>
         </div>
@@ -286,7 +306,6 @@ export default function PedidosSecretariaPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="#5b21b6"
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-center max-w-md mx-auto px-4">
@@ -303,7 +322,7 @@ export default function PedidosSecretariaPage() {
             {!isTokenExpired && (
               <Button 
                 onClick={() => window.location.reload()}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-[#337695] hover:bg-[#2c5f7a] text-white"
               >
                 Recarregar página
               </Button>
@@ -319,11 +338,10 @@ export default function PedidosSecretariaPage() {
       <Banner
         icone={ClipboardList}
         titulo="Pedidos recebidos"
-        className="mb-6 md:mb-8"
-        backgroundColor="#5b21b6"
+        className="mb-4"
       />
 
-      <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
+      <div className="px-6 sm:px-6 lg:px-40 py-4">
         <div className="mx-auto">
           {/* Abas de Status */}
           <div className="mb-6 border-b border-gray-200">
@@ -335,14 +353,14 @@ export default function PedidosSecretariaPage() {
                 }}
                 className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                   abaAtiva === "em-aberto"
-                    ? "border-purple-600 text-purple-600"
+                    ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Em Aberto
                 {demandas.filter(d => d.status === "Em aberto").length > 0 && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                    abaAtiva === "em-aberto" ? "bg-purple-100 text-purple-600" : "bg-gray-100 text-gray-600"
+                    abaAtiva === "em-aberto" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
                   }`}>
                     {demandas.filter(d => d.status === "Em aberto").length}
                   </span>
@@ -356,14 +374,14 @@ export default function PedidosSecretariaPage() {
                 }}
                 className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                   abaAtiva === "em-andamento"
-                    ? "border-purple-600 text-purple-600"
+                    ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Em Andamento
                 {demandas.filter(d => d.status === "Em andamento").length > 0 && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                    abaAtiva === "em-andamento" ? "bg-purple-100 text-purple-600" : "bg-gray-100 text-gray-600"
+                    abaAtiva === "em-andamento" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
                   }`}>
                     {demandas.filter(d => d.status === "Em andamento").length}
                   </span>
@@ -377,14 +395,14 @@ export default function PedidosSecretariaPage() {
                 }}
                 className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                   abaAtiva === "concluidas"
-                    ? "border-purple-600 text-purple-600"
+                    ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Concluídas
                 {demandas.filter(d => d.status === "Concluída").length > 0 && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                    abaAtiva === "concluidas" ? "bg-purple-100 text-purple-600" : "bg-gray-100 text-gray-600"
+                    abaAtiva === "concluidas" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
                   }`}>
                     {demandas.filter(d => d.status === "Concluída").length}
                   </span>
@@ -438,7 +456,7 @@ export default function PedidosSecretariaPage() {
                   
                   <Button 
                     onClick={() => handleAnalisarDemanda(demanda.id)}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white"
                   >
                     {abaAtiva === "em-aberto" && "Analisar Demanda"}
                     {abaAtiva === "em-andamento" && "Ver Detalhes"}

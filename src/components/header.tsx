@@ -66,13 +66,13 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
       { href: "/secretaria", label: "Pedidos recebidos" },
       { href: "/perfil", label: "Perfil" },
     ];
-    effectiveTheme = 'purple';
+    effectiveTheme = 'default';
   } else if (isOperadorArea) {
     links = [
       { href: "/operador", label: "Pedidos recebidos" },
       { href: "/perfil", label: "Perfil" },
     ];
-    effectiveTheme = 'green';
+    effectiveTheme = 'default';
   } else {
     links = [
       { href: "/", label: "Home" },
@@ -88,12 +88,12 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
     return true;
   }) : links.filter(link => !link.requiresAuth);
 
-  const cls = `site-header bg-global-bg border-b ${inverted ? 'site-header--inverted' : ''}`;
+  const cls = `site-header bg-[var(--global-bg)] border-b ${inverted ? 'site-header--inverted' : ''}`;
   const themeClass = effectiveTheme === 'green' ? 'global-theme-green' : effectiveTheme === 'purple' ? 'global-theme-purple' : '';
 
   return (
     <header 
-      className={`border-b border-global-separator/30 ${cls} ${themeClass}`}
+      className={`border-b border-(--global-separator)/30 ${cls} ${themeClass}`}
       data-test="header"
     >
       <div className="px-6 sm:px-6 lg:px-40">
@@ -135,7 +135,7 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
               {mounted && (isAuthenticated || isSecretariaArea || isOperadorArea) && (
                 <button
                   onClick={logout}
-                  className="ml-2 px-4 py-2 bg-global-text-primary/90 text-white text-sm font-medium rounded-lg hover:bg-global-text-secondary transition-colors cursor-pointer"
+                  className="ml-2 px-4 py-2 bg-(--global-text-primary)/90 text-white text-sm font-medium rounded-lg hover:bg-global-text-secondary transition-colors cursor-pointer"
                   data-test="header-logout-button"
                 >
                   Sair
@@ -174,7 +174,7 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
         data-test="header-nav-mobile"
       >
         <div
-          className={`transform-origin-top transition-all duration-200 ease-in-out ${open ? 'opacity-100 scale-100 max-h-96' : 'opacity-0 scale-95 max-h-0'} overflow-hidden border-t border-global-separator/30`}
+          className={`transform-origin-top transition-all duration-200 ease-in-out ${open ? 'opacity-100 scale-100 max-h-96' : 'opacity-0 scale-95 max-h-0'} overflow-hidden border-t border-(--global-separator)/30`}
         >
           <div className="px-4 pt-2 pb-4 bg-global-bg shadow-sm">
             <Navigation vertical>
@@ -191,7 +191,7 @@ export default function Header({ theme, inverted }: { theme?: 'default' | 'green
             {mounted && (isAuthenticated || isSecretariaArea || isOperadorArea) && (
               <button
                 onClick={logout}
-                className="mt-3 w-full px-4 py-2 bg-global-text-primary/90 text-white text-sm font-medium rounded-lg hover:bg-global-text-secondary transition-colors cursor-pointer"
+                className="mt-3 w-full px-4 py-2 bg-(--global-text-primary)/90 text-white text-sm font-medium rounded-lg hover:bg-global-text-secondary transition-colors cursor-pointer"
                 data-test="header-mobile-logout-button"
               >
                 Sair

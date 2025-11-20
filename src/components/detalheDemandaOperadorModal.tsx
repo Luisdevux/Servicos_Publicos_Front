@@ -86,13 +86,6 @@ export default function DetalhesDemandaOperadorModal({
       return;
     }
 
-    if (imagensResolucao.length === 0) {
-      toast.error('Imagem obrigatória', {
-        description: 'Adicione pelo menos uma imagem da resolução',
-      });
-      return;
-    }
-
     if (onResolver) {
       onResolver(demanda.id, descricaoResolucao, imagensResolucao);
       setDescricaoResolucao("");
@@ -162,7 +155,7 @@ export default function DetalhesDemandaOperadorModal({
     <>
       <Dialog open={isOpen && !showDevolverModal && !showResolverModal} onOpenChange={onClose}>
         <DialogContent 
-          className="!max-w-2xl !max-h-[90vh] overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
+          className="max-w-2xl! max-h-[90vh]! overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
         >
           {/* Background decorativo */}
           <div className="absolute inset-0 pointer-events-none opacity-5 z-0">
@@ -179,7 +172,7 @@ export default function DetalhesDemandaOperadorModal({
             <div className="absolute top-1/2 right-8 w-8 h-8 border-2 border-current rotate-45 opacity-30"></div>
           </div>
 
-          <DialogHeader className="bg-green-600 py-6 px-6 rounded-t-lg relative overflow-hidden shrink-0 z-10">
+          <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden shrink-0 z-10">
             {/* Grid de pontos decorativos */}
             <div className="absolute inset-0 opacity-10">
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -209,7 +202,7 @@ export default function DetalhesDemandaOperadorModal({
             <div className="space-y-6">
               {demanda.descricao && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-green-600">
+                  <h3 className="text-lg font-medium text-global-text-primary">
                     Descrição da demanda
                   </h3>
                   <div className="bg-global-bg-select p-4 rounded-md">
@@ -220,7 +213,7 @@ export default function DetalhesDemandaOperadorModal({
 
               {demanda.imagem && (
                 <div className="space-y-2">
-                  <h3 className="text-lg font-medium text-green-600">
+                  <h3 className="text-lg font-medium text-global-text-primary">
                     {Array.isArray(demanda.imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
                   </h3>
                   <ImageCarousel 
@@ -233,7 +226,7 @@ export default function DetalhesDemandaOperadorModal({
 
               {demanda.endereco && (
                 <div className="space-y-2">
-                  <h3 className="text-lg font-medium text-green-600">
+                  <h3 className="text-lg font-medium text-global-text-primary">
                     Endereço do ocorrido
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -270,7 +263,7 @@ export default function DetalhesDemandaOperadorModal({
                 <>
                   {demanda.resolucao && (
                     <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-green-600">
+                      <h3 className="text-lg font-medium text-global-text-primary">
                         Descrição da conclusão da demanda
                       </h3>
                       <div className="bg-green-50 p-4 rounded-md border border-green-200">
@@ -279,24 +272,26 @@ export default function DetalhesDemandaOperadorModal({
                     </div>
                   )}
 
-                  {demanda.link_imagem_resolucao && (
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-green-600">
-                        {Array.isArray(demanda.link_imagem_resolucao) && demanda.link_imagem_resolucao.length > 1 
-                          ? 'Imagens da conclusão' 
-                          : 'Imagem da conclusão'}
-                      </h3>
-                      <ImageCarousel 
-                        images={
-                          Array.isArray(demanda.link_imagem_resolucao) 
-                            ? demanda.link_imagem_resolucao 
-                            : [demanda.link_imagem_resolucao]
-                        }
-                        alt="Imagem da conclusão"
-                        className="h-48"
-                      />
-                    </div>
-                  )}
+                  {demanda.link_imagem_resolucao && (() => {
+                    const imagensResolucao = Array.isArray(demanda.link_imagem_resolucao)
+                      ? demanda.link_imagem_resolucao.filter((img): img is string => Boolean(img && typeof img === 'string' && img.trim() !== ''))
+                      : (demanda.link_imagem_resolucao && typeof demanda.link_imagem_resolucao === 'string' && demanda.link_imagem_resolucao.trim() !== '')
+                        ? [demanda.link_imagem_resolucao]
+                        : [];
+                    
+                    return imagensResolucao.length > 0 ? (
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-medium text-global-text-primary">
+                          {imagensResolucao.length > 1 ? 'Imagens da conclusão' : 'Imagem da conclusão'}
+                        </h3>
+                        <ImageCarousel 
+                          images={imagensResolucao}
+                          alt="Imagem da conclusão"
+                          className="h-48"
+                        />
+                      </div>
+                    ) : null;
+                  })()}
                 </>
               )}
             </div>
@@ -312,7 +307,7 @@ export default function DetalhesDemandaOperadorModal({
               </Button>
               <Button
                 onClick={() => setShowResolverModal(true)}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                className="flex-1 bg-global-accent hover:bg-global-accent-hover text-white"
               >
                 Resolver
               </Button>
@@ -356,7 +351,7 @@ export default function DetalhesDemandaOperadorModal({
 
       <Dialog open={showResolverModal} onOpenChange={setShowResolverModal}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-white border-none shadow-2xl">
-          <DialogHeader className="bg-green-600 py-6 px-6 rounded-t-lg relative overflow-hidden">
+          <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden">
             {/* Grid de pontos decorativos */}
             <div className="absolute inset-0 opacity-10">
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -451,7 +446,7 @@ export default function DetalhesDemandaOperadorModal({
                   className={cn(
                     "flex items-center gap-2 px-5 py-3 rounded-lg cursor-pointer transition-all font-medium shadow-md",
                     previewUrls.length < 3
-                      ? "bg-green-600 hover:shadow-lg hover:brightness-110 text-white"
+                      ? "bg-global-accent hover:shadow-lg hover:brightness-110 text-white"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   )}
                 >
@@ -504,7 +499,7 @@ export default function DetalhesDemandaOperadorModal({
                 onClick={handleResolver}
                 disabled={!descricaoResolucao.trim() || imagensResolucao.length === 0 || isResolvendo}
                 className={cn(
-                  "flex-1 bg-green-600 hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
+                  "flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
                   (isResolvendo || !descricaoResolucao.trim() || imagensResolucao.length === 0) && "opacity-70 cursor-not-allowed"
                 )}
               >

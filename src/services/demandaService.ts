@@ -1,6 +1,7 @@
 // src/services/demandaService.ts
 
 import { getSecure, postSecure, patchSecure, delSecure } from './api';
+import { fileToBase64 } from '@/lib/imageUtils';
 import type {
   Demanda,
   ApiResponse,
@@ -141,17 +142,32 @@ export const demandaService = {
         method: 'POST',
         bodyType: 'formData',
         formData: {
-          file: await fileToBase64(file)
+          file: await fileToBase64(file),
+          fileName: file.name
         }
       })
     });
 
     if (!response.ok) {
-      throw new Error(
-        tipo === 'solicitacao' 
-          ? 'Erro ao fazer upload da foto' 
-          : 'Erro ao fazer upload da foto de resolução'
-      );
+      let errorMessage = tipo === 'solicitacao' 
+        ? 'Erro ao fazer upload da foto' 
+        : 'Erro ao fazer upload da foto de resolução';
+      
+      try {
+        const errorData = await response.json();
+        console.error('[uploadFoto] Erro da API:', errorData);
+        
+        // Tenta extrair a mensagem de erro de diferentes formatos
+        errorMessage = errorData.customMessage 
+          || errorData.message 
+          || errorData.error 
+          || errorData.details 
+          || errorMessage;
+      } catch (e) {
+        console.error('[uploadFoto] Não foi possível parsear erro:', e);
+      }
+      
+      throw new Error(errorMessage);
     }
 
     return response.json();
@@ -171,16 +187,3 @@ export const demandaService = {
     return this.uploadFoto(id, file, 'resolucao') as Promise<ApiResponse<{ link_imagem_resolucao: string }>>;
   },
 };
-
-
-/**
- * Helper para converter File para Base64
- */
-async function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-  });
-}

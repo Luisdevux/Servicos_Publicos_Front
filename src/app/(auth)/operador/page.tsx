@@ -7,11 +7,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Banner from "@/components/banner";
+import CardDemandaOperadorSkeleton from "@/components/CardDemandaOperadorSkeleton";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI } from "@/types";
+import type { Demanda } from "@/types/demanda";
 import DetalhesDemandaOperadorModal from "@/components/detalheDemandaOperadorModal";
 import { demandaService } from "@/services/demandaService";
 import { toast } from "sonner";
@@ -42,7 +44,7 @@ export default function PedidosOperadorPage() {
   const [demandaSelecionada, setDemandaSelecionada] = useState<DemandaCard | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const queryClient = useQueryClient();
 
   const ITENS_POR_PAGINA = 6;
@@ -57,8 +59,15 @@ export default function PedidosOperadorPage() {
     queryKey: ['demandas-operador'],
     queryFn: async () => {
       try {
+        // A API já deve retornar apenas as demandas do operador logado
         const result = await demandaService.buscarDemandas();
-        console.log("Demandas carregadas:", result);
+        console.log("Demandas carregadas do operador:", result);
+        console.log("Total de demandas:", result?.data?.docs?.length || 0);
+        if (result?.data?.docs) {
+          result.data.docs.forEach((d: Demanda) => {
+            console.log(`  - Demanda ${d._id}: ${d.tipo} - Status: ${d.status}`);
+          });
+        }
         return result;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
@@ -79,34 +88,45 @@ export default function PedidosOperadorPage() {
     }
   }, [error, router]);
 
+  // Mapear as demandas sem filtro adicional - a API já retorna apenas as do operador
   const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => {
-    // Debug: log da demanda completa para ver estrutura
-    if (demanda.status === "Concluída") {
-      console.log("Demanda da API no operador (Concluída):", demanda);
-      console.log("link_imagem_resolucao:", demanda.link_imagem_resolucao);
-      console.log("tipo de link_imagem_resolucao:", typeof demanda.link_imagem_resolucao);
-      console.log("é array?", Array.isArray(demanda.link_imagem_resolucao));
-    }
-    
-    return {
-      id: demanda._id,
-      titulo: `Demanda sobre ${demanda.tipo}`,
-      descricao: demanda.descricao,
-      tipo: demanda.tipo.toLowerCase(),
-      status: demanda.status || 'Em aberto',
-      imagem: demanda.link_imagem,
-      endereco: demanda.endereco ? {
-        bairro: demanda.endereco.bairro,
-        tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
-        logradouro: demanda.endereco.logradouro,
-        numero: demanda.endereco.numero,
-      } : undefined,
-      usuarios: demanda.usuarios,
-      resolucao: demanda.resolucao,
-      motivo_devolucao: demanda.motivo_devolucao,
-      link_imagem_resolucao: demanda.link_imagem_resolucao,
-    };
-  }) || [];
+      // Debug: log da demanda completa para ver estrutura
+      if (demanda.status === "Concluída") {
+        console.log("Demanda da API no operador (Concluída):", demanda);
+        console.log("link_imagem_resolucao:", demanda.link_imagem_resolucao);
+        console.log("tipo de link_imagem_resolucao:", typeof demanda.link_imagem_resolucao);
+        console.log("é array?", Array.isArray(demanda.link_imagem_resolucao));
+      }
+      
+      return {
+        id: demanda._id,
+        titulo: `Demanda sobre ${demanda.tipo}`,
+        descricao: demanda.descricao,
+        tipo: demanda.tipo.toLowerCase(),
+        status: demanda.status || 'Em aberto',
+        imagem: demanda.link_imagem 
+          ? (Array.isArray(demanda.link_imagem) 
+              ? demanda.link_imagem 
+              : [demanda.link_imagem])
+          : undefined,
+        endereco: demanda.endereco ? {
+          bairro: demanda.endereco.bairro,
+          tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
+          logradouro: demanda.endereco.logradouro,
+          numero: demanda.endereco.numero,
+        } : undefined,
+        usuarios: demanda.usuarios,
+        resolucao: demanda.resolucao,
+        motivo_devolucao: demanda.motivo_devolucao,
+        link_imagem_resolucao: demanda.link_imagem_resolucao 
+          ? (Array.isArray(demanda.link_imagem_resolucao) 
+              ? demanda.link_imagem_resolucao 
+              : [demanda.link_imagem_resolucao])
+          : undefined,
+      };
+    }) || [];
+
+  console.log("Demandas do operador:", demandas.length);
 
   const devolverMutation = useMutation({
     mutationFn: async ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
@@ -139,7 +159,7 @@ export default function PedidosOperadorPage() {
       // Depois, faz upload das imagens de resolução
       if (imagens && imagens.length > 0) {
         for (const imagem of imagens) {
-          await demandaService.uploadFoto(demandaId, imagem, 'resolucao');
+          await demandaService.uploadFotoResolucao(demandaId, imagem);
         }
       }
 
@@ -216,16 +236,15 @@ export default function PedidosOperadorPage() {
 
   // Filtrar demandas por status baseado na aba ativa
   const demandasPorStatus = demandas.filter(demanda => {
-    const statusNormalizado = demanda.status.toLowerCase();
-    
     if (abaAtiva === "aguardando-resolucao") {
-      return statusNormalizado === "em andamento";
+      return demanda.status === "Em andamento";
     } else if (abaAtiva === "concluidas") {
-      return statusNormalizado === "concluída" || statusNormalizado === "concluida";
+      return demanda.status === "Concluída";
     }
-    
     return false;
   });
+
+  console.log(`Filtro ativo: ${abaAtiva} - ${demandasPorStatus.length} demandas`);
 
   const demandasFiltradas = demandasPorStatus.filter(demanda => {
     if (filtroSelecionado === "todos") {
@@ -236,11 +255,11 @@ export default function PedidosOperadorPage() {
 
   // Contador de demandas por aba
   const contadorAguardandoResolucao = demandas.filter(d => 
-    d.status.toLowerCase() === "em andamento"
+    d.status === "Em andamento"
   ).length;
 
   const contadorConcluidas = demandas.filter(d => 
-    d.status.toLowerCase() === "concluída" || d.status.toLowerCase() === "concluida"
+    d.status === "Concluída"
   ).length;
 
   const totalPaginas = Math.ceil(demandasFiltradas.length / ITENS_POR_PAGINA);
@@ -255,12 +274,12 @@ export default function PedidosOperadorPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="linear-gradient(135deg, #10b981 0%, #059669 80%)"
         />
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando demandas...</p>
+        <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <CardDemandaOperadorSkeleton key={index} />
+            ))}
           </div>
         </div>
       </div>
@@ -276,7 +295,6 @@ export default function PedidosOperadorPage() {
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
-          backgroundColor="linear-gradient(135deg, #10b981 0%, #059669 80%)"
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-center max-w-md mx-auto px-4">
@@ -293,7 +311,7 @@ export default function PedidosOperadorPage() {
             {!isTokenExpired && (
               <Button 
                 onClick={() => window.location.reload()}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-[#337695] hover:bg-[#2c5f7a] text-white"
               >
                 Recarregar página
               </Button>
@@ -309,11 +327,10 @@ export default function PedidosOperadorPage() {
       <Banner
         icone={ClipboardList}
         titulo="Pedidos recebidos"
-        className="mb-6 md:mb-8"
-        backgroundColor="linear-gradient(135deg, #10b981 0%, #059669 80%)"
+        className="mb-4"
       />
 
-      <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
+      <div className="px-6 sm:px-6 lg:px-40 py-4">
         <div className="mx-auto">
           {/* Abas de Status */}
           <div className="mb-6 border-b border-gray-200">
@@ -325,14 +342,14 @@ export default function PedidosOperadorPage() {
                 }}
                 className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                   abaAtiva === "aguardando-resolucao"
-                    ? "border-green-600 text-green-600"
+                    ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Aguardando Resolução
                 {contadorAguardandoResolucao > 0 && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                    abaAtiva === "aguardando-resolucao" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600"
+                    abaAtiva === "aguardando-resolucao" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
                   }`}>
                     {contadorAguardandoResolucao}
                   </span>
@@ -346,14 +363,14 @@ export default function PedidosOperadorPage() {
                 }}
                 className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                   abaAtiva === "concluidas"
-                    ? "border-green-600 text-green-600"
+                    ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Concluídas
                 {contadorConcluidas > 0 && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                    abaAtiva === "concluidas" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600"
+                    abaAtiva === "concluidas" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
                   }`}>
                     {contadorConcluidas}
                   </span>
@@ -407,7 +424,7 @@ export default function PedidosOperadorPage() {
                   
                   <Button 
                     onClick={() => handleAnalisarDemanda(demanda.id)}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white"
                   >
                     {demanda.status === "Concluída" ? "Analisar Resolução" : "Analisar Demanda"}
                   </Button>
