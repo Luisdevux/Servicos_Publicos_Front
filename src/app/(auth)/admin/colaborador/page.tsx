@@ -161,17 +161,16 @@ export default function ColaboradorAdminPage() {
                     <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Cargo</th>
                     <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
-                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={10} className="px-6 py-8 text-center text-gray-500">Carregando colaboradores...</td>
+                      <td colSpan={8} className="px-6 py-8 text-center text-gray-500">Carregando colaboradores...</td>
                     </tr>
                   ) : colaboradoresFiltrados.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="px-6 py-8 text-center text-gray-500">Nenhum colaborador encontrado.</td>
+                      <td colSpan={8} className="px-6 py-8 text-center text-gray-500">Nenhum colaborador encontrado.</td>
                     </tr>
                   ) : (
                     paginatedColaboradores.map((c) => {
@@ -203,18 +202,18 @@ export default function ColaboradorAdminPage() {
                             )}
                           </td>
                           <td className="px-3 md:px-6 py-3">
-                            <button type="button" className="p-1 hover:bg-gray-100 rounded" onClick={(e) => { e.stopPropagation(); setSelectedUsuario(c); setOpenEdit(true); }}>
-                              <Pencil className="h-4 w-4 text-global-text-primary" />
-                            </button>
-                          </td>
-                          <td className="px-3 md:px-6 py-3">
-                            <button
-                              type="button"
-                              className="p-1 hover:bg-gray-100 rounded"
-                              onClick={(e) => { e.stopPropagation(); setUsuarioToDelete(c); setOpenDelete(true); }}
-                            >
-                              <Trash className="h-4 w-4 text-global-text-primary" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button type="button" className="p-1.5 hover:bg-gray-100 rounded cursor-pointer" onClick={(e) => { e.stopPropagation(); setSelectedUsuario(c); setOpenEdit(true); }}>
+                                <Pencil className="h-4 w-4 text-global-text-primary" />
+                              </button>
+                              <button
+                                type="button"
+                                className="p-1.5 hover:bg-red-50 rounded cursor-pointer"
+                                onClick={(e) => { e.stopPropagation(); setUsuarioToDelete(c); setOpenDelete(true); }}
+                              >
+                                <Trash className="h-4 w-4 text-red-600" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );

@@ -104,19 +104,18 @@ export default function TipoDemandaAdminPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
                         Carregando tipos de demanda...
                       </td>
                     </tr>
                   ) : tiposDemanda.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
                         Nenhum tipo de demanda encontrado.
                       </td>
                     </tr>
@@ -126,28 +125,28 @@ export default function TipoDemandaAdminPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tipoDemanda.titulo}</td>
                         <td className="px-6 py-4 text-sm text-gray-900 max-w-md truncate">{tipoDemanda.descricao}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tipoDemanda.tipo}</td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => setTipoDemandaEditando(tipoDemanda)}
-                            className="p-1 hover:bg-gray-100 rounded"
-                            aria-label={`Editar ${tipoDemanda.titulo}`}
-                          >
-                            <Pencil className="h-4 w-4 text-global-text-primary" />
-                          </button>
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setTipoDemandaToDelete(tipoDemanda);
-                              setOpenDelete(true);
-                            }}
-                            className="p-1 hover:bg-gray-100 rounded"
-                            aria-label={`Excluir ${tipoDemanda.titulo}`}
-                          >
-                            <Trash className="h-4 w-4 text-global-text-primary" />
-                          </button>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setTipoDemandaEditando(tipoDemanda)}
+                              className="p-1.5 hover:bg-gray-100 rounded cursor-pointer"
+                              aria-label={`Editar ${tipoDemanda.titulo}`}
+                            >
+                              <Pencil className="h-4 w-4 text-global-text-primary" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setTipoDemandaToDelete(tipoDemanda);
+                                setOpenDelete(true);
+                              }}
+                              className="p-1.5 hover:bg-red-50 rounded cursor-pointer"
+                              aria-label={`Excluir ${tipoDemanda.titulo}`}
+                            >
+                              <Trash className="h-4 w-4 text-red-600" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

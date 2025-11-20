@@ -1,11 +1,13 @@
 // src/app/(auth)/admin/dashboard/page.tsx
 
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MetricCard } from "@/components/MetricCard";
 import { ChartCard } from "@/components/ChartCard";
 import { DonutChartCard } from "@/components/DonutChartCard";
+import MapBairrosDemandas from "@/components/MapBairrosDemandas";
+import BairroInfoCard from "@/components/BairroInfoCard";
 import { 
   FolderKanban, 
   Users, 
@@ -14,10 +16,14 @@ import {
 } from "lucide-react";
 import { adminService } from "@/services/adminService";
 import type { DashboardMetrics, DemandaPorBairro, DemandaPorCategoria } from "@/types/admin";
+import type { Demanda } from "@/types/demanda";
+import type { BairroSelecionado } from "@/components/MapBairrosDemandasClient";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 
 export default function DashboardPage() {
+  const [bairroSelecionado, setBairroSelecionado] = useState<BairroSelecionado | null>(null);
+
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['dashboard-metrics'],
     queryFn: async () => {
@@ -27,6 +33,21 @@ export default function DashboardPage() {
       } catch (err) {
         console.error("Erro ao buscar métricas:", err);
         throw err;
+      }
+    },
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: demandasResponse } = useQuery({
+    queryKey: ['all-demandas'],
+    queryFn: async () => {
+      try {
+        const result = await adminService.fetchAllPages<Demanda>('/demandas');
+        return result?.docs || [];
+      } catch (err) {
+        console.error("Erro ao buscar demandas:", err);
+        return [];
       }
     },
     retry: 1,
@@ -111,6 +132,30 @@ export default function DashboardPage() {
             icon={metrica.icon} 
           />
         ))}
+      </div>
+
+      <div className="w-full flex flex-col lg:flex-row gap-6">
+        <div className="w-full lg:flex-1 min-h-[400px] md:min-h-[500px] lg:min-h-[690px] flex">
+          <BairroInfoCard 
+            bairroSelecionado={bairroSelecionado}
+            demandas={demandasResponse || []}
+          />
+        </div>
+
+        <div className="flex justify-end lg:flex-shrink-0">
+          <div className="w-full lg:w-[500px] bg-gray-50 rounded-md p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+            <h3 className="text-md font-semibold text-gray-700 mb-4">
+              Mapa de Demandas por Bairro - Vilhena/RO
+            </h3>
+            <div className="h-[400px] md:h-[500px] lg:h-[690px] w-full flex items-center justify-center overflow-hidden">
+              <MapBairrosDemandas 
+                demandasPorBairro={dadosDemandasPorBairro} 
+                demandas={demandasResponse || []}
+                onBairroSelect={setBairroSelecionado}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
