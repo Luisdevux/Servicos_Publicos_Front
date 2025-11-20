@@ -110,11 +110,6 @@ export function MapController({ bairros }: MapControllerProps) {
 
         adjustMap();
 
-        const vilhenaBounds = L.latLngBounds(
-          [-12.85, -60.25], // Sudoeste 
-          [-12.60, -60.05]  // Nordeste
-        );
-
         setTimeout(() => {
           try {
             if (!map || !map.getContainer || !map.getContainer()) {
