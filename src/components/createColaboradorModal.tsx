@@ -1,26 +1,34 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2, Info } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { secretariaService } from '@/services/secretariaService';
-import { usuarioService } from '@/services/usuarioService';
+import { useCreateColaborador } from '@/hooks/useCreateColaborador';
 import { useCepVilhena } from '@/hooks/useCepVilhena';
-import { validateIdentificador } from '@/lib/validations/auth';
-import type { CreateUsuariosData, Secretaria, Usuarios, EstadoBrasil } from '@/types';
-import type { Endereco } from '@/types/endereco';
+import { createColaboradorSchema, type CreateColaboradorFormValues } from '@/lib/validations/colaborador';
+import type { Secretaria, Usuarios, CreateUsuariosData } from '@/types';
 
 interface CreateColaboradorModalProps {
   open: boolean;
@@ -29,32 +37,44 @@ interface CreateColaboradorModalProps {
 }
 
 export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateColaboradorModalProps) {
-  const queryClient = useQueryClient();
   const { buscarCep, formatarCep, validarCepEncontrado } = useCepVilhena();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [celular, setCelular] = useState('');
-  const [cargo, setCargo] = useState('');
-  const [portaria, setPortaria] = useState('');
-  const [formacao, setFormacao] = useState('');
-  const [ativo, setAtivo] = useState(true);
-  const [cnh, setCnh] = useState('');
-
-  const [logradouro, setLogradouro] = useState('');
-  const [numero, setNumero] = useState('');
-  const [complemento, setComplemento] = useState('');
-  const [bairro, setBairro] = useState('');
-  const [cep, setCep] = useState('');
-  const [cidade, setCidade] = useState('');
-  const [estado, setEstado] = useState('');
   const [loadingCep, setLoadingCep] = useState(false);
-
-  const [nivel, setNivel] = useState<'operador' | 'secretario' | 'administrador' | ''>('');
-
   const [secretariasSelecionadas, setSecretariasSelecionadas] = useState<string[]>([]);
+
+  const { createColaborador, isCreating } = useCreateColaborador({
+    onSuccess: () => {
+      onOpenChange(false);
+      form.reset();
+      setSecretariasSelecionadas([]);
+    },
+  });
+
+  const form = useForm<CreateColaboradorFormValues>({
+    resolver: zodResolver(createColaboradorSchema),
+    defaultValues: {
+      nome: '',
+      email: '',
+      cpf: '',
+      celular: '',
+      cnh: '',
+      data_nascimento: '',
+      cargo: '',
+      portaria_nomeacao: '',
+      formacao: '',
+      nivel_acesso: 'operador',
+      ativo: true,
+      endereco: {
+        cep: '',
+        logradouro: '',
+        numero: '',
+        complemento: '',
+        bairro: '',
+        cidade: 'Vilhena',
+        estado: 'RO',
+      },
+      secretarias: [],
+    },
+  });
 
   const { data: secretariasAll, isLoading: isLoadingSecretarias } = useQuery({
     queryKey: ['secretarias', 'all-for-colaborador', open],
@@ -79,48 +99,26 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
 
   const secretarias: Secretaria[] = useMemo(() => Array.isArray(secretariasAll) ? secretariasAll : [], [secretariasAll]);
 
+  // Auto-exibir erros de validação
   useEffect(() => {
-    if (open && usuario) {
-      setNome(usuario.nome || '');
-      setEmail(usuario.email || '');
-      setCpf(usuario.cpf || '');
-      setCelular(usuario.celular || '');
-      setCargo(usuario.cargo || '');
-      setPortaria(usuario.portaria_nomeacao || '');
-      setFormacao(usuario.formacao || '');
-      setAtivo(Boolean(usuario.ativo));
-      setCnh(usuario.cnh || '');
-      setLogradouro(usuario.endereco?.logradouro || '');
-      setNumero(String(usuario.endereco?.numero ?? ''));
-      setComplemento(usuario.endereco?.complemento || '');
-      setBairro(usuario.endereco?.bairro || '');
-      setCep(usuario.endereco?.cep || '');
-      setCidade(usuario.endereco?.cidade || '');
-      setEstado((usuario.endereco?.estado as string) || '');
-      setNivel(
-        usuario.nivel_acesso?.administrador
-          ? 'administrador'
-          : usuario.nivel_acesso?.secretario
-            ? 'secretario'
-            : usuario.nivel_acesso?.operador
-              ? 'operador'
-              : ''
-      );
-      let idsSecretarias: string[] = [];
-      const sec = usuario.secretarias as unknown;
-      if (Array.isArray(sec)) {
-        if (sec.length > 0 && typeof sec[0] === 'string') {
-          idsSecretarias = sec as unknown as string[];
-        } else {
-          idsSecretarias = sec.map((x) => x?._id).filter(Boolean);
-        }
+    const errors = form.formState.errors;
+    if (Object.keys(errors).length > 0 && form.formState.isSubmitted && !form.formState.isSubmitting) {
+      const firstError = Object.values(errors)[0];
+      if (firstError?.message) {
+        toast.error('Erro de validação', {
+          description: firstError.message,
+        });
       }
-      setSecretariasSelecionadas(idsSecretarias);
     }
+  }, [form.formState.submitCount, form.formState.errors, form.formState.isSubmitted, form.formState.isSubmitting]);
+
+  // Resetar form quando modal fechar
+  useEffect(() => {
     if (!open) {
-      setIsSubmitting(false);
+      form.reset();
+      setSecretariasSelecionadas([]);
     }
-  }, [open, usuario]);
+  }, [open, form]);
 
   const toggleSecretaria = (id: string) => {
     setSecretariasSelecionadas((prev) =>
@@ -128,170 +126,52 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-
-    if (!nome.trim()) return toast.error('Informe o nome');
-    if (!email.trim()) return toast.error('Informe o email');
-    if (!cpf.trim()) return toast.error('Informe o CPF');
-    
-    // Validar CPF
-    const cpfValidation = validateIdentificador(cpf.trim());
-    if (!cpfValidation.isValid) {
-      toast.error(cpfValidation.message || 'CPF inválido');
-      setIsSubmitting(false);
-      return;
-    }
-    
-    if (!cnh.trim()) return toast.error('Informe a CNH');
-    if (!nivel) return toast.error('Selecione o nível de acesso');
-
-    // Validar CEP de Vilhena, verifica se está no range e se foi encontrado no ViaCEP
-    const cepValidation = validarCepEncontrado(cep);
+  const onSubmit = (data: CreateColaboradorFormValues) => {
+    const cepValidation = validarCepEncontrado(data.endereco.cep);
     if (!cepValidation.valid) {
-      toast.error(cepValidation.message || 'CEP inválido');
-      setIsSubmitting(false);
+      toast.error('Erro de validação', {
+        description: cepValidation.message || 'CEP inválido',
+      });
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      const numeroParsed = parseInt((numero || '').toString(), 10);
-      if (Number.isNaN(numeroParsed)) {
-        toast.error('Informe um número de endereço válido');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Estado sempre será RO (Rondônia) - não precisa validar
-      
-      const celularNumeros = (celular || '').replace(/\D/g, '');
-      if (celularNumeros.length !== 11) {
-        toast.error('O celular deve conter 11 dígitos (69)999999999');
-        setIsSubmitting(false);
-        return;
-      }
-      const payload: CreateUsuariosData = {
-        cpf: cpf.trim(),
-        email: email.trim(),
-        celular: celularNumeros,
-        cnh: cnh.trim(),
-        data_nomeacao: undefined,
-        cargo: cargo || undefined,
-        formacao: formacao || undefined,
-        link_imagem: undefined,
-        nivel_acesso: {
-          municipe: false,
-          operador: nivel === 'operador',
-          secretario: nivel === 'secretario',
-          administrador: nivel === 'administrador',
-        },
-        nome: nome.trim(),
-        ativo,
-        nome_social: undefined,
-        portaria_nomeacao: portaria || undefined,
-        endereco: {
-          logradouro: logradouro || '',
-          cep: cep || '',
-          bairro: bairro || '',
-          numero: numeroParsed,
-          complemento: complemento || '',
-          cidade: 'Vilhena', // Sempre Vilhena
-          estado: 'RO' as EstadoBrasil, // Sempre RO
-        },
-        secretarias: secretariasSelecionadas.length ? secretariasSelecionadas : undefined,
-      };
-
-      if (usuario?._id) {
-        const updatePayload: Record<string, unknown> = {};
-        if (payload.nome !== usuario.nome) updatePayload.nome = payload.nome;
-        if (payload.celular !== usuario.celular) updatePayload.celular = payload.celular;
-        if (payload.cargo !== usuario.cargo) updatePayload.cargo = payload.cargo;
-        if (payload.formacao !== usuario.formacao) updatePayload.formacao = payload.formacao;
-        if (payload.ativo !== usuario.ativo) updatePayload.ativo = payload.ativo;
-        if (payload.portaria_nomeacao !== usuario.portaria_nomeacao) updatePayload.portaria_nomeacao = payload.portaria_nomeacao;
-
-        // endereço: se qualquer campo mudou, envia o objeto completo
-        const currentEnd: Partial<Endereco> = usuario.endereco || {};
-        const newEnd = payload.endereco;
-        const addressChanged = (
-          (newEnd?.logradouro || '') !== (currentEnd.logradouro || '') ||
-          (newEnd?.cep || '') !== (currentEnd.cep || '') ||
-          (newEnd?.bairro || '') !== (currentEnd.bairro || '') ||
-          (newEnd?.numero || 0) !== (currentEnd.numero || 0) ||
-          (newEnd?.complemento || '') !== (currentEnd.complemento || '') ||
-          (newEnd?.cidade || '') !== (currentEnd.cidade || '') ||
-          (newEnd?.estado || '') !== (currentEnd.estado || '')
-        );
-        if (addressChanged) {
-          updatePayload.endereco = newEnd;
-        }
-
-        // secretarias: compara ids
-        let currentSecIds: string[] = [];
-        const sec = usuario.secretarias as unknown;
-        if (Array.isArray(sec)) {
-          if (sec.length > 0 && typeof sec[0] === 'string') currentSecIds = sec as unknown as string[];
-          else currentSecIds = sec.map((x) => x?._id).filter(Boolean);
-        }
-        const nextSecIds = secretariasSelecionadas;
-        const setsEqual = currentSecIds.length === nextSecIds.length && currentSecIds.every((id) => nextSecIds.includes(id));
-        if (!setsEqual) {
-          updatePayload.secretarias = nextSecIds;
-        }
-
-        if (Object.keys(updatePayload).length === 0) {
-          toast.info('Nenhuma alteração para salvar.');
-          onOpenChange(false);
-          return;
-        }
-        await usuarioService.atualizarUsuario(usuario._id!, updatePayload);
-        toast.success('Colaborador atualizado com sucesso!');
-      } else {
-        await usuarioService.criarUsuario(payload);
-        toast.success('Colaborador criado com sucesso!');
-        setNome('');
-        setEmail('');
-        setCpf('');
-        setCelular('');
-        setCargo('');
-        setPortaria('');
-        setFormacao('');
-        setAtivo(true);
-        setCnh('');
-        setLogradouro('');
-        setNumero('');
-        setComplemento('');
-        setBairro('');
-        setCep('');
-        setCidade('');
-        setEstado('');
-        setNivel('');
-        setSecretariasSelecionadas([]);
-      }
-      void queryClient.invalidateQueries({ queryKey: ['usuarios'] });
-      onOpenChange(false);
-    } catch (error) {
-      const defaultMsg = error instanceof Error ? error.message : 'Erro ao criar colaborador';
-      const data = (error as { data?: unknown })?.data;
-      const errors = Array.isArray((data as { errors?: unknown[] })?.errors) ? (data as { errors: unknown[] }).errors : [];
-      if (errors.length > 0) {
-        errors.forEach((err: unknown) => {
-          const msg = typeof (err as { message?: unknown })?.message === 'string' ? (err as { message: string }).message : defaultMsg;
-          toast.error(msg);
-        });
-      } else {
-        toast.error(defaultMsg);
-      }
-    } finally {
-      setIsSubmitting(false);
+    let dataNascimentoBR = data.data_nascimento;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(data.data_nascimento)) {
+      const [ano, mes, dia] = data.data_nascimento.split('-');
+      dataNascimentoBR = `${dia}/${mes}/${ano}`;
     }
+
+    const payload = {
+      ...data,
+      celular: data.celular.replace(/\D/g, ''),
+      cpf: data.cpf.replace(/\D/g, ''),
+      cnh: data.cnh && data.cnh.trim() ? data.cnh.replace(/\D/g, '') : undefined,
+      data_nascimento: dataNascimentoBR,
+      senha: 'Temp@123',
+      nivel_acesso: {
+        municipe: false,
+        operador: data.nivel_acesso === 'operador',
+        secretario: data.nivel_acesso === 'secretario',
+        administrador: data.nivel_acesso === 'administrador',
+      },
+      endereco: {
+        ...data.endereco,
+        numero: parseInt(data.endereco.numero, 10),
+        cidade: 'Vilhena',
+        estado: 'RO' as const,
+      },
+      secretarias: secretariasSelecionadas.length ? secretariasSelecionadas : undefined,
+      cargo: data.cargo?.trim() || undefined,
+      formacao: data.formacao?.trim() || undefined,
+      portaria_nomeacao: data.portaria_nomeacao?.trim() || undefined,
+    };
+
+    createColaborador(payload as CreateUsuariosData);
   };
 
-  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatarCep(e.target.value);
-    setCep(formatted);
+  const handleCepChange = async (value: string, onChange: (value: string) => void) => {
+    const formatted = formatarCep(value);
+    onChange(formatted);
 
     const apenasNumeros = formatted.replace(/\D/g, '');
     if (apenasNumeros.length === 8) {
@@ -300,11 +180,9 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
         const endereco = await buscarCep(apenasNumeros);
         
         if (endereco) {
-          setBairro(endereco.bairro || '');
-          // Cidade e Estado são fixos em Vilhena/RO - não devem ser alterados
-          // setCidade e setEstado removidos para garantir que sempre sejam Vilhena/RO
+          form.setValue('endereco.bairro', endereco.bairro || '');
           if (endereco.logradouro) {
-            setLogradouro(endereco.logradouro);
+            form.setValue('endereco.logradouro', endereco.logradouro);
           }
         }
       } finally {
@@ -314,8 +192,8 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!isSubmitting) onOpenChange(o); }}>
-      <DialogContent className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl">
+    <Dialog open={open} onOpenChange={(o) => { if (!isCreating) onOpenChange(o); }} data-test="dialog-criar-colaborador">
+      <DialogContent className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl" data-test="dialog-content-criar-colaborador">
         <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden">
             
           <div className="absolute inset-0 opacity-10">
@@ -335,158 +213,489 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
 
           <div className="absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12"></div>
           <div className="absolute bottom-4 right-8 w-10 h-10 border-2 border-white/20 rounded-full"></div>
-          <DialogTitle className="text-2xl font-bold text-center text-white">{usuario ? 'Editar Colaborador' : 'Adicionar Colaborador'}</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-center text-white">
+            {usuario ? 'Editar Colaborador' : 'Adicionar Colaborador'}
+          </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-2 p-6 max-h-[calc(95vh-140px)] overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Nome</Label>
-              <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo" required disabled={isSubmitting} />
-            </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@prefeitura.gov.br" required disabled={isSubmitting} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="space-y-2">
-              <Label>CPF</Label>
-              <Input value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="00000000000" required disabled={isSubmitting} />
-            </div>
-            <div className="space-y-2">
-              <Label>Celular</Label>
-              <Input value={celular} onChange={(e) => setCelular(e.target.value)} placeholder="(69) 99999-9999" disabled={isSubmitting} />
-            </div>
-            <div className="space-y-2">
-              <Label>CNH</Label>
-              <Input type="text" value={cnh} onChange={(e) => setCnh(e.target.value)} placeholder="12345678901" required disabled={isSubmitting} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="space-y-2">
-              <Label>Cargo</Label>
-              <Input value={cargo} onChange={(e) => setCargo(e.target.value)} placeholder="Designer" disabled={isSubmitting} />
-            </div>
-            <div className="space-y-2">
-              <Label>Portaria</Label>
-              <Input value={portaria} onChange={(e) => setPortaria(e.target.value)} placeholder="PORTARIA/123" disabled={isSubmitting} />
-            </div>
-            <div className="space-y-2">
-              <Label>Formação</Label>
-              <Input value={formacao} onChange={(e) => setFormacao(e.target.value)} placeholder="Dados" disabled={isSubmitting} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Nível de acesso</Label>
-              <Select value={nivel} onValueChange={(v) => setNivel(v as 'operador' | 'secretario' | 'administrador' | '')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o nível" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="operador">Operador</SelectItem>
-                  <SelectItem value="secretario">Secretário</SelectItem>
-                  <SelectItem value="administrador">Administrador</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <div className="flex items-center gap-3 h-9">
-                <Checkbox id="ativo" checked={ativo} onCheckedChange={(v) => setAtivo(Boolean(v))} />
-                <Label htmlFor="ativo" className="cursor-pointer">Ativo</Label>
+        <div className="p-6 max-h-[calc(95vh-140px)] overflow-y-auto">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-test="formulario-criar-colaborador">
+              {/* Banner informativo sobre email */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4" data-test="banner-info-email">
+                <div className="flex items-start gap-2">
+                  <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-blue-800">
+                    <strong>Definição de Senha:</strong> Após cadastrar o colaborador, um email será enviado automaticamente com um link para que ele defina sua própria senha de acesso ao sistema.
+                  </p>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div className="space-y-3">
-            <Label>Endereço</Label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="relative">
-                <Input
-                  placeholder="00000-000"
-                  value={cep}
-                  onChange={handleCepChange}
-                  disabled={isSubmitting || loadingCep}
-                  maxLength={9}
-                  className="pr-10"
+              {/* Dados pessoais */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="nome"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-nome-wrapper">
+                      <FormLabel>Nome *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="Nome completo" 
+                          disabled={isCreating}
+                          data-test="input-nome"
+                        />
+                      </FormControl>
+                      <FormMessage data-test="erro-nome" />
+                    </FormItem>
+                  )}
                 />
-                {loadingCep && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Loader2 className="h-4 w-4 animate-spin text-global-accent" />
-                  </div>
-                )}
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-email-wrapper">
+                      <FormLabel>Email *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="email"
+                          placeholder="email@prefeitura.gov.br" 
+                          disabled={isCreating}
+                          data-test="input-email"
+                        />
+                      </FormControl>
+                      <FormMessage data-test="erro-email" />
+                    </FormItem>
+                  )}
+                />
               </div>
-              <Input placeholder="Logradouro" value={logradouro} onChange={(e) => setLogradouro(e.target.value)} disabled={isSubmitting} />
-              <Input placeholder="Número" value={numero} onChange={(e) => setNumero(e.target.value)} disabled={isSubmitting} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Input placeholder="Complemento" value={complemento} onChange={(e) => setComplemento(e.target.value)} disabled={isSubmitting} />
-              <Input placeholder="Bairro" value={bairro} onChange={(e) => setBairro(e.target.value)} disabled={isSubmitting} />
-              <Input placeholder="Cidade" value={cidade || 'Vilhena'} disabled readOnly className="bg-gray-100 text-gray-500 cursor-not-allowed" />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-              <Input placeholder="Estado" value={estado || 'RO'} disabled readOnly className="md:col-span-2 bg-gray-100 text-gray-500 cursor-not-allowed" />
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label>Secretarias</Label>
-            <div className="rounded-md border border-global-border p-3 max-h-48 overflow-auto bg-white">
-              {isLoadingSecretarias ? (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Carregando secretarias...
-                </div>
-              ) : secretarias.length === 0 ? (
-                <div className="text-sm text-gray-500">Nenhuma secretaria encontrada.</div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {secretarias.map((s) => (
-                    <label key={s._id} className="flex items-center gap-2 text-sm text-global-text-primary cursor-pointer">
-                      <Checkbox checked={secretariasSelecionadas.includes(s._id)} onCheckedChange={() => toggleSecretaria(s._id)} />
-                      <span>{s.nome}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+              {/* Documentos */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <FormField
+                  control={form.control}
+                  name="cpf"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-cpf-wrapper">
+                      <FormLabel>CPF *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="00000000000" 
+                          disabled={isCreating}
+                          data-test="input-cpf"
+                          maxLength={11}
+                        />
+                      </FormControl>
+                      <FormMessage data-test="erro-cpf" />
+                    </FormItem>
+                  )}
+                />
 
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  {usuario ? 'Salvar alterações' : 'Criar Colaborador'}
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+                <FormField
+                  control={form.control}
+                  name="celular"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-celular-wrapper">
+                      <FormLabel>Celular *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="(69) 99999-9999" 
+                          disabled={isCreating}
+                          data-test="input-celular"
+                          maxLength={11}
+                        />
+                      </FormControl>
+                      <FormMessage data-test="erro-celular" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="cnh"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-cnh-wrapper">
+                      <FormLabel>CNH</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="12345678901" 
+                          disabled={isCreating}
+                          data-test="input-cnh"
+                          maxLength={11}
+                        />
+                      </FormControl>
+                      <FormMessage data-test="erro-cnh" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Data de Nascimento */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <FormField
+                  control={form.control}
+                  name="data_nascimento"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-data-nascimento-wrapper">
+                      <FormLabel>Data de Nascimento *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="date"
+                          disabled={isCreating}
+                          data-test="input-data-nascimento"
+                          max={new Date().toISOString().split('T')[0]}
+                        />
+                      </FormControl>
+                      <FormMessage data-test="erro-data-nascimento" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Informações profissionais */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <FormField
+                  control={form.control}
+                  name="cargo"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-cargo-wrapper">
+                      <FormLabel>Cargo</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="Ex: Analista" 
+                          disabled={isCreating}
+                          data-test="input-cargo"
+                        />
+                      </FormControl>
+                      <FormMessage data-test="erro-cargo" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="portaria_nomeacao"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-portaria-wrapper">
+                      <FormLabel>Portaria</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="PORTARIA/123" 
+                          disabled={isCreating}
+                          data-test="input-portaria"
+                        />
+                      </FormControl>
+                      <FormMessage data-test="erro-portaria" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="formacao"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-formacao-wrapper">
+                      <FormLabel>Formação</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="Ex: Ciência da Computação" 
+                          disabled={isCreating}
+                          data-test="input-formacao"
+                        />
+                      </FormControl>
+                      <FormMessage data-test="erro-formacao" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Nível de acesso e status */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="nivel_acesso"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-nivel-acesso-wrapper">
+                      <FormLabel>Nível de acesso *</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                        disabled={isCreating}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-test="select-nivel-acesso">
+                            <SelectValue placeholder="Selecione o nível" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="operador" data-test="option-operador">Operador</SelectItem>
+                          <SelectItem value="secretario" data-test="option-secretario">Secretário</SelectItem>
+                          <SelectItem value="administrador" data-test="option-administrador">Administrador</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage data-test="erro-nivel-acesso" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="ativo"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-ativo-wrapper">
+                      <FormLabel>Status</FormLabel>
+                      <div className="flex items-center gap-3 h-9">
+                        <FormControl>
+                          <Checkbox 
+                            id="ativo"
+                            checked={field.value} 
+                            onCheckedChange={field.onChange}
+                            disabled={isCreating}
+                            data-test="checkbox-ativo"
+                          />
+                        </FormControl>
+                        <FormLabel htmlFor="ativo" className="cursor-pointer !mt-0">
+                          Ativo
+                        </FormLabel>
+                      </div>
+                      <FormMessage data-test="erro-ativo" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Endereço */}
+              <div className="space-y-3">
+                <FormLabel className="text-base font-semibold">Endereço</FormLabel>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="endereco.cep"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-cep-wrapper">
+                        <FormLabel>CEP *</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input 
+                              {...field}
+                              placeholder="00000-000" 
+                              onChange={(e) => handleCepChange(e.target.value, field.onChange)}
+                              disabled={isCreating || loadingCep}
+                              maxLength={9}
+                              className="pr-10"
+                              data-test="input-cep"
+                            />
+                            {loadingCep && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <Loader2 className="h-4 w-4 animate-spin text-global-accent" />
+                              </div>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormMessage data-test="erro-cep" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="endereco.logradouro"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-logradouro-wrapper">
+                        <FormLabel>Logradouro *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            placeholder="Rua, Avenida..." 
+                            disabled={isCreating}
+                            data-test="input-logradouro"
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-logradouro" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="endereco.numero"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-numero-wrapper">
+                        <FormLabel>Número *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            placeholder="123" 
+                            disabled={isCreating}
+                            data-test="input-numero"
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-numero" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="endereco.complemento"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-complemento-wrapper">
+                        <FormLabel>Complemento</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            placeholder="Apto, Bloco..." 
+                            disabled={isCreating}
+                            data-test="input-complemento"
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-complemento" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="endereco.bairro"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-bairro-wrapper">
+                        <FormLabel>Bairro *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            placeholder="Bairro" 
+                            disabled={isCreating}
+                            data-test="input-bairro"
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-bairro" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="endereco.cidade"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-cidade-wrapper">
+                        <FormLabel>Cidade</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            disabled 
+                            readOnly
+                            className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                            data-test="input-cidade"
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-cidade" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="endereco.estado"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-estado-wrapper" className="md:col-span-2">
+                        <FormLabel>Estado</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            disabled 
+                            readOnly
+                            className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                            data-test="input-estado"
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-estado" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Secretarias */}
+              <div className="space-y-2">
+                <FormLabel className="text-base font-semibold">Secretarias</FormLabel>
+                <div className="rounded-md border border-global-border p-3 max-h-48 overflow-auto bg-white" data-test="lista-secretarias">
+                  {isLoadingSecretarias ? (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Carregando secretarias...
+                    </div>
+                  ) : secretarias.length === 0 ? (
+                    <div className="text-sm text-gray-500">Nenhuma secretaria encontrada.</div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {secretarias.map((s) => (
+                        <label 
+                          key={s._id} 
+                          className="flex items-center gap-2 text-sm text-global-text-primary cursor-pointer"
+                          data-test={`label-secretaria-${s._id}`}
+                        >
+                          <Checkbox 
+                            checked={secretariasSelecionadas.includes(s._id)} 
+                            onCheckedChange={() => toggleSecretaria(s._id)}
+                            disabled={isCreating}
+                            data-test={`checkbox-secretaria-${s._id}`}
+                          />
+                          <span>{s.nome}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Botões */}
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="button"
+                  onClick={() => onOpenChange(false)}
+                  className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
+                  disabled={isCreating}
+                  data-test="button-cancelar"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isCreating}
+                  className="flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all"
+                  data-test="button-criar-colaborador"
+                >
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      {usuario ? 'Salvar alterações' : 'Criar Colaborador'}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );
 }
-
-
