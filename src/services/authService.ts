@@ -16,6 +16,42 @@ interface ResetPasswordResponse {
   };
 }
 
+interface SignupRequest {
+  nome: string;
+  email: string;
+  senha: string;
+  cpf: string;
+  celular: string;
+  data_nascimento: string;
+  nome_social?: string;
+  endereco: {
+    logradouro: string;
+    cep: string;
+    bairro: string;
+    numero: number;
+    complemento?: string;
+    cidade: string;
+    estado: string;
+  };
+}
+
+interface SignupResponse {
+  message?: string;
+  data?: {
+    _id: string;
+    nome: string;
+    email: string;
+    cpf: string;
+    celular: string;
+    nivel_acesso: {
+      municipe: boolean;
+      operador: boolean;
+      secretario: boolean;
+      administrador: boolean;
+    };
+  };
+}
+
 /**
  * Solicita recuperação de senha por email
  */
@@ -36,4 +72,11 @@ export async function redefinirSenha(
     `/password/reset?token=${encodeURIComponent(token)}`,
     { senha }
   );
+}
+
+/**
+ * Cadastra um novo munícipe no sistema
+ */
+export async function signup(data: SignupRequest): Promise<SignupResponse> {
+  return post<SignupResponse>('/signup', data);
 }
