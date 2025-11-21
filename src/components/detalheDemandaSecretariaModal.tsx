@@ -100,7 +100,7 @@ export default function DetalhesDemandaSecretariaModal({
     <>
       <Dialog open={isOpen && !showRejeitarModal && !showConfirmarModal} onOpenChange={onClose}>
         <DialogContent 
-          className="max-w-2xl! !max-h-[90vh]! overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
+          className="max-w-2xl! max-h-[90vh]! overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
         >
           {/* Background decorativo */}
           <div className="absolute inset-0 pointer-events-none opacity-5 z-0">
@@ -117,7 +117,7 @@ export default function DetalhesDemandaSecretariaModal({
             <div className="absolute top-1/2 right-8 w-8 h-8 border-2 border-current rotate-45 opacity-30"></div>
           </div>
 
-          <DialogHeader className="bg-purple-600 py-6 px-6 rounded-t-lg relative overflow-hidden shrink-0 z-10">
+          <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden shrink-0 z-10">
             {/* Grid de pontos decorativos */}
             <div className="absolute inset-0 opacity-10">
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -147,7 +147,7 @@ export default function DetalhesDemandaSecretariaModal({
             <div className="space-y-6">
               {demanda.descricao && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-purple-600">
+                  <h3 className="text-lg font-medium text-global-text-primary">
                     Descrição da demanda
                   </h3>
                   <div className="bg-global-bg-select p-4 rounded-md">
@@ -158,7 +158,7 @@ export default function DetalhesDemandaSecretariaModal({
 
               {demanda.imagem && (
                 <div className="space-y-2">
-                  <h3 className="text-lg font-medium text-purple-600">
+                  <h3 className="text-lg font-medium text-global-text-primary">
                     {Array.isArray(demanda.imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
                   </h3>
                   <ImageCarousel 
@@ -171,7 +171,7 @@ export default function DetalhesDemandaSecretariaModal({
 
               {demanda.endereco && (
                 <div className="space-y-2">
-                  <h3 className="text-lg font-medium text-purple-600">
+                  <h3 className="text-lg font-medium text-global-text-primary">
                     Endereço do ocorrido
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -223,7 +223,7 @@ export default function DetalhesDemandaSecretariaModal({
               {/* Mostrar operador atribuído quando está em andamento */}
               {demanda.status === "Em andamento" && demanda.usuarios && demanda.usuarios.length > 0 && (
                 <div className="space-y-2">
-                  <h3 className="text-lg font-medium text-purple-600">
+                  <h3 className="text-lg font-medium text-global-text-primary">
                     Operador Responsável
                   </h3>
                   <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
@@ -237,7 +237,7 @@ export default function DetalhesDemandaSecretariaModal({
                 <>
                   {demanda.usuarios && demanda.usuarios.length > 0 && (
                     <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-purple-600">
+                      <h3 className="text-lg font-medium text-global-text-primary">
                         Operador Responsável
                       </h3>
                       <div className="bg-global-bg-select rounded-md p-3">
@@ -248,7 +248,7 @@ export default function DetalhesDemandaSecretariaModal({
 
                   {demanda.resolucao && (
                     <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-purple-600">
+                      <h3 className="text-lg font-medium text-global-text-primary">
                         Descrição da conclusão da demanda
                       </h3>
                       <div className="bg-green-50 p-4 rounded-md border border-green-200">
@@ -266,7 +266,7 @@ export default function DetalhesDemandaSecretariaModal({
                     
                     return imagensResolucao.length > 0 ? (
                       <div className="space-y-2">
-                        <h3 className="text-lg font-medium text-purple-600">
+                        <h3 className="text-lg font-medium text-global-text-primary">
                           {imagensResolucao.length > 1 ? 'Imagens da conclusão' : 'Imagem da conclusão'}
                         </h3>
                         <ImageCarousel 
@@ -292,7 +292,7 @@ export default function DetalhesDemandaSecretariaModal({
               </Button>
               <Button
                 onClick={() => setShowConfirmarModal(true)}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                className="flex-1 bg-global-accent hover:bg-global-accent-hover text-white"
               >
                 Confirmar
               </Button>
@@ -385,7 +385,7 @@ export default function DetalhesDemandaSecretariaModal({
               <Button
                 onClick={handleConfirmar}
                 disabled={!operadorSelecionado || isConfirmando}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
+                className="flex-1 bg-global-accent hover:bg-global-accent-hover text-white disabled:opacity-50"
               >
                 {isConfirmando ? "Atribuindo..." : "Atribuir ao Operador"}
               </Button>
