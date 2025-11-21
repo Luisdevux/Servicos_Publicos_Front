@@ -33,6 +33,8 @@ export default function ConditionalLayout({ children, dadosFooter }: Conditional
     pathname?.startsWith('/cadastro') || 
     pathname?.startsWith('/esqueci-senha') || 
     pathname?.startsWith('/nova-senha') || 
+    pathname?.startsWith('/verificar-email') || 
+    pathname?.startsWith('/aguardando-verificacao') || 
     pathname?.startsWith('/admin') || 
     pathname?.startsWith('/admin/dashboard');
     
