@@ -26,35 +26,42 @@ fabrica/
 └── servicos-publicos-api/
 ```
 
-### 2. Configure o email (obrigatório)
+### 2. Configure o serviço de email (obrigatório)
+
+#### 2.1 Obtenha credenciais Gmail
 
 1. **Gere uma senha de aplicativo Gmail:**
    - Acesse: https://myaccount.google.com/apppasswords
-   - Crie senha para "Servicos Publicos"
-   - Copie os 16 caracteres gerados
+   - Crie uma senha de app para "Servicos Publicos"
+   - Copie os 16 caracteres gerados (remova os espaços)
 
-2. **Edite o `.env` da API:**
+#### 2.2 Cadastre no Mailsender
+
+1. **Acesse o painel de cadastro:**
+   - URL: https://ruan-silva-3001.code.fslab.dev/cadastro
+
+2. **Preencha o formulário:**
+   - **Nome:** Nome do seu projeto (ex: "Servicos Publicos Dev")
+   - **Email:** O mesmo email do Gmail que você configurou
+   - **Senha:** A senha de aplicativo gerada no passo 2.1
+
+3. **Copie a API Key gerada** (ela será mostrada apenas uma vez!)
+
+#### 2.3 Configure o .env da API
+
+1. **Edite o arquivo .env:**
    ```bash
    cd servicos-publicos-api
    nano .env
    ```
 
-3. **Preencha:**
+2. **Atualize as variáveis:**
    ```env
-   SENDER_EMAIL="seu-email@gmail.com"
-   SENDER_PASSWORD="abcdefghijklmnop"  # sem espaços
-   MASTER_KEY="..."  # gere: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   URL_MAIL_SERVICE="https://ruan-silva-5016.code.fslab.dev/api/emails/send"
+   MAIL_API_KEY="sua-api-key-copiada-no-passo-2.2"
    ```
 
-### 3. Habilite emulação ARM64 (apenas primeira vez)
-
-```bash
-docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-```
-
-> **Nota:** Necessário apenas em máquinas x86_64/amd64 para rodar o serviço de email.
-
-### 4. Inicie todos os serviços
+### 3. Inicie todos os serviços
 
 ```bash
 cd servicos-publicos-front
@@ -65,11 +72,10 @@ Aguarde até ver:
 ```
 ✅ frontend-servicos     Up
 ✅ api-servicos          Up
-✅ mailsender-servicos   Up (healthy)
 ✅ mongodb-servicos      Up (healthy)
 ```
 
-### 5. Popule o banco de dados
+### 4. Popule o banco de dados
 
 ```bash
 docker compose -f docker-compose-dev.yml exec api npm run seed
@@ -119,9 +125,10 @@ docker compose -f docker-compose-dev.yml up --build
 | Container | Descrição | Porta |
 |-----------|-----------|-------|
 | **mongodb-servicos** | Banco de dados MongoDB 8 | 27017 |
-| **mailsender-servicos** | Serviço de envio de emails | 5016 |
 | **api-servicos** | Backend Node.js/Express | 5011 |
 | **frontend-servicos** | Frontend Next.js 14 | 3000 |
+
+> **Nota:** O serviço de email é hospedado externamente em https://ruan-silva-5016.code.fslab.dev
 
 ## ✨ Funcionalidades Principais
 
@@ -146,9 +153,9 @@ docker compose -f docker-compose-dev.yml up --build
 ## 🐛 Troubleshooting
 
 ### Email não enviado
-- Verifique se `SENDER_EMAIL` e `SENDER_PASSWORD` estão corretos
-- Confirme que usou senha de aplicativo, não senha normal
-- Veja logs: `docker logs mailsender-servicos`
+- Verifique se `MAIL_API_KEY` está correto no `.env` da API
+- Confirme que a URL do serviço está acessível: https://ruan-silva-5016.code.fslab.dev
+- Veja logs da API: `docker logs api-servicos`
 
 ### Containers não iniciam
 - Execute: `docker compose -f docker-compose-dev.yml down -v`
