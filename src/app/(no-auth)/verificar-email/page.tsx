@@ -15,7 +15,8 @@ function VerificarEmailContent() {
 
   const verificarEmail = useCallback(async (token: string) => {
     try {
-      const response = await fetch(`http://localhost:5011/verificar-email?token=${token}&t=${Date.now()}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011';
+      const response = await fetch(`${apiUrl}/verificar-email?token=${token}&t=${Date.now()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
