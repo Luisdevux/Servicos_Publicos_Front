@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { secretariaService } from '@/services/secretariaService';
 import { useCreateColaborador } from '@/hooks/useCreateColaborador';
 import { useCepVilhena } from '@/hooks/useCepVilhena';
+import { formatCPF, formatPhoneNumber } from '@/lib/profileHelpers';
 import { createColaboradorSchema, type CreateColaboradorFormValues } from '@/lib/validations/colaborador';
 import type { Secretaria, Usuarios, CreateUsuariosData } from '@/types';
 
@@ -224,7 +225,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
               {/* Banner informativo sobre email */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4" data-test="banner-info-email">
                 <div className="flex items-start gap-2">
-                  <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
                   <p className="text-sm text-blue-800">
                     <strong>Definição de Senha:</strong> Após cadastrar o colaborador, um email será enviado automaticamente com um link para que ele defina sua própria senha de acesso ao sistema.
                   </p>
@@ -278,41 +279,57 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                 <FormField
                   control={form.control}
                   name="cpf"
-                  render={({ field }) => (
-                    <FormItem data-test="campo-cpf-wrapper">
-                      <FormLabel>CPF *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          placeholder="00000000000" 
-                          disabled={isCreating}
-                          data-test="input-cpf"
-                          maxLength={11}
-                        />
-                      </FormControl>
-                      <FormMessage data-test="erro-cpf" />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const raw = field.value ?? '';
+                    const displayed = formatCPF(raw);
+                    return (
+                      <FormItem data-test="campo-cpf-wrapper">
+                        <FormLabel>CPF *</FormLabel>
+                        <FormControl>
+                          <Input
+                            value={displayed}
+                            placeholder="000.000.000-00"
+                            disabled={isCreating}
+                            data-test="input-cpf"
+                            maxLength={14}
+                            onChange={(e) => {
+                              const digits = e.target.value.replace(/\D/g, '');
+                              field.onChange(digits);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-cpf" />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
                   control={form.control}
                   name="celular"
-                  render={({ field }) => (
-                    <FormItem data-test="campo-celular-wrapper">
-                      <FormLabel>Celular *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          placeholder="(69) 99999-9999" 
-                          disabled={isCreating}
-                          data-test="input-celular"
-                          maxLength={11}
-                        />
-                      </FormControl>
-                      <FormMessage data-test="erro-celular" />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const raw = field.value ?? '';
+                    const displayed = formatPhoneNumber(raw);
+                    return (
+                      <FormItem data-test="campo-celular-wrapper">
+                        <FormLabel>Celular *</FormLabel>
+                        <FormControl>
+                          <Input
+                            value={displayed}
+                            placeholder="(69) 99999-9999"
+                            disabled={isCreating}
+                            data-test="input-celular"
+                            maxLength={15}
+                            onChange={(e) => {
+                              const digits = e.target.value.replace(/\D/g, '');
+                              field.onChange(digits);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-celular" />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
@@ -464,7 +481,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                             data-test="checkbox-ativo"
                           />
                         </FormControl>
-                        <FormLabel htmlFor="ativo" className="cursor-pointer !mt-0">
+                        <FormLabel htmlFor="ativo" className="cursor-pointer mt-0!">
                           Ativo
                         </FormLabel>
                       </div>
