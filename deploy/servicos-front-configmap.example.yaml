@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: servicos-front-env
+  labels:
+    io.kompose.service: servicos-front-publicos
+
+data:
+  # Environment
+  NODE_ENV: "production"
+  
+  # API URLs
+  API_URL_SERVER_SIDED: "http://servicospublicos-api:80"
+  
+  # Client-side (chamadas do navegador - URL pública)
+  NEXT_PUBLIC_API_URL: "https://servicospublicos-api.app.fslab.dev"
+  
+  # NextAuth Configuration
+  NEXTAUTH_URL: "https://servicospublicos.app.fslab.dev"
+  
+  # GERAR EM PRODUÇÃO: openssl rand -base64 48
+  NEXTAUTH_SECRET: "<REPLACE_WITH_SECURE_VALUE>"
+  
+  # Proxy OAuth Callback
+  PROXY_OAUTH_CALLBACK: "true"
