@@ -1,58 +1,60 @@
-# https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
+# Dockerfile - Produção (Kubernetes)
+# 
+# Este Dockerfile é otimizado para deploy em Kubernetes.
+# 
+# Para desenvolvimento local, use:
+#   - Dockerfile.dev
+#   - docker-compose-dev.yml
+
 FROM node:22-alpine AS base
 
-ARG API_URL_SERVER_SIDED=http://api-servicos:5011
-ARG NEXT_PUBLIC_API_URL=http://localhost:5011
-ARG PROXY_OAUTH_CALLBACK=true
-ARG NEXTAUTH_SECRET=your-secret-key-change-this-in-production-min-32-characters-long
-ARG NEXTAUTH_URL=http://localhost:3000
+# Estágio 1: Dependências - Instalar dependências de produção
+FROM base AS deps
 
-# Estágio 1: Builder - Instalar dependências e fazer build
-FROM base AS builder
-
-ENV API_URL_SERVER_SIDED=${API_URL_SERVER_SIDED}
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-ENV PROXY_OAUTH_CALLBACK=${PROXY_OAUTH_CALLBACK}
-ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-ENV NEXTAUTH_URL=${NEXTAUTH_URL}
-
-# Libc6-compat necessário para compatibilidade
 RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-# Copiar arquivos de dependência
+# Copiar apenas package files para cache de camadas
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --only=production
+
+# Estágio 2: Builder - Build da aplicação
+FROM base AS builder
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copiar dependências do estágio anterior
+COPY --from=deps /app/node_modules ./node_modules
 
 # Copiar código fonte
 COPY . .
 
-# Copiar arquivo de exemplo de env e fazer build
-RUN cp .env.example .env.production && NEXT_DISABLE_ESLINT=1 npm run build
+# Build-time args para variáveis NEXT_PUBLIC_*
+ARG NEXT_PUBLIC_API_URL=https://servicospublicos-api.app.fslab.dev
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-# Estágio 2: Production image - Rodar a aplicação Next.js
+# Build do Next.js (standalone mode)
+RUN npm run build
+
+# Estágio 3: Runner - Imagem final de produção
 FROM base AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV API_URL_SERVER_SIDED=${API_URL_SERVER_SIDED}
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-ENV PROXY_OAUTH_CALLBACK=${PROXY_OAUTH_CALLBACK}
-ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-ENV NEXTAUTH_URL=${NEXTAUTH_URL}
 
-# Criar usuário não-root por segurança
+# Desabilitar telemetria do Next.js
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Criar usuário não-root (uid/gid 1001 para compatibilidade com Kubernetes)
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copiar arquivos públicos
 COPY --from=builder /app/public ./public
-
-# Criar diretório .next e ajustar permissões
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
 
 # Copiar output standalone do Next.js
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
