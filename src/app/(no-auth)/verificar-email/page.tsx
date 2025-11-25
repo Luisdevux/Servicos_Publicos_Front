@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { verificarEmail } from '@/services/authService';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
@@ -31,9 +31,9 @@ function VerificarEmailContent() {
           router.push('/login/municipe');
         }, 3000);
       })
-      .catch((error: any) => {
+      .catch((error: unknown) => {
         setStatus('error');
-        setMessage(error.message || 'Erro ao verificar email. Tente novamente.');
+        setMessage(error instanceof Error ? error.message : 'Erro ao verificar email. Tente novamente.');
         console.error('Erro na verificação:', error);
       });
   }, [token, router]);
