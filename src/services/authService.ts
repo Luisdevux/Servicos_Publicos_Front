@@ -1,6 +1,13 @@
 // src/services/authService.ts
 
-import { post, patch } from './api';
+import { post, get, patch } from './api';
+
+interface ConfirmEmailResponse {
+  message: string;
+  data: {
+    message: string;
+  };
+}
 
 interface RecoverPasswordResponse {
   message: string;
@@ -50,6 +57,15 @@ interface SignupResponse {
       administrador: boolean;
     };
   };
+}
+
+/**
+ * Solicita verificação de email para um munícipe
+ */
+export async function verificarEmail(
+  token: string
+): Promise<ConfirmEmailResponse> {
+  return get<ConfirmEmailResponse>(`/verificar-email?token=${token}&t=${Date.now()}`);
 }
 
 /**

@@ -10,3 +10,4 @@ export * from './tipoDemandaService';
 export * from './usuarioService';
 export * from './adminService';
 export * from './secretariaService';
+export * from './grupoService';

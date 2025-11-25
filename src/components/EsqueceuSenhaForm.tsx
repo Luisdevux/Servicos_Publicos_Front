@@ -42,22 +42,18 @@ export default function EsqueceuSenhaForm() {
 
   const onSubmit = async (data: EsqueceuSenhaFormValues) => {
     setIsLoading(true);
-    try {
-      await solicitarRecuperacaoSenha(data.email);
-      
-      setEmailEnviado(true);
-      toast.success('E-mail enviado!', {
-        description: 'Verifique sua caixa de entrada e spam.',
-      });
-    } catch {
-      // Por segurança, sempre mostra mensagem genérica
-      setEmailEnviado(true);
-      toast.success('E-mail enviado!', {
-        description: 'Se o e-mail estiver cadastrado, você receberá instruções.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    
+    // Executa envio de email em background (serviço tem retry automático)
+    solicitarRecuperacaoSenha(data.email).catch((error) => {
+      console.error('Erro ao enviar email de recuperação:', error);
+    });
+    
+    // Mostra mensagem genérica imediatamente (segurança)
+    setEmailEnviado(true);
+    toast.success('E-mail enviado!', {
+      description: 'Se o e-mail estiver cadastrado, você receberá instruções.',
+    });
+    setIsLoading(false);
   };
 
   return (

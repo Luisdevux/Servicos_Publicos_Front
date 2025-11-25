@@ -82,6 +82,8 @@ export const createColaboradorSchema = z.object({
     message: 'Selecione o nível de acesso',
   }),
   
+  grupo: z.string().min(1, 'Selecione um grupo de permissões'),
+  
   ativo: z.boolean(),
   
   endereco: z.object({

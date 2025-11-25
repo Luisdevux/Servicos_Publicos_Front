@@ -142,7 +142,7 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className="flex justify-end lg:flex-shrink-0">
+        <div className="flex justify-end lg:shrink-0">
           <div className="w-full lg:w-[500px] bg-gray-50 rounded-md p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col">
             <h3 className="text-md font-semibold text-gray-700 mb-4">
               Mapa de Demandas por Bairro - Vilhena/RO

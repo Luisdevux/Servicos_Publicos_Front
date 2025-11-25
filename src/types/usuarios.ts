@@ -1,6 +1,8 @@
 // src/types/user.ts
 
 import type { Endereco } from './endereco';
+import type { Grupo } from './grupo';
+import type { Secretaria } from './secretaria';
 
 export interface Usuarios {
   _id?: string;
@@ -24,8 +26,8 @@ export interface Usuarios {
   accesstoken?: string;
   codigo_recupera_senha?: string;
   exp_codigo_recupera_senha?: Date;
-  grupo?: string;
-  secretarias?: string[];
+  grupo?: string | Grupo; // Pode vir como ID ou populado
+  secretarias?: string[] | Secretaria[]; // Pode vir como IDs ou populado
   createdAt?: string;
   updatedAt?: string;
 }
@@ -58,6 +60,7 @@ export interface CreateUsuariosData {
   senha?: string;
   endereco: Endereco;
   secretarias?: string[];
+  grupo?: string;
 }
 
 export interface UpdateUsuariosData {
@@ -69,6 +72,9 @@ export interface UpdateUsuariosData {
   endereco?: Endereco;
   link_imagem?: string;
   ativo?: boolean;
+  nivel_acesso?: NivelAcesso;
+  secretarias?: string[];
+  grupo?: string;
 }
 
 export interface UsuariosFilters {

@@ -66,7 +66,7 @@ export function ColaboradorDetailsModal({ open, onOpenChange, usuario }: Colabor
               <div className="text-gray-500">Secretarias</div>
               <div className="font-medium">
                 {Array.isArray(usuario.secretarias) && usuario.secretarias.length > 0 ? (
-                  usuario.secretarias.map((s) => s).filter(Boolean).join(', ')
+                  usuario.secretarias.map((s) => typeof s === 'string' ? s : s.nome).filter(Boolean).join(', ')
                 ) : '-'}
               </div>
             </div>
