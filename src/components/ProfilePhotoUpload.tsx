@@ -180,7 +180,7 @@ export function ProfilePhotoUpload({
               handleUploadClick();
             }}
             disabled={isUploading || isRemoving}
-            className="bg-white rounded-full p-3 shadow-lg hover:scale-110 active:scale-95 transform transition-transform disabled:opacity-50 pointer-events-auto"
+            className="bg-white rounded-full p-3 shadow-lg hover:scale-110 active:scale-95 transform transition-transform disabled:opacity-50 pointer-events-auto cursor-pointer"
             data-test="upload-photo-button"
             type="button"
             title="Alterar foto"
@@ -200,7 +200,7 @@ export function ProfilePhotoUpload({
                 handleRemoveClick();
               }}
               disabled={isUploading || isRemoving}
-              className="bg-white rounded-full p-3 shadow-lg hover:scale-110 active:scale-95 transform transition-transform disabled:opacity-50 pointer-events-auto"
+              className="bg-white rounded-full p-3 shadow-lg hover:scale-110 active:scale-95 transform transition-transform disabled:opacity-50 pointer-events-auto cursor-pointer"
               data-test="remove-photo-button"
               type="button"
               title="Remover foto"
