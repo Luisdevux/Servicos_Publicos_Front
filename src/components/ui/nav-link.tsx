@@ -19,7 +19,7 @@ export default function NavLink({ href, children, 'data-test': dataTest }: NavLi
         <li className="list-none relative group" data-test={dataTest}>
             <Link
                 href={href}
-                className={`text-sm md:text-base inline-block py-5 font-medium transition-colors ${
+                className={`text-sm md:text-base block py-3 md:py-5 pl-4 md:pl-0 font-medium transition-colors ${
                     isActive 
                         ? "text-[#337695]" 
                         : "text-gray-500 hover:text-gray-700"
@@ -28,7 +28,7 @@ export default function NavLink({ href, children, 'data-test': dataTest }: NavLi
                 {children}
             </Link>
             <span 
-                className={`absolute left-0 right-0 bottom-0 h-0.5 transition-colors ${
+                className={`absolute left-0 md:left-0 right-0 bottom-0 h-0.5 md:h-0.5 transition-colors ${
                     isActive 
                         ? "bg-[#337695]" 
                         : "bg-transparent group-hover:bg-gray-300"
