@@ -12,6 +12,7 @@ import { CreateColaboradorModal } from "@/components/createColaboradorModal";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 import { ColaboradorDetailsModal } from "@/components/colaboradorDetailsModal";
 import { toast } from "sonner";
+import { formatCPF, formatPhoneNumber } from "@/lib/profileHelpers";
 
 export default function ColaboradorAdminPage() {
   const queryClient = useQueryClient();
@@ -186,8 +187,8 @@ export default function ColaboradorAdminPage() {
                         >
                           <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">{c.nome}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">{c.email}</td>
-                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900 hidden md:table-cell">{c.cpf}</td>
-                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">{c.celular}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900 hidden md:table-cell">{formatCPF(c.cpf || '')}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">{formatPhoneNumber(c.celular || '')}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900 hidden md:table-cell">{c.portaria_nomeacao || '-'}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900 hidden md:table-cell">{c.cargo || '-'}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">

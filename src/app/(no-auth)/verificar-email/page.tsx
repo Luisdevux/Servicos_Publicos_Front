@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { verificarEmail } from '@/services/authService';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -13,40 +14,6 @@ function VerificarEmailContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Verificando seu email...');
 
-  const verificarEmail = useCallback(async (token: string) => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5011';
-      const response = await fetch(`${apiUrl}/verificar-email?token=${token}&t=${Date.now()}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setStatus('success');
-        setMessage(data.message || 'Email verificado com sucesso!');
-        
-        // Redirecionar para login após 3 segundos
-        setTimeout(() => {
-          router.push('/login/municipe');
-        }, 3000);
-      } else {
-        setStatus('error');
-        setMessage(data.message || 'Erro ao verificar email.');
-      }
-    } catch (error) {
-      setStatus('error');
-      setMessage('Erro ao verificar email. Tente novamente.');
-      console.error('Erro na verificação:', error);
-    }
-  }, [router]);
-
   useEffect(() => {
     if (!token) {
       setStatus('error');
@@ -54,8 +21,22 @@ function VerificarEmailContent() {
       return;
     }
 
-    verificarEmail(token);
-  }, [token, verificarEmail]);
+    verificarEmail(token)
+      .then((response) => {
+        setStatus('success');
+        setMessage(response.message || 'Email verificado com sucesso!');
+        
+        // Redirecionar para login após 3 segundos
+        setTimeout(() => {
+          router.push('/login/municipe');
+        }, 3000);
+      })
+      .catch((error: any) => {
+        setStatus('error');
+        setMessage(error.message || 'Erro ao verificar email. Tente novamente.');
+        console.error('Erro na verificação:', error);
+      });
+  }, [token, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ backgroundColor: 'var(--global-accent)' }}>

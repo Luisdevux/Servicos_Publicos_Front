@@ -25,11 +25,13 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { secretariaService } from '@/services/secretariaService';
+import { grupoService } from '@/services/grupoService';
 import { useCreateColaborador } from '@/hooks/useCreateColaborador';
+import { useUpdateColaborador } from '@/hooks/useUpdateColaborador';
 import { useCepVilhena } from '@/hooks/useCepVilhena';
 import { formatCPF, formatPhoneNumber } from '@/lib/profileHelpers';
 import { createColaboradorSchema, type CreateColaboradorFormValues } from '@/lib/validations/colaborador';
-import type { Secretaria, Usuarios, CreateUsuariosData } from '@/types';
+import type { Secretaria, Usuarios, CreateUsuariosData, Grupo } from '@/types';
 
 interface CreateColaboradorModalProps {
   open: boolean;
@@ -38,9 +40,10 @@ interface CreateColaboradorModalProps {
 }
 
 export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateColaboradorModalProps) {
-  const { buscarCep, formatarCep, validarCepEncontrado } = useCepVilhena();
+  const { buscarCep, formatarCep, validarCepEncontrado, marcarCepComoEncontrado } = useCepVilhena();
   const [loadingCep, setLoadingCep] = useState(false);
   const [secretariasSelecionadas, setSecretariasSelecionadas] = useState<string[]>([]);
+  const isEditMode = !!usuario;
 
   const { createColaborador, isCreating } = useCreateColaborador({
     onSuccess: () => {
@@ -49,6 +52,19 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
       setSecretariasSelecionadas([]);
     },
   });
+
+  const { updateColaborador, isUpdating } = useUpdateColaborador(
+    usuario?._id ?? '',
+    {
+      onSuccess: () => {
+        onOpenChange(false);
+        form.reset();
+        setSecretariasSelecionadas([]);
+      },
+    }
+  );
+
+  const isSaving = isCreating || isUpdating;
 
   const form = useForm<CreateColaboradorFormValues>({
     resolver: zodResolver(createColaboradorSchema),
@@ -63,6 +79,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
       portaria_nomeacao: '',
       formacao: '',
       nivel_acesso: 'operador',
+      grupo: '',
       ativo: true,
       endereco: {
         cep: '',
@@ -99,6 +116,85 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
   });
 
   const secretarias: Secretaria[] = useMemo(() => Array.isArray(secretariasAll) ? secretariasAll : [], [secretariasAll]);
+
+  const { data: gruposAll, isLoading: isLoadingGrupos } = useQuery({
+    queryKey: ['grupos', 'all-for-colaborador', open],
+    enabled: open,
+    queryFn: async () => {
+      const res = await grupoService.buscarGrupos({ ativo: true }, 100, 1);
+      return res.data?.docs || [];
+    },
+  });
+
+  const grupos: Grupo[] = useMemo(() => Array.isArray(gruposAll) ? gruposAll : [], [gruposAll]);
+
+  // Popular formulário quando em modo edição
+  useEffect(() => {
+    if (open && usuario) {
+      // Converter nivel_acesso de objeto para string
+      let nivelAcessoStr: 'operador' | 'secretario' | 'administrador' = 'operador';
+      if (usuario.nivel_acesso?.administrador) nivelAcessoStr = 'administrador';
+      else if (usuario.nivel_acesso?.secretario) nivelAcessoStr = 'secretario';
+      else if (usuario.nivel_acesso?.operador) nivelAcessoStr = 'operador';
+
+      // Converter grupo de objeto para string (ID)
+      let grupoId = '';
+      if (typeof usuario.grupo === 'string') {
+        grupoId = usuario.grupo;
+      } else if (usuario.grupo && typeof usuario.grupo === 'object' && '_id' in usuario.grupo) {
+        grupoId = usuario.grupo._id;
+      }
+
+      // Converter data de nascimento de DD/MM/YYYY para YYYY-MM-DD
+      let dataNascimento = '';
+      if (usuario.data_nascimento) {
+        const match = usuario.data_nascimento.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (match) {
+          const [, dia, mes, ano] = match;
+          dataNascimento = `${ano}-${mes}-${dia}`;
+        }
+      }
+
+      // Marcar CEP como válido se já existe no usuário
+      if (usuario.endereco?.cep) {
+        marcarCepComoEncontrado(usuario.endereco.cep);
+      }
+
+      form.reset({
+        nome: usuario.nome || '',
+        email: usuario.email || '',
+        cpf: usuario.cpf || '',
+        celular: usuario.celular || '',
+        cnh: usuario.cnh || '',
+        data_nascimento: dataNascimento,
+        cargo: usuario.cargo || '',
+        portaria_nomeacao: usuario.portaria_nomeacao || '',
+        formacao: usuario.formacao || '',
+        nivel_acesso: nivelAcessoStr,
+        grupo: grupoId,
+        ativo: usuario.ativo ?? true,
+        endereco: {
+          cep: usuario.endereco?.cep || '',
+          logradouro: usuario.endereco?.logradouro || '',
+          numero: usuario.endereco?.numero?.toString() || '',
+          complemento: usuario.endereco?.complemento || '',
+          bairro: usuario.endereco?.bairro || '',
+          cidade: usuario.endereco?.cidade || 'Vilhena',
+          estado: usuario.endereco?.estado || 'RO',
+        },
+        secretarias: [],
+      });
+
+      // Atualizar secretarias selecionadas - extrair IDs se forem objetos
+      if (Array.isArray(usuario.secretarias)) {
+        const secretariaIds = usuario.secretarias.map((s) => 
+          typeof s === 'string' ? s : s._id
+        );
+        setSecretariasSelecionadas(secretariaIds);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, usuario]);
 
   // Auto-exibir erros de validação
   useEffect(() => {
@@ -142,32 +238,62 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
       dataNascimentoBR = `${dia}/${mes}/${ano}`;
     }
 
-    const payload = {
-      ...data,
-      celular: data.celular.replace(/\D/g, ''),
-      cpf: data.cpf.replace(/\D/g, ''),
-      cnh: data.cnh && data.cnh.trim() ? data.cnh.replace(/\D/g, '') : undefined,
-      data_nascimento: dataNascimentoBR,
-      senha: 'Temp@123',
-      nivel_acesso: {
-        municipe: false,
-        operador: data.nivel_acesso === 'operador',
-        secretario: data.nivel_acesso === 'secretario',
-        administrador: data.nivel_acesso === 'administrador',
-      },
-      endereco: {
-        ...data.endereco,
-        numero: parseInt(data.endereco.numero, 10),
-        cidade: 'Vilhena',
-        estado: 'RO' as const,
-      },
-      secretarias: secretariasSelecionadas.length ? secretariasSelecionadas : undefined,
-      cargo: data.cargo?.trim() || undefined,
-      formacao: data.formacao?.trim() || undefined,
-      portaria_nomeacao: data.portaria_nomeacao?.trim() || undefined,
-    };
-
-    createColaborador(payload as CreateUsuariosData);
+    if (isEditMode) {
+      // Modo edição - usar UpdateUsuariosData
+      const updatePayload = {
+        celular: data.celular.replace(/\D/g, ''),
+        cargo: data.cargo?.trim() || undefined,
+        formacao: data.formacao?.trim() || undefined,
+        nome: data.nome,
+        endereco: {
+          cep: data.endereco.cep.replace(/\D/g, ''),
+          logradouro: data.endereco.logradouro,
+          numero: parseInt(data.endereco.numero, 10),
+          complemento: data.endereco.complemento || undefined,
+          bairro: data.endereco.bairro,
+          cidade: 'Vilhena',
+          estado: 'RO' as const,
+        },
+        ativo: data.ativo,
+        nivel_acesso: {
+          municipe: false,
+          operador: data.nivel_acesso === 'operador',
+          secretario: data.nivel_acesso === 'secretario',
+          administrador: data.nivel_acesso === 'administrador',
+        },
+        secretarias: secretariasSelecionadas.length ? secretariasSelecionadas : undefined,
+        grupo: data.grupo,
+      };
+      updateColaborador(updatePayload);
+    } else {
+      // Modo criação - usar CreateUsuariosData
+      const payload = {
+        ...data,
+        celular: data.celular.replace(/\D/g, ''),
+        cpf: data.cpf.replace(/\D/g, ''),
+        cnh: data.cnh && data.cnh.trim() ? data.cnh.replace(/\D/g, '') : undefined,
+        data_nascimento: dataNascimentoBR,
+        senha: 'Temp@123',
+        nivel_acesso: {
+          municipe: false,
+          operador: data.nivel_acesso === 'operador',
+          secretario: data.nivel_acesso === 'secretario',
+          administrador: data.nivel_acesso === 'administrador',
+        },
+        endereco: {
+          ...data.endereco,
+          numero: parseInt(data.endereco.numero, 10),
+          cidade: 'Vilhena',
+          estado: 'RO' as const,
+        },
+        secretarias: secretariasSelecionadas.length ? secretariasSelecionadas : undefined,
+        cargo: data.cargo?.trim() || undefined,
+        formacao: data.formacao?.trim() || undefined,
+        portaria_nomeacao: data.portaria_nomeacao?.trim() || undefined,
+        grupo: data.grupo,
+      };
+      createColaborador(payload as CreateUsuariosData);
+    }
   };
 
   const handleCepChange = async (value: string, onChange: (value: string) => void) => {
@@ -193,7 +319,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!isCreating) onOpenChange(o); }} data-test="dialog-criar-colaborador">
+    <Dialog open={open} onOpenChange={(o) => { if (!isSaving) onOpenChange(o); }} data-test="dialog-criar-colaborador">
       <DialogContent className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl" data-test="dialog-content-criar-colaborador">
         <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden">
             
@@ -244,7 +370,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                         <Input 
                           {...field} 
                           placeholder="Nome completo" 
-                          disabled={isCreating}
+                          disabled={isSaving}
                           data-test="input-nome"
                         />
                       </FormControl>
@@ -264,7 +390,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                           {...field} 
                           type="email"
                           placeholder="email@prefeitura.gov.br" 
-                          disabled={isCreating}
+                          disabled={isEditMode || isSaving}
                           data-test="input-email"
                         />
                       </FormControl>
@@ -289,7 +415,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                           <Input
                             value={displayed}
                             placeholder="000.000.000-00"
-                            disabled={isCreating}
+                            disabled={isEditMode || isSaving}
                             data-test="input-cpf"
                             maxLength={14}
                             onChange={(e) => {
@@ -317,7 +443,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                           <Input
                             value={displayed}
                             placeholder="(69) 99999-9999"
-                            disabled={isCreating}
+                            disabled={isSaving}
                             data-test="input-celular"
                             maxLength={15}
                             onChange={(e) => {
@@ -342,7 +468,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                         <Input 
                           {...field} 
                           placeholder="12345678901" 
-                          disabled={isCreating}
+                          disabled={isEditMode || isSaving}
                           data-test="input-cnh"
                           maxLength={11}
                         />
@@ -365,7 +491,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                         <Input 
                           {...field} 
                           type="date"
-                          disabled={isCreating}
+                          disabled={isEditMode || isSaving}
                           data-test="input-data-nascimento"
                           max={new Date().toISOString().split('T')[0]}
                         />
@@ -388,7 +514,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                         <Input 
                           {...field} 
                           placeholder="Ex: Analista" 
-                          disabled={isCreating}
+                          disabled={isSaving}
                           data-test="input-cargo"
                         />
                       </FormControl>
@@ -407,7 +533,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                         <Input 
                           {...field} 
                           placeholder="PORTARIA/123" 
-                          disabled={isCreating}
+                          disabled={isEditMode || isSaving}
                           data-test="input-portaria"
                         />
                       </FormControl>
@@ -426,7 +552,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                         <Input 
                           {...field} 
                           placeholder="Ex: Ciência da Computação" 
-                          disabled={isCreating}
+                          disabled={isSaving}
                           data-test="input-formacao"
                         />
                       </FormControl>
@@ -436,8 +562,8 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                 />
               </div>
 
-              {/* Nível de acesso e status */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Nível de acesso, grupo e status */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <FormField
                   control={form.control}
                   name="nivel_acesso"
@@ -446,8 +572,8 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                       <FormLabel>Nível de acesso *</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                        disabled={isCreating}
+                        value={field.value}
+                        disabled={isSaving}
                       >
                         <FormControl>
                           <SelectTrigger data-test="select-nivel-acesso">
@@ -467,6 +593,43 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
 
                 <FormField
                   control={form.control}
+                  name="grupo"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-grupo-wrapper">
+                      <FormLabel>Grupo de permissões *</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value}
+                        disabled={isSaving || isLoadingGrupos}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-test="select-grupo">
+                            <SelectValue placeholder="Selecione o grupo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {isLoadingGrupos ? (
+                            <div className="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-500">
+                              <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
+                            </div>
+                          ) : grupos.length === 0 ? (
+                            <div className="px-2 py-1.5 text-sm text-gray-500">Nenhum grupo encontrado</div>
+                          ) : (
+                            grupos.map((grupo) => (
+                              <SelectItem key={grupo._id} value={grupo._id} data-test={`option-grupo-${grupo._id}`}>
+                                {grupo.nome}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage data-test="erro-grupo" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="ativo"
                   render={({ field }) => (
                     <FormItem data-test="campo-ativo-wrapper">
@@ -477,7 +640,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                             id="ativo"
                             checked={field.value} 
                             onCheckedChange={field.onChange}
-                            disabled={isCreating}
+                            disabled={isSaving}
                             data-test="checkbox-ativo"
                           />
                         </FormControl>
@@ -508,7 +671,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                               {...field}
                               placeholder="00000-000" 
                               onChange={(e) => handleCepChange(e.target.value, field.onChange)}
-                              disabled={isCreating || loadingCep}
+                              disabled={isSaving || loadingCep}
                               maxLength={9}
                               className="pr-10"
                               data-test="input-cep"
@@ -535,7 +698,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                           <Input 
                             {...field} 
                             placeholder="Rua, Avenida..." 
-                            disabled={isCreating}
+                            disabled={isSaving}
                             data-test="input-logradouro"
                           />
                         </FormControl>
@@ -554,7 +717,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                           <Input 
                             {...field} 
                             placeholder="123" 
-                            disabled={isCreating}
+                            disabled={isSaving}
                             data-test="input-numero"
                           />
                         </FormControl>
@@ -575,7 +738,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                           <Input 
                             {...field} 
                             placeholder="Apto, Bloco..." 
-                            disabled={isCreating}
+                            disabled={isSaving}
                             data-test="input-complemento"
                           />
                         </FormControl>
@@ -594,7 +757,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                           <Input 
                             {...field} 
                             placeholder="Bairro" 
-                            disabled={isCreating}
+                            disabled={isSaving}
                             data-test="input-bairro"
                           />
                         </FormControl>
@@ -668,7 +831,7 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                           <Checkbox 
                             checked={secretariasSelecionadas.includes(s._id)} 
                             onCheckedChange={() => toggleSecretaria(s._id)}
-                            disabled={isCreating}
+                            disabled={isSaving}
                             data-test={`checkbox-secretaria-${s._id}`}
                           />
                           <span>{s.nome}</span>
@@ -685,18 +848,18 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
                   type="button"
                   onClick={() => onOpenChange(false)}
                   className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
-                  disabled={isCreating}
+                  disabled={isSaving}
                   data-test="button-cancelar"
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isCreating}
+                  disabled={isSaving}
                   className="flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all"
                   data-test="button-criar-colaborador"
                 >
-                  {isCreating ? (
+                  {isSaving ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Salvando...

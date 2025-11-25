@@ -175,7 +175,7 @@ export default function MeusPedidosPage() {
                   setFiltroSelecionado("todos");
                   setPaginaAtual(1);
                 }}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap cursor-pointer ${
                   filtroSelecionado === "todos"
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -196,7 +196,7 @@ export default function MeusPedidosPage() {
                   setFiltroSelecionado("aguardando");
                   setPaginaAtual(1);
                 }}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap cursor-pointer ${
                   filtroSelecionado === "aguardando"
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -217,7 +217,7 @@ export default function MeusPedidosPage() {
                   setFiltroSelecionado("aceito");
                   setPaginaAtual(1);
                 }}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap cursor-pointer ${
                   filtroSelecionado === "aceito"
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -238,7 +238,7 @@ export default function MeusPedidosPage() {
                   setFiltroSelecionado("concluida");
                   setPaginaAtual(1);
                 }}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap cursor-pointer ${
                   filtroSelecionado === "concluida"
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -259,7 +259,7 @@ export default function MeusPedidosPage() {
                   setFiltroSelecionado("recusado");
                   setPaginaAtual(1);
                 }}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap cursor-pointer ${
                   filtroSelecionado === "recusado"
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
