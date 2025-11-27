@@ -36,7 +36,7 @@ interface DemandaCard {
 }
 
 export default function PedidosSecretariaPage() {
-  const [abaAtiva, setAbaAtiva] = useState<"em-aberto" | "em-andamento" | "concluidas">("em-aberto");
+  const [abaAtiva, setAbaAtiva] = useState<"em-aberto" | "em-andamento" | "concluidas" | "recusadas">("em-aberto");
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [demandaSelecionada, setDemandaSelecionada] = useState<DemandaCard | null>(null);
@@ -266,6 +266,8 @@ export default function PedidosSecretariaPage() {
       statusMatch = demanda.status === "Em andamento";
     } else if (abaAtiva === "concluidas") {
       statusMatch = demanda.status === "Concluída";
+    } else if (abaAtiva === "recusadas") {
+      statusMatch = demanda.status === "Recusada";
     }
 
     // Filtro por tipo
@@ -408,6 +410,27 @@ export default function PedidosSecretariaPage() {
                   </span>
                 )}
               </button>
+
+              <button
+                onClick={() => {
+                  setAbaAtiva("recusadas");
+                  setPaginaAtual(1);
+                }}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  abaAtiva === "recusadas"
+                    ? "border-[#337695] text-[#337695]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Recusadas
+                {demandas.filter(d => d.status === "Recusada").length > 0 && (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    abaAtiva === "recusadas" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
+                  }`}>
+                    {demandas.filter(d => d.status === "Recusada").length}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
 
@@ -461,6 +484,7 @@ export default function PedidosSecretariaPage() {
                     {abaAtiva === "em-aberto" && "Analisar Demanda"}
                     {abaAtiva === "em-andamento" && "Ver Detalhes"}
                     {abaAtiva === "concluidas" && "Ver Resolução"}
+                    {abaAtiva === "recusadas" && "Ver Motivo"}
                   </Button>
                 </div>
               ))}
@@ -475,6 +499,7 @@ export default function PedidosSecretariaPage() {
               {abaAtiva === "em-aberto" && "Não há demandas aguardando análise."}
               {abaAtiva === "em-andamento" && "Não há demandas em andamento no momento."}
               {abaAtiva === "concluidas" && "Não há demandas concluídas ainda."}
+              {abaAtiva === "recusadas" && "Não há demandas recusadas."}
             </div>
           </div>
         )}
