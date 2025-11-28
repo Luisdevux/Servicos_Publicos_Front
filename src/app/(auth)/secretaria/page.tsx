@@ -32,6 +32,7 @@ interface DemandaCard {
   usuarios?: (string | { _id: string; nome: string })[];
   resolucao?: string;
   motivo_devolucao?: string;
+  motivo_rejeicao?: string;
   link_imagem_resolucao?: string | string[];
 }
 
@@ -105,6 +106,7 @@ export default function PedidosSecretariaPage() {
       usuarios: demanda.usuarios,
       resolucao: demanda.resolucao,
       motivo_devolucao: demanda.motivo_devolucao,
+      motivo_rejeicao: demanda.motivo_rejeicao,
       link_imagem_resolucao: demanda.link_imagem_resolucao 
         ? (Array.isArray(demanda.link_imagem_resolucao) 
             ? demanda.link_imagem_resolucao 
