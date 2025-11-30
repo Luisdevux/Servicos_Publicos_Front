@@ -316,7 +316,7 @@ export default function DetalhesDemandaOperadorModal({
                     </div>
                   )}
 
-                  {demanda.link_imagem_resolucao && (() => {
+                  {(() => {
                     const imagensResolucao = Array.isArray(demanda.link_imagem_resolucao)
                       ? demanda.link_imagem_resolucao.filter((img): img is string => Boolean(img && typeof img === 'string' && img.trim() !== ''))
                       : (demanda.link_imagem_resolucao && typeof demanda.link_imagem_resolucao === 'string' && demanda.link_imagem_resolucao.trim() !== '')
@@ -506,9 +506,9 @@ export default function DetalhesDemandaOperadorModal({
                 )}
               </div>
 
-              <Input
+              <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png,image/svg+xml,.jpg,.jpeg,.png,.svg"
                 multiple
                 onChange={handleImagensChange}
                 disabled={previewUrls.length >= 3}

@@ -287,7 +287,7 @@ export default function DetalhesDemandaSecretariaModal({
                     </div>
                   )}
 
-                  {demanda.link_imagem_resolucao && (() => {
+                  {(() => {
                     const imagensResolucao = Array.isArray(demanda.link_imagem_resolucao)
                       ? demanda.link_imagem_resolucao.filter((img): img is string => Boolean(img && typeof img === 'string' && img.trim() !== ''))
                       : (demanda.link_imagem_resolucao && typeof demanda.link_imagem_resolucao === 'string' && demanda.link_imagem_resolucao.trim() !== '')
