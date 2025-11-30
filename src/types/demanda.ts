@@ -42,6 +42,7 @@ export interface Demanda {
   link_imagem?: string;
   descricao: string;
   motivo_devolucao?: string;
+  motivo_rejeicao?: string;
   link_imagem_resolucao?: string;
   endereco: Endereco;
   usuarios?: string[];
