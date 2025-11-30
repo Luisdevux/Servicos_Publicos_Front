@@ -186,4 +186,42 @@ export const demandaService = {
   ): Promise<ApiResponse<{ link_imagem_resolucao: string }>> {
     return this.uploadFoto(id, file, 'resolucao') as Promise<ApiResponse<{ link_imagem_resolucao: string }>>;
   },
+
+  /**
+   * Upload de múltiplas fotos de resolução
+   * Faz upload sequencial e aguarda cada uma completar antes da próxima
+   */
+  async uploadMultiplasFotosResolucao(
+    id: string,
+    files: File[]
+  ): Promise<ApiResponse<{ link_imagem_resolucao: string[] }>> {
+    console.log(`[uploadMultiplasFotosResolucao] Iniciando upload de ${files.length} imagens para demanda ${id}`);
+    
+    const resultados: string[] = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      console.log(`[uploadMultiplasFotosResolucao] Uploading ${i + 1}/${files.length}: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
+      
+      try {
+        const resultado = await this.uploadFotoResolucao(id, file);
+        console.log(`[uploadMultiplasFotosResolucao] Upload ${i + 1} concluído:`, resultado);
+        
+        if (resultado?.data?.link_imagem_resolucao) {
+          resultados.push(resultado.data.link_imagem_resolucao);
+        }
+      } catch (error) {
+        console.error(`[uploadMultiplasFotosResolucao] Erro no upload ${i + 1}:`, error);
+        throw new Error(`Erro ao fazer upload da imagem ${i + 1}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      }
+    }
+    
+    console.log(`[uploadMultiplasFotosResolucao] Todos os uploads concluídos. Total: ${resultados.length} imagens`);
+    
+    return {
+      success: true,
+      data: { link_imagem_resolucao: resultados },
+      message: `${resultados.length} imagens enviadas com sucesso`
+    } as ApiResponse<{ link_imagem_resolucao: string[] }>;
+  },
 };
