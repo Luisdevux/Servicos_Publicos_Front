@@ -11,6 +11,12 @@ import { Upload, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { 
+  isValidImageType, 
+  formatFileSize, 
+  validateImageMagicBytes,
+  getAllowedImageTypesDisplay
+} from '@/lib/imageUtils';
 
 interface Demanda {
   id: string;
@@ -86,6 +92,13 @@ export default function DetalhesDemandaOperadorModal({
       return;
     }
 
+    if (imagensResolucao.length === 0) {
+      toast.error('Imagens obrigatórias', {
+        description: 'Adicione pelo menos uma imagem da resolução',
+      });
+      return;
+    }
+
     if (onResolver) {
       onResolver(demanda.id, descricaoResolucao, imagensResolucao);
       setDescricaoResolucao("");
@@ -112,11 +125,22 @@ export default function DetalhesDemandaOperadorModal({
     const maxSize = 5 * 1024 * 1024; // 5MB
     const maxFiles = 3;
 
+    // Validar tipo de arquivo
+    const invalidTypes = newFiles.filter(file => !isValidImageType(file.type));
+    if (invalidTypes.length > 0) {
+      toast.error('Tipo de arquivo inválido', {
+        description: `Apenas imagens ${getAllowedImageTypesDisplay()} são aceitas`,
+      });
+      e.target.value = '';
+      return;
+    }
+
     // Validar tamanho
     const invalidFiles = newFiles.filter(file => file.size > maxSize);
     if (invalidFiles.length > 0) {
+      const sizesMsg = invalidFiles.map(f => `${f.name} (${formatFileSize(f.size)})`).join(', ');
       toast.error('Arquivo muito grande', {
-        description: 'Cada imagem deve ter no máximo 5MB',
+        description: `Arquivos acima do limite: ${sizesMsg}. Máximo permitido: ${formatFileSize(maxSize)}`,
       });
       e.target.value = '';
       return;
@@ -131,13 +155,33 @@ export default function DetalhesDemandaOperadorModal({
       return;
     }
 
-    setImagensResolucao(prev => [...prev, ...newFiles]);
+    // Validar se é realmente uma imagem (verificando header do arquivo)
+    const validateImageFiles = async () => {
+      const validationPromises = newFiles.map(file => validateImageMagicBytes(file));
+      const results = await Promise.all(validationPromises);
+      
+      const invalidImages = results.filter(isValid => !isValid);
+      if (invalidImages.length > 0) {
+        toast.error('Arquivo corrompido ou inválido', {
+          description: 'Um ou mais arquivos não são imagens válidas',
+        });
+        e.target.value = '';
+        return false;
+      }
+      return true;
+    };
 
-    const newUrls = newFiles.map(file => URL.createObjectURL(file));
-    setPreviewUrls(prev => [...prev, ...newUrls]);
+    validateImageFiles().then(isValid => {
+      if (!isValid) return;
 
-    toast.success(`${newFiles.length} imagem${newFiles.length > 1 ? 'ns' : ''} adicionada${newFiles.length > 1 ? 's' : ''}`);
-    e.target.value = '';
+      setImagensResolucao(prev => [...prev, ...newFiles]);
+
+      const newUrls = newFiles.map(file => URL.createObjectURL(file));
+      setPreviewUrls(prev => [...prev, ...newUrls]);
+
+      toast.success(`${newFiles.length} imagem${newFiles.length > 1 ? 'ns' : ''} adicionada${newFiles.length > 1 ? 's' : ''}`);
+      e.target.value = '';
+    });
   };
 
   const handleRemoveImage = (index: number) => {
@@ -473,7 +517,7 @@ export default function DetalhesDemandaOperadorModal({
               />
 
               <p className="text-xs text-global-text-primary">
-                Máximo de 3 imagens • Tamanho máximo: 5MB por imagem
+                <span className="text-red-500 font-semibold">* Obrigatório:</span> Adicione pelo menos 1 imagem • Máximo de 3 imagens • Tamanho máximo: 5MB por imagem
               </p>
             </div>
 
