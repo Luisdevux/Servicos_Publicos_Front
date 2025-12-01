@@ -5,7 +5,6 @@ import { Button } from "./ui/button";
 import { ImageCarousel } from "./ui/image-carousel";
 import { useState } from "react";
 import { Textarea } from "./ui/textarea";
-import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Upload, X, Loader2 } from "lucide-react";
 import Image from "next/image";

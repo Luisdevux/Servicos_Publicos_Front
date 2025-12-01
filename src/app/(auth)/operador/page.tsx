@@ -14,7 +14,6 @@ import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/services/api";
 import type { Demanda as DemandaAPI } from "@/types";
-import type { Demanda } from "@/types/demanda";
 import DetalhesDemandaOperadorModal from "@/components/detalheDemandaOperadorModal";
 import { demandaService } from "@/services/demandaService";
 import { toast } from "sonner";
