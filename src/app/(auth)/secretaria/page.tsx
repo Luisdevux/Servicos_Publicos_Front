@@ -60,7 +60,6 @@ export default function PedidosSecretariaPage() {
     queryFn: async () => {
       try {
         const result = await demandaService.buscarDemandas();
-        console.log("Demandas carregadas:", result);
         return result;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
@@ -82,15 +81,6 @@ export default function PedidosSecretariaPage() {
   }, [error, router]);
 
   const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => {
-    // Debug: log da demanda completa para ver estrutura
-    console.log(`=== Demanda ${demanda._id} (Secretaria) ===`);
-    console.log("Tipo:", demanda.tipo);
-    console.log("Status:", demanda.status);
-    console.log("link_imagem (demanda):", demanda.link_imagem);
-    console.log("link_imagem_resolucao:", demanda.link_imagem_resolucao);
-    console.log("é array link_imagem?", Array.isArray(demanda.link_imagem));
-    console.log("é array link_imagem_resolucao?", Array.isArray(demanda.link_imagem_resolucao));
-    
     const imagensDemanda = demanda.link_imagem 
       ? (Array.isArray(demanda.link_imagem) 
           ? demanda.link_imagem 
@@ -102,10 +92,6 @@ export default function PedidosSecretariaPage() {
           ? demanda.link_imagem_resolucao 
           : [demanda.link_imagem_resolucao])
       : [];
-    
-    console.log("Imagens demanda processadas:", imagensDemanda.length, imagensDemanda);
-    console.log("Imagens resolução processadas:", imagensResolucao.length, imagensResolucao);
-    console.log("====================\n");
     
     return {
       id: demanda._id,
@@ -147,7 +133,6 @@ export default function PedidosSecretariaPage() {
         }
 
         const payload = await result.json();
-        console.log('Operadores recebidos:', payload?.data?.docs?.length || 0);
 
         return payload;
       } catch (error) {
@@ -484,14 +469,6 @@ export default function PedidosSecretariaPage() {
                 const imagensParaMostrar = demanda.status === "Concluída" && imagensResolucao.length > 0
                   ? imagensResolucao
                   : imagensDemanda;
-
-                console.log(`Card Secretaria ${demanda.id}:`, {
-                  status: demanda.status,
-                  imagensDemanda: imagensDemanda.length,
-                  imagensResolucao: imagensResolucao.length,
-                  imagensParaMostrar: imagensParaMostrar.length,
-                  imagens: imagensParaMostrar
-                });
 
                 return (
                   <div 

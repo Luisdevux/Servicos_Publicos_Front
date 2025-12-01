@@ -63,18 +63,6 @@ export default function DetalhesDemandaOperadorModal({
 
   if (!demanda) return null;
 
-  // Debug: verificar se link_imagem_resolucao está chegando
-  if (demanda.status === "Concluída") {
-    console.log("=== MODAL OPERADOR - Demanda concluída ===");
-    console.log("ID:", demanda.id);
-    console.log("Status:", demanda.status);
-    console.log("Resolução:", demanda.resolucao);
-    console.log("link_imagem_resolucao:", demanda.link_imagem_resolucao);
-    console.log("tipo:", typeof demanda.link_imagem_resolucao);
-    console.log("é array?", Array.isArray(demanda.link_imagem_resolucao));
-    console.log("==========================================");
-  }
-
   const handleDevolver = () => {
     if (motivoDevolucao.trim() && onDevolver) {
       onDevolver(demanda.id, motivoDevolucao);

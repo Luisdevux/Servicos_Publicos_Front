@@ -74,11 +74,6 @@ export default function DetalhesDemandaSecretariaModal({
 
   if (!demanda) return null;
 
-  // Debug: verificar se link_imagem_resolucao está chegando
-  if (demanda.status === "Concluída") {
-    console.log("Demanda concluída - link_imagem_resolucao:", demanda.link_imagem_resolucao);
-  }
-
   const handleRejeitar = () => {
     if (motivoRejeicao.trim() && onRejeitar) {
       onRejeitar(demanda.id, motivoRejeicao);

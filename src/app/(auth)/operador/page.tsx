@@ -62,13 +62,6 @@ export default function PedidosOperadorPage() {
       try {
         // A API já deve retornar apenas as demandas do operador logado
         const result = await demandaService.buscarDemandas();
-        console.log("Demandas carregadas do operador:", result);
-        console.log("Total de demandas:", result?.data?.docs?.length || 0);
-        if (result?.data?.docs) {
-          result.data.docs.forEach((d: Demanda) => {
-            console.log(`  - Demanda ${d._id}: ${d.tipo} - Status: ${d.status}`);
-          });
-        }
         return result;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
@@ -91,15 +84,6 @@ export default function PedidosOperadorPage() {
 
   // Mapear as demandas sem filtro adicional - a API já retorna apenas as do operador
   const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => {
-      // Debug: log da demanda completa para ver estrutura
-      console.log(`=== Demanda ${demanda._id} ===`);
-      console.log("Tipo:", demanda.tipo);
-      console.log("Status:", demanda.status);
-      console.log("link_imagem (demanda):", demanda.link_imagem);
-      console.log("link_imagem_resolucao:", demanda.link_imagem_resolucao);
-      console.log("é array link_imagem?", Array.isArray(demanda.link_imagem));
-      console.log("é array link_imagem_resolucao?", Array.isArray(demanda.link_imagem_resolucao));
-      
       const imagensDemanda = demanda.link_imagem 
         ? (Array.isArray(demanda.link_imagem) 
             ? demanda.link_imagem 
@@ -111,10 +95,6 @@ export default function PedidosOperadorPage() {
             ? demanda.link_imagem_resolucao 
             : [demanda.link_imagem_resolucao])
         : [];
-      
-      console.log("Imagens demanda processadas:", imagensDemanda.length, imagensDemanda);
-      console.log("Imagens resolução processadas:", imagensResolucao.length, imagensResolucao);
-      console.log("====================\n");
       
       return {
         id: demanda._id,
@@ -135,8 +115,6 @@ export default function PedidosOperadorPage() {
         link_imagem_resolucao: imagensResolucao.length > 0 ? imagensResolucao : undefined,
       };
     }) || [];
-
-  console.log("Demandas do operador:", demandas.length);
 
   const devolverMutation = useMutation({
     mutationFn: async ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
@@ -168,9 +146,7 @@ export default function PedidosOperadorPage() {
 
       // Depois, faz upload das imagens de resolução
       if (imagens && imagens.length > 0) {
-        console.log(`[Operador] Iniciando upload de ${imagens.length} imagens de resolução...`);
         await demandaService.uploadMultiplasFotosResolucao(demandaId, imagens);
-        console.log('[Operador] Todas as imagens foram uploadadas com sucesso');
       }
 
       return resultadoResolucao;
@@ -253,8 +229,6 @@ export default function PedidosOperadorPage() {
     }
     return false;
   });
-
-  console.log(`Filtro ativo: ${abaAtiva} - ${demandasPorStatus.length} demandas`);
 
   const demandasFiltradas = demandasPorStatus.filter(demanda => {
     if (filtroSelecionado === "todos") {
@@ -424,14 +398,6 @@ export default function PedidosOperadorPage() {
                 const imagensParaMostrar = demanda.status === "Concluída" && imagensResolucao.length > 0
                   ? imagensResolucao
                   : imagensDemanda;
-
-                console.log(`Card ${demanda.id}:`, {
-                  status: demanda.status,
-                  imagensDemanda: imagensDemanda.length,
-                  imagensResolucao: imagensResolucao.length,
-                  imagensParaMostrar: imagensParaMostrar.length,
-                  imagens: imagensParaMostrar
-                });
 
                 return (
                   <div 
