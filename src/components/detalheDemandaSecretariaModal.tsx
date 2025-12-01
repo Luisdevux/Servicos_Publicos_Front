@@ -26,6 +26,7 @@ interface Demanda {
   usuarios?: (string | { _id: string; nome: string })[];
   resolucao?: string;
   motivo_devolucao?: string;
+  motivo_rejeicao?: string;
   link_imagem_resolucao?: string | string[];
 }
 
@@ -72,11 +73,6 @@ export default function DetalhesDemandaSecretariaModal({
   const nomeOperador = operadorData?.data?.nome || 'Carregando...';
 
   if (!demanda) return null;
-
-  // Debug: verificar se link_imagem_resolucao está chegando
-  if (demanda.status === "Concluída") {
-    console.log("Demanda concluída - link_imagem_resolucao:", demanda.link_imagem_resolucao);
-  }
 
   const handleRejeitar = () => {
     if (motivoRejeicao.trim() && onRejeitar) {
@@ -232,6 +228,35 @@ export default function DetalhesDemandaSecretariaModal({
                 </div>
               )}
 
+              {/* Mostrar motivo de rejeição quando a demanda foi recusada */}
+              {demanda.status === "Recusada" && (
+                <div className="space-y-4">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h3 className="text-lg font-medium text-red-800 mb-2">
+                      Demanda recusada
+                    </h3>
+                    
+                    {demanda.motivo_devolucao && (
+                      <div className="space-y-1 mb-3">
+                        <label className="text-sm font-medium text-red-700">Motivo da devolução:</label>
+                        <div className="p-3 rounded-md bg-white border border-red-200">
+                          <p className="text-sm text-gray-800">{demanda.motivo_devolucao}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {demanda.motivo_rejeicao && (
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-red-700">Motivo da rejeição:</label>
+                        <div className="p-3 rounded-md bg-white border border-red-200">
+                          <p className="text-sm text-gray-800">{demanda.motivo_rejeicao}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Mostrar informações completas quando concluída */}
               {demanda.status === "Concluída" && (
                 <>
@@ -257,7 +282,7 @@ export default function DetalhesDemandaSecretariaModal({
                     </div>
                   )}
 
-                  {demanda.link_imagem_resolucao && (() => {
+                  {(() => {
                     const imagensResolucao = Array.isArray(demanda.link_imagem_resolucao)
                       ? demanda.link_imagem_resolucao.filter((img): img is string => Boolean(img && typeof img === 'string' && img.trim() !== ''))
                       : (demanda.link_imagem_resolucao && typeof demanda.link_imagem_resolucao === 'string' && demanda.link_imagem_resolucao.trim() !== '')

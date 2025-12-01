@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Banner from "@/components/banner";
 import CardDemandaOperadorSkeleton from "@/components/CardDemandaOperadorSkeleton";
+import { ImageCarousel } from "@/components/ui/image-carousel";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -61,13 +62,6 @@ export default function PedidosOperadorPage() {
       try {
         // A API já deve retornar apenas as demandas do operador logado
         const result = await demandaService.buscarDemandas();
-        console.log("Demandas carregadas do operador:", result);
-        console.log("Total de demandas:", result?.data?.docs?.length || 0);
-        if (result?.data?.docs) {
-          result.data.docs.forEach((d: Demanda) => {
-            console.log(`  - Demanda ${d._id}: ${d.tipo} - Status: ${d.status}`);
-          });
-        }
         return result;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
@@ -90,13 +84,17 @@ export default function PedidosOperadorPage() {
 
   // Mapear as demandas sem filtro adicional - a API já retorna apenas as do operador
   const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => {
-      // Debug: log da demanda completa para ver estrutura
-      if (demanda.status === "Concluída") {
-        console.log("Demanda da API no operador (Concluída):", demanda);
-        console.log("link_imagem_resolucao:", demanda.link_imagem_resolucao);
-        console.log("tipo de link_imagem_resolucao:", typeof demanda.link_imagem_resolucao);
-        console.log("é array?", Array.isArray(demanda.link_imagem_resolucao));
-      }
+      const imagensDemanda = demanda.link_imagem 
+        ? (Array.isArray(demanda.link_imagem) 
+            ? demanda.link_imagem 
+            : [demanda.link_imagem])
+        : [];
+      
+      const imagensResolucao = demanda.link_imagem_resolucao
+        ? (Array.isArray(demanda.link_imagem_resolucao) 
+            ? demanda.link_imagem_resolucao 
+            : [demanda.link_imagem_resolucao])
+        : [];
       
       return {
         id: demanda._id,
@@ -104,11 +102,7 @@ export default function PedidosOperadorPage() {
         descricao: demanda.descricao,
         tipo: demanda.tipo.toLowerCase(),
         status: demanda.status || 'Em aberto',
-        imagem: demanda.link_imagem 
-          ? (Array.isArray(demanda.link_imagem) 
-              ? demanda.link_imagem 
-              : [demanda.link_imagem])
-          : undefined,
+        imagem: imagensDemanda.length > 0 ? imagensDemanda : undefined,
         endereco: demanda.endereco ? {
           bairro: demanda.endereco.bairro,
           tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
@@ -118,15 +112,9 @@ export default function PedidosOperadorPage() {
         usuarios: demanda.usuarios,
         resolucao: demanda.resolucao,
         motivo_devolucao: demanda.motivo_devolucao,
-        link_imagem_resolucao: demanda.link_imagem_resolucao 
-          ? (Array.isArray(demanda.link_imagem_resolucao) 
-              ? demanda.link_imagem_resolucao 
-              : [demanda.link_imagem_resolucao])
-          : undefined,
+        link_imagem_resolucao: imagensResolucao.length > 0 ? imagensResolucao : undefined,
       };
     }) || [];
-
-  console.log("Demandas do operador:", demandas.length);
 
   const devolverMutation = useMutation({
     mutationFn: async ({ demandaId, motivo }: { demandaId: string; motivo: string }) => {
@@ -158,9 +146,7 @@ export default function PedidosOperadorPage() {
 
       // Depois, faz upload das imagens de resolução
       if (imagens && imagens.length > 0) {
-        for (const imagem of imagens) {
-          await demandaService.uploadFotoResolucao(demandaId, imagem);
-        }
+        await demandaService.uploadMultiplasFotosResolucao(demandaId, imagens);
       }
 
       return resultadoResolucao;
@@ -243,8 +229,6 @@ export default function PedidosOperadorPage() {
     }
     return false;
   });
-
-  console.log(`Filtro ativo: ${abaAtiva} - ${demandasPorStatus.length} demandas`);
 
   const demandasFiltradas = demandasPorStatus.filter(demanda => {
     if (filtroSelecionado === "todos") {
@@ -404,32 +388,56 @@ export default function PedidosOperadorPage() {
 
           {demandasFiltradas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16 mb-8">
-              {demandasPaginadas.map((demanda) => (
-                <div 
-                  key={demanda.id}
-                  className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-gray-700 flex-1">
-                      {demanda.titulo}
-                    </h3>
-                    <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium capitalize whitespace-nowrap ${getStatusColor(demanda.tipo)}`}>
-                      {demanda.tipo}
-                    </span>
-                  </div>
-                  
-                  <p className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3">
-                    {demanda.descricao}
-                  </p>
-                  
-                  <Button 
-                    onClick={() => handleAnalisarDemanda(demanda.id)}
-                    className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white"
+              {demandasPaginadas.map((demanda) => {
+                const imagensDemanda = demanda.imagem 
+                  ? (Array.isArray(demanda.imagem) ? demanda.imagem : [demanda.imagem])
+                  : [];
+                const imagensResolucao = demanda.link_imagem_resolucao
+                  ? (Array.isArray(demanda.link_imagem_resolucao) ? demanda.link_imagem_resolucao : [demanda.link_imagem_resolucao])
+                  : [];
+                const imagensParaMostrar = demanda.status === "Concluída" && imagensResolucao.length > 0
+                  ? imagensResolucao
+                  : imagensDemanda;
+
+                return (
+                  <div 
+                    key={demanda.id}
+                    className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden"
                   >
-                    {demanda.status === "Concluída" ? "Analisar Resolução" : "Analisar Demanda"}
-                  </Button>
-                </div>
-              ))}
+                    {imagensParaMostrar.length > 0 && (
+                      <div className="w-full h-48 bg-gray-100 relative">
+                        <ImageCarousel
+                          images={imagensParaMostrar}
+                          alt={demanda.status === "Concluída" ? "Imagens da resolução" : "Imagens da demanda"}
+                          className="h-48"
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="p-6 flex flex-col flex-1">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-gray-700 flex-1">
+                          {demanda.titulo}
+                        </h3>
+                        <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium capitalize whitespace-nowrap ${getStatusColor(demanda.tipo)}`}>
+                          {demanda.tipo}
+                        </span>
+                      </div>
+                      
+                      <p className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3">
+                        {demanda.descricao}
+                      </p>
+                      
+                      <Button 
+                        onClick={() => handleAnalisarDemanda(demanda.id)}
+                        className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white"
+                      >
+                        {demanda.status === "Concluída" ? "Analisar Resolução" : "Analisar Demanda"}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12">
