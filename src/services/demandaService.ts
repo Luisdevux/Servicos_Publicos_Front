@@ -221,7 +221,8 @@ export const demandaService = {
     return {
       success: true,
       data: { link_imagem_resolucao: resultados },
-      message: `${resultados.length} imagens enviadas com sucesso`
+      message: `${resultados.length} imagens enviadas com sucesso`,
+      errors: []
     } as ApiResponse<{ link_imagem_resolucao: string[] }>;
   },
 };
