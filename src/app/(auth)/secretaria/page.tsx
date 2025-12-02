@@ -17,6 +17,8 @@ import DetalhesDemandaSecretariaModal from "@/components/detalheDemandaSecretari
 import { demandaService } from "@/services/demandaService";
 import { toast } from "sonner";
 
+//TODO : responsividade filtros, demanda, e paginação
+
 interface DemandaCard {
   id: string;
   titulo: string;
