@@ -195,7 +195,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal>
+    <Dialog open={open} onOpenChange={onOpenChange} modal data-test="create-secretaria-modal">
       <DialogContent
         className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl"
         data-test="create-secretaria-dialog"

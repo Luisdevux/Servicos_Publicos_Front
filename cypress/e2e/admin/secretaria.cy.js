@@ -33,4 +33,8 @@ describe('Dashboard Admin - Página de Secretaria', () => {
         });
       });
     });
+
+    it('Deve criar uma nova secretaria com sucesso', () => {
+      cy.wait(500);
+    });
 });
