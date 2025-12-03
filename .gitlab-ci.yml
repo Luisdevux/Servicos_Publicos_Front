@@ -1,0 +1,78 @@
+# .gitlab-ci.yml - Otimizado para o runner com a tag 'k3s'
+
+# Define as fases do pipeline
+stages:
+  - build
+  - dockerize
+  - deploy
+
+# Variável para a tag da imagem Docker. Usamos o hash do commit para ter uma tag única.
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+
+# --- Fase 1: Build da Aplicação Next.js ---
+build-job:
+  stage: build
+  tags:
+    - k3s  # <-- IMPORTANTE: Direciona o job para o seu runner específico
+  image: node:20 # Roda dentro de um contêiner com Node.js v20
+  script:
+    - echo "Instalando dependências..."
+    - npm install
+    - echo "Construindo a aplicação Next.js..."
+    - npm run build
+  artifacts:
+    # Salva o resultado do build para a próxima fase
+    paths:
+      - .next/
+      - public/
+      - node_modules/
+      - package.json
+      - next.config.ts
+    expire_in: 1 hour
+
+# --- Fase 2: Criação e Upload da Imagem Docker ---
+dockerize-job:
+  stage: dockerize
+  tags:
+    - k3s  # <-- IMPORTANTE: Direciona o job para o seu runner
+  image: docker:latest
+  services:
+    - docker:dind # Serviço "Docker-in-Docker" para permitir a construção de imagens
+  before_script:
+    # Faz login no registro de contêineres do próprio GitLab
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - echo "Construindo a imagem Docker: $IMAGE_TAG"
+    - docker build -t $IMAGE_TAG .
+    - echo "Enviando a imagem para o registro: $CI_REGISTRY"
+    - docker push $IMAGE_TAG
+  dependencies:
+    - build-job # Garante que este job só rode após o build
+
+# --- Fase 3: Deploy no Cluster K3s ---
+deploy-job:
+  stage: deploy
+  tags:
+    - k3s  # <-- IMPORTANTE: Direciona o job para o seu runner
+  image:
+    name: bitnami/kubectl:latest # Roda dentro de um contêiner com kubectl
+    entrypoint: ['']
+  before_script:
+    # Prepara o kubectl para acessar seu cluster usando a variável KUBE_CONFIG
+    - echo "Configurando acesso ao Kubernetes..."
+    - echo "$KUBE_CONFIG" > kubeconfig
+    - export KUBECONFIG=kubeconfig
+  script:
+    - echo "Atualizando e aplicando manifestos no K3s..."
+    # Atualiza o arquivo de deploy para usar a imagem recém-criada
+    - sed -i "s|image: .*|image: $IMAGE_TAG|g" deploy/servicos-front-publicos.yaml
+    # Aplica os arquivos de configuração no cluster
+    - kubectl apply -f deploy/servicos-front-configmap.example.yaml
+    - kubectl apply -f deploy/servicos-front-publicos.yaml
+    - echo "Deploy realizado com sucesso!"
+  environment:
+    name: production
+  rules:
+    # Este job de deploy só roda em commits na branch 'main'
+    - if: '$CI_COMMIT_BRANCH == "main"'
