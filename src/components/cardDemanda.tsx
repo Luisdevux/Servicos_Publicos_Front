@@ -28,7 +28,7 @@ export default function CardDemanda({ titulo, descricao, imagem, theme = 'defaul
           showLoader={true}
         />
       </div>
-      <div className="p-4 flex flex-col justify-between h-[208px] min-h-0" data-test="card-demanda-content">
+      <div className="p-4 flex flex-col justify-between h-52 min-h-0" data-test="card-demanda-content">
         <div className="flex flex-col flex-1 min-h-0">
           <h3 className="text-lg font-semibold text-gray-800 mb-2 text-center line-clamp-2" data-test="card-demanda-titulo">
             {titulo}
