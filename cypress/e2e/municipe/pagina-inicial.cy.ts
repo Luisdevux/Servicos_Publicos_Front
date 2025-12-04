@@ -160,8 +160,13 @@ describe('Página Inicial - Munícipe', () => {
       cy.clearLocalStorage();
       cy.visit(`${FRONTEND_URL}/login/municipe`);
       
-      cy.get('input[type="text"]', { timeout: 10000 }).type(MUNICIPE_EMAIL);
-      cy.get('input[type="password"]').type(MUNICIPE_SENHA);
+      cy.get('input[type="text"]', { timeout: 10000 })
+        .should('be.visible')
+        .should('not.be.disabled')
+        .type(MUNICIPE_EMAIL);
+      cy.get('input[type="password"]')
+        .should('not.be.disabled')
+        .type(MUNICIPE_SENHA);
       cy.get('button[type="submit"]').click();
       
       // Aguarda um pouco e verifica se continua na página de login
@@ -188,7 +193,7 @@ describe('Página Inicial - Munícipe', () => {
         .and('contain.text', 'Ver Serviços Disponíveis');
     });
 
-    it('não deve exibir botões "Comece Agora" e "Já tenho conta" quando autenticado', () => {
+    it('Não deve exibir botões "Comece Agora" e "Já tenho conta" quando autenticado', () => {
       cy.getByData('botao-comece-agora').should('not.exist');
       cy.getByData('botao-ja-tenho-conta').should('not.exist');
     });
@@ -244,14 +249,14 @@ describe('Página Inicial - Munícipe', () => {
         method: 'POST',
         url: `${API_URL}/login`,
         body: {
-          login: MUNICIPE_EMAIL,
+          identificador: MUNICIPE_EMAIL,
           senha: MUNICIPE_SENHA
         },
         failOnStatusCode: false,
         timeout: 10000
       }).then((response) => {
-        if (response.status === 200 && response.body?.accessToken) {
-          authToken = response.body.accessToken;
+        if (response.status === 200 && response.body?.data?.user?.accessToken) {
+          authToken = response.body.data.user.accessToken;
           cy.log('✓ Token obtido com sucesso');
         } else {
           cy.log(`⚠ Falha ao obter token: status ${response.status}`);
@@ -315,8 +320,8 @@ describe('Página Inicial - Munícipe', () => {
         method: 'POST',
         url: `${API_URL}/login`,
         body: {
-          login: 'usuario_inexistente@teste.com',
-          senha: 'senha_errada'
+          identificador: 'usuario_inexistente@teste.com',
+          senha: 'SenhaErrada@123'
         },
         failOnStatusCode: false,
         timeout: 10000
@@ -344,7 +349,7 @@ describe('Página Inicial - Munícipe', () => {
       // Após login, a API deve retornar dados do tipo de demanda
       cy.request({
         method: 'GET',
-        url: `${API_URL}/tipoDemanda?categoria=coleta`,
+        url: `${API_URL}/tipoDemanda?tipo=Coleta`,
         headers: {
           Authorization: `Bearer ${authToken}`
         },

@@ -59,6 +59,14 @@ declare global {
       waitForPageLoad(): Chainable<void>;
 
       /**
+       * Intercepta requisições através do proxy secure-fetch (usado pelo frontend)
+       * @param endpointPattern - Padrão do endpoint a ser interceptado (ex: 'tipoDemanda', 'usuarios')
+       * @param alias - Nome do alias para a interceptação
+       * @param method - Método HTTP opcional (GET, POST, PATCH, DELETE)
+       */
+      interceptSecureFetch(endpointPattern: string, alias: string, method?: string): Chainable<void>;
+
+      /**
        * Intercepta e aguarda uma requisição da API
        * @param method - Método HTTP (GET, POST, PATCH, DELETE)
        * @param urlPattern - Padrão da URL a ser interceptada
@@ -99,10 +107,14 @@ Cypress.Commands.add("login", (identificador: string, senha: string, tipo: 'muni
 
   cy.visit(`/login/${tipo}`);
 
+  // Aguarda o campo estar visível E habilitado antes de digitar
   cy.get('input[type="text"]', { timeout: 10000 })
     .should("be.visible")
+    .should("not.be.disabled")
     .type(identificador);
-  cy.get('input[type="password"]').type(senha);
+  cy.get('input[type="password"]')
+    .should("not.be.disabled")
+    .type(senha);
   cy.get('button[type="submit"]').click();
   
   // Aguarda redirecionamento após login
@@ -149,6 +161,19 @@ Cypress.Commands.add("waitForPageLoad", () => {
 Cypress.Commands.add("interceptApi", (method: string, urlPattern: string, alias: string) => {
   const apiUrl = Cypress.env('API_URL') || 'https://servicospublicos-api.app.fslab.dev';
   cy.intercept(method as Cypress.HttpMethod, `${apiUrl}${urlPattern}`).as(alias);
+});
+
+// ==========================================
+// COMANDO: Interceptar via Secure Fetch (proxy do frontend)
+// ==========================================
+Cypress.Commands.add("interceptSecureFetch", (endpointPattern: string, alias: string, method?: string) => {
+  cy.intercept('POST', '**/api/auth/secure-fetch', (req) => {
+    const matchesEndpoint = req.body?.endpoint?.includes(endpointPattern);
+    const matchesMethod = method ? req.body?.method === method : true;
+    if (matchesEndpoint && matchesMethod) {
+      req.alias = alias;
+    }
+  });
 });
 
 // ==========================================

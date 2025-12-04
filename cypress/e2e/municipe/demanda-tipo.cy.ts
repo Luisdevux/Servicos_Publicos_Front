@@ -32,8 +32,13 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
     cy.clearLocalStorage();
     cy.visit(`${FRONTEND_URL}/login/municipe`);
     
-    cy.get('input[type="text"]', { timeout: 10000 }).type(MUNICIPE_EMAIL);
-    cy.get('input[type="password"]').type(MUNICIPE_SENHA);
+    cy.get('input[type="text"]', { timeout: 10000 })
+      .should('be.visible')
+      .should('not.be.disabled')
+      .type(MUNICIPE_EMAIL);
+    cy.get('input[type="password"]')
+      .should('not.be.disabled')
+      .type(MUNICIPE_SENHA);
     cy.get('button[type="submit"]').click();
     
     // Aguarda e verifica se login foi bem-sucedido
@@ -52,9 +57,14 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
 
   describe('Renderização e elementos visuais', () => {
     beforeEach(() => {
-      cy.intercept('GET', '**/tipoDemanda**').as('getTiposDemanda');
+      // Frontend usa /api/auth/secure-fetch como proxy para chamadas à API
+      cy.intercept('POST', '**/api/auth/secure-fetch', (req) => {
+        if (req.body?.endpoint?.includes('tipoDemanda')) {
+          req.alias = 'getTiposDemanda';
+        }
+      });
       cy.visit(`${FRONTEND_URL}/demanda/coleta`);
-      cy.wait('@getTiposDemanda');
+      cy.wait('@getTiposDemanda', { timeout: 10000 });
     });
 
     it('Deve renderizar a página de demanda corretamente', () => {
@@ -86,9 +96,9 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
   describe('Navegação entre tipos de demanda', () => {
     TIPOS_DEMANDA.forEach((tipo) => {
       it(`deve carregar corretamente a página de demanda do tipo "${tipo}"`, () => {
-        cy.intercept('GET', '**/tipoDemanda**').as('getTiposDemanda');
+        cy.interceptSecureFetch('tipoDemanda', 'getTiposDemanda');
         cy.visit(`${FRONTEND_URL}/demanda/${tipo}`);
-        cy.wait('@getTiposDemanda');
+        cy.wait('@getTiposDemanda', { timeout: 10000 });
         
         cy.getByData('demanda-page').should('exist').and('be.visible');
         cy.url().should('include', `/demanda/${tipo}`);
@@ -105,9 +115,9 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
 
   describe('Busca e filtros', () => {
     beforeEach(() => {
-      cy.intercept('GET', '**/tipoDemanda**').as('getTiposDemanda');
+      cy.interceptSecureFetch('tipoDemanda', 'getTiposDemanda');
       cy.visit(`${FRONTEND_URL}/demanda/coleta`);
-      cy.wait('@getTiposDemanda');
+      cy.wait('@getTiposDemanda', { timeout: 10000 });
     });
 
     it('Deve permitir digitar no campo de busca', () => {
@@ -119,7 +129,7 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
     });
 
     it('Deve realizar busca com debounce ao digitar', () => {
-      cy.intercept('GET', '**/tipoDemanda**').as('searchTiposDemanda');
+      cy.interceptSecureFetch('tipoDemanda', 'searchTiposDemanda');
       
       cy.get('input[placeholder*="Buscar"]')
         .clear()
@@ -164,9 +174,9 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
 
   describe('Paginação', () => {
     beforeEach(() => {
-      cy.intercept('GET', '**/tipoDemanda**').as('getTiposDemanda');
+      cy.interceptSecureFetch('tipoDemanda', 'getTiposDemanda');
       cy.visit(`${FRONTEND_URL}/demanda/coleta`);
-      cy.wait('@getTiposDemanda');
+      cy.wait('@getTiposDemanda', { timeout: 10000 });
     });
 
     it('Deve exibir informações de paginação', () => {
@@ -182,9 +192,9 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         if ($grid.children().length > 0) {
           cy.get('button').contains(/próxima|next|>|chevron/i).then(($btn) => {
             if (!$btn.is(':disabled')) {
-              cy.intercept('GET', '**/tipoDemanda**').as('getNextPage');
+              cy.interceptSecureFetch('tipoDemanda', 'getNextPage');
               cy.wrap($btn).click();
-              cy.wait('@getNextPage');
+              cy.wait('@getNextPage', { timeout: 10000 });
             }
           });
         }
@@ -199,9 +209,9 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
 
   describe('Criação de demanda - Fluxo feliz', () => {
     beforeEach(() => {
-      cy.intercept('GET', '**/tipoDemanda**').as('getTiposDemanda');
+      cy.interceptSecureFetch('tipoDemanda', 'getTiposDemanda');
       cy.visit(`${FRONTEND_URL}/demanda/coleta`);
-      cy.wait('@getTiposDemanda');
+      cy.wait('@getTiposDemanda', { timeout: 10000 });
     });
 
     it('Deve abrir o dialog de criação ao clicar em "Solicitar Serviço"', () => {
@@ -288,7 +298,12 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
     });
 
     it('Deve criar demanda com sucesso preenchendo todos os campos obrigatórios', () => {
-      cy.intercept('POST', '**/demandas').as('createDemanda');
+      // Intercepta criação de demanda via secure-fetch
+      cy.intercept('POST', '**/api/auth/secure-fetch', (req) => {
+        if (req.body?.endpoint?.includes('demandas') && req.body?.method === 'POST') {
+          req.alias = 'createDemanda';
+        }
+      });
       
       cy.contains('Solicitar Serviço').first().click({ force: true });
       
@@ -324,9 +339,9 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
 
   describe('Criação de demanda - Validações (cenários tristes)', () => {
     beforeEach(() => {
-      cy.intercept('GET', '**/tipoDemanda**').as('getTiposDemanda');
+      cy.interceptSecureFetch('tipoDemanda', 'getTiposDemanda');
       cy.visit(`${FRONTEND_URL}/demanda/coleta`);
-      cy.wait('@getTiposDemanda');
+      cy.wait('@getTiposDemanda', { timeout: 10000 });
       
       // Abre o dialog
       cy.contains('Solicitar Serviço').first().click({ force: true });
@@ -451,9 +466,14 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
 
   describe('Estados de carregamento e erros', () => {
     it('Deve exibir skeleton durante carregamento', () => {
-      cy.intercept('GET', '**/tipoDemanda**', {
-        delay: 2000,
-        body: { data: { docs: [] } }
+      // Mock do secure-fetch para simular delay
+      cy.intercept('POST', '**/api/auth/secure-fetch', (req) => {
+        if (req.body?.endpoint?.includes('tipoDemanda')) {
+          req.reply({
+            delay: 2000,
+            body: { data: { docs: [] } }
+          });
+        }
       }).as('slowRequest');
       
       cy.visit(`${FRONTEND_URL}/demanda/coleta`);
@@ -463,14 +483,19 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
     });
 
     it('Deve exibir mensagem quando não há serviços encontrados', () => {
-      cy.intercept('GET', '**/tipoDemanda**', {
-        body: { 
-          data: { 
-            docs: [], 
-            totalDocs: 0,
-            page: 1,
-            totalPages: 0
-          } 
+      // Mock do secure-fetch para retornar lista vazia
+      cy.intercept('POST', '**/api/auth/secure-fetch', (req) => {
+        if (req.body?.endpoint?.includes('tipoDemanda')) {
+          req.reply({
+            body: { 
+              data: { 
+                docs: [], 
+                totalDocs: 0,
+                page: 1,
+                totalPages: 0
+              } 
+            }
+          });
         }
       }).as('emptyRequest');
       
@@ -481,9 +506,14 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
     });
 
     it('Deve exibir botão de tentar novamente em caso de erro', () => {
-      cy.intercept('GET', '**/tipoDemanda**', {
-        statusCode: 500,
-        body: { error: 'Internal Server Error' }
+      // Mock do secure-fetch para simular erro
+      cy.intercept('POST', '**/api/auth/secure-fetch', (req) => {
+        if (req.body?.endpoint?.includes('tipoDemanda')) {
+          req.reply({
+            statusCode: 500,
+            body: { error: 'Internal Server Error' }
+          });
+        }
       }).as('errorRequest');
       
       cy.visit(`${FRONTEND_URL}/demanda/coleta`);
@@ -504,15 +534,15 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         method: 'POST',
         url: `${API_URL}/login`,
         body: {
-          login: MUNICIPE_EMAIL,
+          identificador: MUNICIPE_EMAIL,
           senha: MUNICIPE_SENHA
         },
         failOnStatusCode: false,
         timeout: 10000
       }).then((response) => {
-        if (response.status === 200) {
-          authToken = response.body?.accessToken;
-          userId = response.body?.user?._id || response.body?.user?.id;
+        if (response.status === 200 && response.body?.data?.user) {
+          authToken = response.body.data.user.accessToken;
+          userId = response.body.data.user._id || response.body.data.user.id;
           cy.log(`✓ Token obtido, userId: ${userId}`);
         } else {
           cy.log(`⚠ Falha ao obter token: status ${response.status}`);
@@ -529,7 +559,7 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       // Busca tipos de demanda diretamente da API
       cy.request({
         method: 'GET',
-        url: `${API_URL}/tipoDemanda?categoria=coleta`,
+        url: `${API_URL}/tipoDemanda?tipo=Coleta`,
         headers: {
           Authorization: `Bearer ${authToken}`
         }
@@ -612,7 +642,7 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       // Busca primeira página da API
       cy.request({
         method: 'GET',
-        url: `${API_URL}/tipoDemanda?categoria=coleta&page=1&limit=10`,
+        url: `${API_URL}/tipoDemanda?tipo=Coleta&page=1&limit=10`,
         headers: {
           Authorization: `Bearer ${authToken}`
         }
@@ -676,8 +706,12 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         mimeType: 'image/jpeg',
       }, { force: true });
 
-      // Intercepta a requisição de criação
-      cy.intercept('POST', '**/demandas').as('createDemanda');
+      // Intercepta a requisição de criação via secure-fetch
+      cy.intercept('POST', '**/api/auth/secure-fetch', (req) => {
+        if (req.body?.endpoint?.includes('demandas') && req.body?.method === 'POST') {
+          req.alias = 'createDemanda';
+        }
+      });
       
       cy.getByData('submit-button').click();
 
@@ -732,8 +766,8 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       cy.visit(`${FRONTEND_URL}/demanda/coleta`);
       cy.wait(2000);
 
-      // Intercepta requisições de busca
-      cy.intercept('GET', '**/tipoDemanda**').as('searchRequest');
+      // Intercepta requisições de busca via secure-fetch
+      cy.interceptSecureFetch('tipoDemanda', 'searchRequest');
 
       // Digita no campo de busca
       const termoBusca = 'teste';
@@ -755,7 +789,7 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       // Verifica diretamente na API com o mesmo filtro
       cy.request({
         method: 'GET',
-        url: `${API_URL}/tipoDemanda?categoria=coleta&search=${termoBusca}`,
+        url: `${API_URL}/tipoDemanda?tipo=Coleta&search=${termoBusca}`,
         headers: {
           Authorization: `Bearer ${authToken}`
         },
@@ -776,20 +810,20 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         return;
       }
 
-      // Categorias esperadas
-      const categoriasEsperadas = ['coleta', 'iluminação', 'animais', 'arvores', 'pavimentação', 'saneamento'];
+      // Tipos esperados (com capitalização correta da API)
+      const tiposEsperados = ['Coleta', 'Animais', 'Pavimentação', 'Saneamento', 'Árvores', "Iluminação"];
 
-      // Para cada categoria, verifica se a API responde e se o frontend navega corretamente
-      categoriasEsperadas.forEach((categoria) => {
+      // Para cada tipo, verifica se a API responde
+      tiposEsperados.forEach((tipo) => {
         cy.request({
           method: 'GET',
-          url: `${API_URL}/tipoDemanda?categoria=${encodeURIComponent(categoria)}`,
+          url: `${API_URL}/tipoDemanda?tipo=${encodeURIComponent(tipo)}`,
           headers: {
             Authorization: `Bearer ${authToken}`
           },
           failOnStatusCode: false
         }).then((apiResponse) => {
-          cy.log(`Categoria "${categoria}": API status ${apiResponse.status}`);
+          cy.log(`Tipo "${tipo}": API status ${apiResponse.status}`);
         });
       });
 

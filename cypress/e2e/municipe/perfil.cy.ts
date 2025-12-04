@@ -29,8 +29,13 @@ describe('Página de Perfil - Munícipe', () => {
     cy.clearLocalStorage();
     cy.visit(`${FRONTEND_URL}/login/municipe`);
     
-    cy.get('input[type="text"]', { timeout: 10000 }).type(MUNICIPE_EMAIL);
-    cy.get('input[type="password"]').type(MUNICIPE_SENHA);
+    cy.get('input[type="text"]', { timeout: 10000 })
+      .should('be.visible')
+      .should('not.be.disabled')
+      .type(MUNICIPE_EMAIL);
+    cy.get('input[type="password"]')
+      .should('not.be.disabled')
+      .type(MUNICIPE_SENHA);
     cy.get('button[type="submit"]').click();
     
     // Aguarda e verifica se login foi bem-sucedido
@@ -218,7 +223,7 @@ describe('Página de Perfil - Munícipe', () => {
     });
 
     it('Deve salvar alterações com sucesso', () => {
-      cy.intercept('PATCH', '**/usuarios/**').as('updateUser');
+      cy.interceptSecureFetch('usuarios', 'updateUser', 'PATCH');
       
       // Altera um campo
       cy.getByData('perfil-campo-numero').find('input')
@@ -229,7 +234,7 @@ describe('Página de Perfil - Munícipe', () => {
       cy.getByData('button-salvar-perfil').click();
       
       // Aguarda requisição
-      cy.wait('@updateUser').then((interception) => {
+      cy.wait('@updateUser', { timeout: 10000 }).then((interception) => {
         expect(interception.response?.statusCode).to.be.oneOf([200, 201]);
       });
       
@@ -303,7 +308,7 @@ describe('Página de Perfil - Munícipe', () => {
     });
 
     it('Deve permitir upload de nova foto', () => {
-      cy.intercept('POST', '**/usuarios/**/foto').as('uploadFoto');
+      cy.interceptSecureFetch('foto', 'uploadFoto', 'POST');
       
       // Procura pelo input de arquivo ou botão de upload
       cy.get('input[type="file"]').first().selectFile({
@@ -351,7 +356,7 @@ describe('Página de Perfil - Munícipe', () => {
 
   describe('Persistência de dados', () => {
     it('Deve manter dados salvos após recarregar a página', () => {
-      cy.intercept('PATCH', '**/usuarios/**').as('updateUser');
+      cy.interceptSecureFetch('usuarios', 'updateUser', 'PATCH');
       
       cy.getByData('button-editar-perfil').click();
       
@@ -362,7 +367,7 @@ describe('Página de Perfil - Munícipe', () => {
       
       cy.getByData('button-salvar-perfil').click();
       
-      cy.wait('@updateUser');
+      cy.wait('@updateUser', { timeout: 10000 });
       
       // Recarrega a página
       cy.reload();
@@ -377,11 +382,11 @@ describe('Página de Perfil - Munícipe', () => {
     });
 
     it('Deve carregar dados do usuário da API ao entrar na página', () => {
-      cy.intercept('GET', '**/usuarios/**').as('getUser');
+      cy.interceptSecureFetch('usuarios', 'getUser', 'GET');
       
       cy.reload();
       
-      cy.wait('@getUser').then((interception) => {
+      cy.wait('@getUser', { timeout: 10000 }).then((interception) => {
         expect(interception.response?.statusCode).to.equal(200);
         
         const userData = interception.response?.body?.data;
@@ -403,15 +408,15 @@ describe('Página de Perfil - Munícipe', () => {
         method: 'POST',
         url: `${API_URL}/login`,
         body: {
-          login: MUNICIPE_EMAIL,
+          identificador: MUNICIPE_EMAIL,
           senha: MUNICIPE_SENHA
         },
         failOnStatusCode: false,
         timeout: 10000
       }).then((response) => {
-        if (response.status === 200) {
-          authToken = response.body?.accessToken;
-          userId = response.body?.user?._id || response.body?.user?.id;
+        if (response.status === 200 && response.body?.data?.user) {
+          authToken = response.body.data.user.accessToken;
+          userId = response.body.data.user._id || response.body.data.user.id;
           cy.log(`✓ Token obtido, userId: ${userId}`);
         } else {
           cy.log(`⚠ Falha ao obter token: status ${response.status}`);
@@ -512,11 +517,11 @@ describe('Página de Perfil - Munícipe', () => {
         .clear()
         .type(dadosAtualizacao.numero);
 
-      cy.intercept('PATCH', '**/usuarios/**').as('updateUser');
+      cy.interceptSecureFetch('usuarios', 'updateUser', 'PATCH');
       cy.getByData('button-salvar-perfil').click();
 
       // Aguarda a atualização
-      cy.wait('@updateUser').then((interception) => {
+      cy.wait('@updateUser', { timeout: 10000 }).then((interception) => {
         expect(interception.response?.statusCode).to.be.oneOf([200, 201]);
       });
 
@@ -613,9 +618,14 @@ describe('Página de Perfil - Munícipe', () => {
 
   describe('Estados de carregamento', () => {
     it('Deve exibir loading enquanto carrega dados do perfil', () => {
-      cy.intercept('GET', '**/usuarios/**', {
-        delay: 2000,
-        body: { data: {} }
+      // Mock do secure-fetch para simular delay
+      cy.intercept('POST', '**/api/auth/secure-fetch', (req) => {
+        if (req.body?.endpoint?.includes('usuarios') && req.body?.method === 'GET') {
+          req.reply({
+            delay: 2000,
+            body: { data: {} }
+          });
+        }
       }).as('slowRequest');
       
       cy.reload();
@@ -625,9 +635,14 @@ describe('Página de Perfil - Munícipe', () => {
     });
 
     it('Deve exibir loading ao salvar alterações', () => {
-      cy.intercept('PATCH', '**/usuarios/**', {
-        delay: 1500,
-        body: { data: {} }
+      // Mock do secure-fetch para simular delay
+      cy.intercept('POST', '**/api/auth/secure-fetch', (req) => {
+        if (req.body?.endpoint?.includes('usuarios') && req.body?.method === 'PATCH') {
+          req.reply({
+            delay: 1500,
+            body: { data: {} }
+          });
+        }
       }).as('slowUpdate');
       
       cy.getByData('button-editar-perfil').click();
