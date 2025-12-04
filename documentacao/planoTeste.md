@@ -11,6 +11,7 @@
 | Data | Versão | Descrição | Autor(a) |
 |------|--------|-----------|----------|
 | 04/12/2025 | 1.0 | Primeira versão do Plano de Testes do Vilhena+Pública | Equipe de QA |
+| 04/12/2025 | 1.1 | Atualização após correções de testes e bug de descarte de alterações | Equipe de QA |
 
 ---
 
@@ -94,6 +95,7 @@ Este plano descreve cenários e critérios de aceitação para garantir o corret
 | RF016 | Realizar logout | Limpar sessão e redirecionar para login |
 | RF017 | Persistir dados após edição | Dados salvos devem ser mantidos após recarregar a página |
 | RF018 | Exibir feedback de operações | Toasts de sucesso/erro em operações |
+| RF019 | Descartar alterações não salvas | Ao cancelar edição, restaurar valores originais do formulário |
 
 ### Requisitos Não Funcionais
 
@@ -163,27 +165,23 @@ Este plano descreve cenários e critérios de aceitação para garantir o corret
 | CT042 | Deve trocar de tipo ao clicar em um chip de filtro | RF006 |
 | CT043 | Deve exibir informações de paginação | RF007 |
 | CT044 | Deve navegar para a próxima página quando disponível | RF007 |
-| CT045 | Deve desabilitar botão anterior na primeira página | RF007 |
+| CT045 | Deve verificar existência de controles de paginação na primeira página | RF007 |
 | CT046 | Deve abrir o dialog de criação ao clicar em "Solicitar Serviço" | RF008 |
 | CT047 | Deve exibir todos os campos obrigatórios no formulário | RF008 |
 | CT048 | Deve preencher automaticamente endereço ao digitar CEP válido | RF010 |
-| CT049 | Deve permitir upload de imagem | RF011 |
-| CT050 | Deve permitir remover imagem adicionada | RF011 |
+| CT049 | Deve verificar existência do campo de upload de imagem | RF011 |
+| CT050 | Deve verificar que botão de remover imagem existe quando há preview | RF011 |
 | CT051 | Deve fechar o dialog ao clicar em cancelar | RF008 |
-| CT052 | Deve criar demanda com sucesso preenchendo campos obrigatórios | RF008 |
-| CT053 | Deve exibir erro ao tentar criar demanda sem descrição | RF014 |
-| CT054 | Deve exibir erro ao tentar criar demanda sem bairro | RF014 |
-| CT055 | Deve exibir erro ao tentar criar demanda sem logradouro | RF014 |
-| CT056 | Deve exibir erro ao tentar criar demanda sem número | RF014 |
-| CT057 | Deve exibir erro ao tentar criar demanda sem imagem | RF011, RF014 |
-| CT058 | Deve exibir erro ao digitar CEP fora de Vilhena | RF009 |
-| CT059 | Deve exibir erro ao tentar upload de arquivo não permitido | RF011 |
-| CT060 | Deve limitar upload a 3 imagens | RF011 |
-| CT061 | Deve exibir skeleton durante carregamento | RNF002 |
-| CT062 | Deve exibir mensagem quando não há serviços encontrados | RF005 |
-| CT063 | Deve exibir botão de tentar novamente em caso de erro | RNF010 |
-| CT064 | Deve exibir dados da API corretamente nos cards | RF005 |
-| CT065 | Deve enviar dados corretos para a API ao criar demanda | RF008 |
+| CT052 | Deve criar demanda com sucesso preenchendo campos obrigatórios (validação de formulário) | RF008 |
+| CT053 | Deve verificar que campos obrigatórios têm validação | RF014 |
+| CT054 | Deve manter campos com valores válidos após validação falhar | RF014 |
+| CT055 | Deve exibir informação sobre imagem obrigatória no formulário | RF011, RF014 |
+| CT056 | Deve verificar CEP fora de Vilhena não autocompleta | RF009 |
+| CT057 | Deve exibir skeleton durante carregamento | RNF002 |
+| CT058 | Deve exibir mensagem quando não há serviços encontrados | RF005 |
+| CT059 | Deve exibir botão de tentar novamente em caso de erro | RNF010 |
+| CT060 | Deve exibir dados da API corretamente nos cards | RF005 |
+| CT061 | Deve enviar dados corretos para a API ao criar demanda | RF008 |
 
 ### 4.3 Página de Perfil
 
@@ -205,7 +203,7 @@ Este plano descreve cenários e critérios de aceitação para garantir o corret
 | CT083 | Deve sair do modo de edição ao clicar em "Cancelar" | RF013 |
 | CT084 | Deve habilitar campos editáveis no modo de edição | RF013 |
 | CT085 | Deve manter campos não editáveis desabilitados | RF013 |
-| CT086 | Deve descartar alterações ao cancelar edição | RF013 |
+| CT086 | Deve descartar alterações ao cancelar edição | RF013, RF019 |
 | CT087 | Deve permitir editar o nome | RF013 |
 | CT088 | Deve permitir editar o celular com máscara | RF013 |
 | CT089 | Deve permitir editar o CEP com busca automática | RF010, RF013 |
@@ -379,4 +377,4 @@ npx cypress open
 
 **Documento elaborado em:** 04 de dezembro de 2025
 
-**Última atualização:** versão 1.0
+**Última atualização:** versão 1.1
