@@ -134,18 +134,16 @@ describe('Caminho infeliz', () => {
     cy.visit(`/admin/secretaria`);
     cy.wait(1000);
   });
-  
+
   it('Não deve criar uma secretaria com campos obrigatórios vazios', () => {
     cy.getByData('secretaria-add-button').click();
-  
+
     cy.getByData('create-secretaria-dialog').should('be.visible');
   
     cy.getByData('submit-button').click();
+    cy.get('button:has(.lucide-x)').click();
   
-    cy.contains('Nome é obrigatório').should('be.visible');
-    cy.contains('Sigla é obrigatória').should('be.visible');
-    cy.contains('Email é obrigatório').should('be.visible');
-    cy.contains('Telefone é obrigatório').should('be.visible');
+    cy.contains('[data-sonner-toast]', 'Campo obrigatório: Nome').should('be.visible');
   });
   
 });

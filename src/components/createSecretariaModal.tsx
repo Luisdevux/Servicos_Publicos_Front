@@ -2,6 +2,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { CheckCircle2, Loader2 } from 'lucide-react';
@@ -11,9 +13,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -24,6 +33,7 @@ import {
 import { cn } from '@/lib/utils';
 import { tipoDemandaService, secretariaService } from '@/services';
 import { TIPOS_DEMANDA } from '@/types';
+import { createSecretariaSchema, type CreateSecretariaFormValues } from '@/lib/validations/secretaria';
 import type { CreateSecretariaData, TipoDemandaModel, Secretaria, UpdateSecretariaData } from '@/types';
 
 interface CreateSecretariaModalProps {
@@ -34,13 +44,19 @@ interface CreateSecretariaModalProps {
 
 export function CreateSecretariaModal({ open, onOpenChange, secretaria }: CreateSecretariaModalProps) {
   const queryClient = useQueryClient();
-  const [nome, setNome] = useState('');
-  const [sigla, setSigla] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [tipo, setTipo] = useState('');
   const [tiposUnicos, setTiposUnicos] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<CreateSecretariaFormValues>({
+    resolver: zodResolver(createSecretariaSchema),
+    defaultValues: {
+      nome: '',
+      sigla: '',
+      email: '',
+      telefone: '',
+      tipo: '',
+    },
+  });
 
   const { data: tiposDemandaData, isLoading: isLoadingTipos } = useQuery({
     queryKey: ['tipoDemanda', 'all'],
@@ -85,82 +101,30 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
 
   useEffect(() => {
     if (open && secretaria) {
-      setNome(secretaria.nome || '');
-      setSigla(secretaria.sigla || '');
-      setEmail(secretaria.email || '');
-      setTelefone(secretaria.telefone || '');
-      setTipo(secretaria.tipo || '');
+      form.reset({
+        nome: secretaria.nome || '',
+        sigla: secretaria.sigla || '',
+        email: secretaria.email || '',
+        telefone: secretaria.telefone || '',
+        tipo: secretaria.tipo || '',
+      });
     } else if (!open) {
-      setNome('');
-      setSigla('');
-      setEmail('');
-      setTelefone('');
-      setTipo('');
+      form.reset();
     }
-  }, [open, secretaria]);
+  }, [open, secretaria, form]);
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: CreateSecretariaFormValues) => {
     if (isSubmitting) return;
-
-    if (!nome.trim()) {
-      toast.error('Campo obrigatório: Nome', {
-        description: 'Preencha o nome da secretaria',
-      });
-      return;
-    }
-
-    if (!sigla.trim()) {
-      toast.error('Campo obrigatório: Sigla', {
-        description: 'Preencha a sigla da secretaria',
-      });
-      return;
-    }
-
-    if (!email.trim()) {
-      toast.error('Campo obrigatório: Email', {
-        description: 'Preencha o email institucional da secretaria',
-      });
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
-    if (!emailRegex.test(email.trim())) {
-      toast.error('Email inválido', {
-        description: 'Informe um email válido (ex: nome@dominio.com)',
-      });
-      return;
-    }
-
-    if (!telefone.trim()) {
-      toast.error('Campo obrigatório: Telefone', {
-        description: 'Informe um telefone para contato',
-      });
-      return;
-    }
-    const telefoneNumeros = telefone.replace(/\D/g, '');
-    if (telefoneNumeros.length < 10 || telefoneNumeros.length > 11) {
-      toast.error('Telefone inválido', {
-        description: 'Informe DDD e número válidos (ex: 69999999999)',
-      });
-      return;
-    }
-
-    if (!tipo.trim()) {
-      toast.error('Campo obrigatório: Tipo de Secretaria', {
-        description: 'Selecione o tipo para continuar',
-      });
-      return;
-    }
 
     setIsSubmitting(true);
     try {
       const trimmed = {
-        nome: nome.trim(),
-        sigla: sigla.trim(),
-        email: email.trim(),
-        telefone: telefone.trim(),
-        tipo: tipo.trim(),
+        nome: data.nome.trim(),
+        sigla: data.sigla.trim(),
+        email: data.email.trim(),
+        telefone: data.telefone.trim(),
+        tipo: data.tipo.trim(),
       } as const;
 
       if (secretaria?._id) {
@@ -186,6 +150,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
       }
       void queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
       onOpenChange(false);
+      form.reset();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao criar secretaria';
       toast.error(message);
@@ -195,7 +160,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal data-test="create-secretaria-modal">
+    <Dialog open={open} onOpenChange={(o) => { if (!isSubmitting) onOpenChange(o); }} modal data-test="create-secretaria-modal">
       <DialogContent
         className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl"
         data-test="create-secretaria-dialog"
@@ -227,160 +192,191 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 p-6 max-h-[calc(95vh-140px)] overflow-y-auto" data-test="create-secretaria-form" noValidate>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="cep" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
-                <span className="text-red-500">*</span>
-                  Nome
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="nomeSecretaria"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    placeholder="Secretaria Municipal de Iluminação Pública"
-                    className="border-global-border focus:border-global-accent focus:ring-global-accent pr-10"
-                    type='text'
-                    data-test="nome-secretaria-input"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bairro" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
-                  <span className="text-red-500">*</span>
-                  Sigla
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="siglaSecretaria"
-                    value={sigla}
-                    onChange={(e) => setSigla(e.target.value)}
-                    placeholder="SEMILU"
-                    className="border-global-border focus:border-global-accent focus:ring-global-accent"
-                    type='text'
-                    data-test="sigla-secretaria-input"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="emailSecretaria" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
-                  <span className="text-red-500">*</span>
-                  Email
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="emailSecretaria"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="iluminacao@prefeitura.gov.br"
-                    className="border-global-border focus:border-global-accent focus:ring-global-accent"
-                    type='email'
-                    data-test="email-secretaria-input"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="telefoneSecretaria" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
-                  <span className="text-red-500">*</span>
-                  Telefone
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="telefoneSecretaria"
-                    value={telefone}
-                    onChange={(e) => setTelefone(e.target.value)}
-                    placeholder="(69) 99999-9999"
-                    type='tel'
-                    className="border-global-border focus:border-global-accent focus:ring-global-accent"
-                    data-test="telefone-secretaria-input"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="numero" className="text-global-text-primary text-sm font-medium flex items-center gap-2">
-                  <span className="text-red-500">*</span>
-                  Tipo de Demanda
-                </Label>
-                <Select
-                  value={tipo || ''}
-                  onValueChange={setTipo}
-                  disabled={isLoadingTipos || isSubmitting}
-                >
-                  <SelectTrigger data-test="tipo-secretaria-select">
-                    <SelectValue placeholder={isLoadingTipos ? 'Carregando tipos...' : 'Selecione o tipo de demanda'} />
-                  </SelectTrigger>
-                  <SelectContent data-test="tipo-secretaria-options">
-                    {isLoadingTipos ? (
-                      <div className="flex items-center justify-center p-4" data-test="tipo-secretaria-loading">
-                        <Loader2 className="h-4 w-4 animate-spin text-global-accent" />
-                      </div>
-                    ) : (
-                      <>
-                        {tiposUnicos.length > 0 && tiposUnicos.map((tipoOption) => (
-                          <SelectItem 
-                            key={tipoOption} 
-                            value={tipoOption}
-                            data-test={`tipo-secretaria-option-${tipoOption.toLowerCase().replace(/\s+/g, '-')}`}
-                          >
-                            {tipoOption}
-                          </SelectItem>
-                        ))}
-                      </>
+        <div className="p-6 max-h-[calc(95vh-140px)] overflow-y-auto">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-test="create-secretaria-form" noValidate>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="nome"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-nome-wrapper">
+                        <FormLabel className="text-global-text-primary text-sm font-medium flex items-center gap-2">
+                          <span className="text-red-500">*</span>
+                          Nome
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Secretaria Municipal de Iluminação Pública"
+                            className="border-global-border focus:border-global-accent focus:ring-global-accent"
+                            data-test="nome-secretaria-input"
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-nome" />
+                      </FormItem>
                     )}
-                  </SelectContent>
-                </Select>
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="sigla"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-sigla-wrapper">
+                        <FormLabel className="text-global-text-primary text-sm font-medium flex items-center gap-2">
+                          <span className="text-red-500">*</span>
+                          Sigla
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="SEMILU"
+                            className="border-global-border focus:border-global-accent focus:ring-global-accent"
+                            data-test="sigla-secretaria-input"
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-sigla" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-email-wrapper">
+                        <FormLabel className="text-global-text-primary text-sm font-medium flex items-center gap-2">
+                          <span className="text-red-500">*</span>
+                          Email
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder="iluminacao@prefeitura.gov.br"
+                            className="border-global-border focus:border-global-accent focus:ring-global-accent"
+                            data-test="email-secretaria-input"
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-email" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="telefone"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-telefone-wrapper">
+                        <FormLabel className="text-global-text-primary text-sm font-medium flex items-center gap-2">
+                          <span className="text-red-500">*</span>
+                          Telefone
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="tel"
+                            placeholder="(69) 99999-9999"
+                            className="border-global-border focus:border-global-accent focus:ring-global-accent"
+                            data-test="telefone-secretaria-input"
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormMessage data-test="erro-telefone" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="tipo"
+                    render={({ field }) => (
+                      <FormItem data-test="campo-tipo-wrapper">
+                        <FormLabel className="text-global-text-primary text-sm font-medium flex items-center gap-2">
+                          <span className="text-red-500">*</span>
+                          Tipo de Demanda
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={isLoadingTipos || isSubmitting}
+                        >
+                          <FormControl>
+                            <SelectTrigger data-test="tipo-secretaria-select">
+                              <SelectValue placeholder={isLoadingTipos ? 'Carregando tipos...' : 'Selecione o tipo de demanda'} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent data-test="tipo-secretaria-options">
+                            {isLoadingTipos ? (
+                              <div className="flex items-center justify-center p-4" data-test="tipo-secretaria-loading">
+                                <Loader2 className="h-4 w-4 animate-spin text-global-accent" />
+                              </div>
+                            ) : (
+                              <>
+                                {tiposUnicos.length > 0 && tiposUnicos.map((tipoOption) => (
+                                  <SelectItem 
+                                    key={tipoOption} 
+                                    value={tipoOption}
+                                    data-test={`tipo-secretaria-option-${tipoOption.toLowerCase().replace(/\s+/g, '-')}`}
+                                  >
+                                    {tipoOption}
+                                  </SelectItem>
+                                ))}
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage data-test="erro-tipo" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
-            </div>
-          </div>
 
 
-          <div className="flex gap-3 pt-4 ">
-            <Button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
-              disabled={isSubmitting}
-              data-test="cancel-button"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className={cn(
-                "flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
-                isSubmitting && "opacity-70 cursor-not-allowed"
-              )}
-              data-test="submit-button"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {secretaria ? 'Salvando...' : 'Criando...'}
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  {secretaria ? 'Salvar alterações' : 'Criar Secretaria'}
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="button"
+                  onClick={() => onOpenChange(false)}
+                  className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
+                  disabled={isSubmitting}
+                  data-test="cancel-button"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={cn(
+                    "flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
+                    isSubmitting && "opacity-70 cursor-not-allowed"
+                  )}
+                  data-test="submit-button"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {secretaria ? 'Salvando...' : 'Criando...'}
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      {secretaria ? 'Salvar alterações' : 'Criar Secretaria'}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );
