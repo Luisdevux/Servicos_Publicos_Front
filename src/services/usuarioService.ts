@@ -126,7 +126,9 @@ export const usuarioService = {
    * GET /usuarios?nivel_acesso=operador&secretaria=ID1&secretaria=ID2...
    */
   async buscarOperadoresPorSecretarias(secretariaIds: string[]): Promise<ApiResponse<PaginatedResponse<Usuarios>>> {
+    
     if (secretariaIds.length === 0) {
+      console.warn('Nenhuma secretaria informada, retornando lista vazia');
       return {
         message: 'Nenhuma secretaria informada',
         errors: [],
@@ -149,6 +151,12 @@ export const usuarioService = {
     params.append('nivel_acesso', 'operador');
     secretariaIds.forEach(id => params.append('secretaria', id));
     
-    return getSecure<ApiResponse<PaginatedResponse<Usuarios>>>(`/usuarios?${params.toString()}`);
+    const url = `/usuarios?${params.toString()}`;
+    console.log('URL da requisição:', url);
+    
+    const result = await getSecure<ApiResponse<PaginatedResponse<Usuarios>>>(url);
+    console.log('Resultado da API:', result);
+    
+    return result;
   },
 };

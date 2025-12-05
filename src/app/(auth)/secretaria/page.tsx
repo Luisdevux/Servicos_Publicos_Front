@@ -51,7 +51,15 @@ export default function PedidosSecretariaPage() {
 
   const { data: userProfile } = useUserProfile(session?.user?.id);
 
-  const secretariasUsuario = (userProfile?.secretarias || []) as Secretaria[];
+  const secretariaIds: string[] = (userProfile?.secretarias || []).map((s: string | Secretaria) => {
+    if (typeof s === 'string') {
+      return s;
+    }
+    return s._id;
+  });
+
+  const secretariasUsuario: Secretaria[] = (userProfile?.secretarias || [])
+    .filter((s: string | Secretaria): s is Secretaria => typeof s !== 'string');
 
   const ITENS_POR_PAGINA = 6;
 
@@ -122,9 +130,12 @@ export default function PedidosSecretariaPage() {
 
   // Buscar operadores apenas das mesmas secretarias do secretário logado
   const { data: operadoresResponse } = useQuery({
-    queryKey: ['operadores', secretariasUsuario.map(s => s._id)],
+    queryKey: ['operadores', secretariaIds],
     queryFn: async () => {
-      const secretariaIds = secretariasUsuario.map(s => s._id);
+      console.log('=== DEBUG OPERADORES ===');
+      console.log('userProfile:', userProfile);
+      console.log('userProfile.secretarias:', userProfile?.secretarias);
+      console.log('secretariaIds extraídos:', secretariaIds);
       
       if (secretariaIds.length === 0) {
         console.warn('Usuário sem secretarias vinculadas');
@@ -133,9 +144,10 @@ export default function PedidosSecretariaPage() {
 
       const result = await usuarioService.buscarOperadoresPorSecretarias(secretariaIds);
       console.log('Operadores recebidos (filtrados por secretaria):', result?.data?.docs?.length || 0);
+      console.log('Operadores detalhes:', result?.data?.docs);
       return result;
     },
-    enabled: status === 'authenticated' && secretariasUsuario.length > 0,
+    enabled: status === 'authenticated' && secretariaIds.length > 0,
     retry: 1,
   });
 
@@ -336,23 +348,34 @@ export default function PedidosSecretariaPage() {
       />
 
       {/* Indicador de Secretarias */}
-      {secretariasUsuario.length > 0 && (
+      {secretariaIds.length > 0 && (
         <div className="px-6 sm:px-6 lg:px-40" data-test="indicador-secretarias-container">
           <div className="flex items-center gap-2 py-3 px-4 bg-blue-50 border border-blue-100 rounded-lg mb-4" data-test="indicador-secretarias">
             <Building2 className="h-4 w-4 text-[#337695] shrink-0" data-test="indicador-secretarias-icone" />
             <span className="text-sm text-gray-600 shrink-0" data-test="indicador-secretarias-label">
-              {secretariasUsuario.length === 1 ? 'Secretaria:' : 'Secretarias:'}
+              {secretariaIds.length === 1 ? 'Secretaria:' : 'Secretarias:'}
             </span>
             <div className="flex flex-wrap gap-2" data-test="indicador-secretarias-lista">
-              {secretariasUsuario.map((sec) => (
+              {secretariasUsuario.length > 0 ? (
+                // Se temos os objetos populados, mostrar o nome
+                secretariasUsuario.map((sec) => (
+                  <span 
+                    key={sec._id} 
+                    className="text-sm font-medium text-[#337695] bg-white px-2 py-0.5 rounded border border-blue-200"
+                    data-test={`indicador-secretaria-${sec._id}`}
+                  >
+                    {sec.nome}
+                  </span>
+                ))
+              ) : (
+                // Fallback: mostrar quantidade quando só temos IDs
                 <span 
-                  key={sec._id} 
                   className="text-sm font-medium text-[#337695] bg-white px-2 py-0.5 rounded border border-blue-200"
-                  data-test={`indicador-secretaria-${sec._id}`}
+                  data-test="indicador-secretarias-quantidade"
                 >
-                  {sec.nome}
+                  {secretariaIds.length} vinculada{secretariaIds.length > 1 ? 's' : ''}
                 </span>
-              ))}
+              )}
             </div>
           </div>
         </div>
