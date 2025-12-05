@@ -9,6 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface DeleteConfirmModalProps {
   open: boolean;
@@ -35,7 +36,7 @@ export function DeleteConfirmModal({
       await onConfirm();
       onOpenChange(false);
     } catch (error) {
-      throw error;
+      toast.error('Erro ao excluir secretaria.');
     } finally {
       setIsDeleting(false);
     }

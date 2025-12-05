@@ -1,6 +1,6 @@
 /// <reference types="cypress"/>
 
-describe('Dashboard Admin - Página de Secretaria', () => {
+describe('Dashboard Admin - Página de Secretaria - Caminho feliz', () => {
   
   beforeEach(() => {
     cy.login('admin@exemplo.com', 'Senha@123', 'funcionario');
@@ -10,8 +10,11 @@ describe('Dashboard Admin - Página de Secretaria', () => {
     cy.wait(1000);
   });
 
+  afterEach(() => {
+    cy.contains('button', 'Sair').click();
+  })
 
-    it.skip('Deve exibir a tabela de secretarias com todas as colunas', () => {
+    it('Deve exibir a tabela de secretarias com todas as colunas', () => {
       cy.get('table', { timeout: 10000 }).should('be.visible');
 
       cy.get('thead').within(() => {
@@ -23,7 +26,7 @@ describe('Dashboard Admin - Página de Secretaria', () => {
       });
     });
 
-    it.skip('Deve exibir pelo menos uma secretaria na tabela ou mensagem de "Nenhuma secretaria encontrada"', () => {
+    it('Deve exibir pelo menos uma secretaria na tabela ou mensagem de "Nenhuma secretaria encontrada"', () => {
       cy.get('tbody').within(() => {
         cy.get('tr').then(($rows) => {
           if ($rows.length > 0) {
@@ -35,7 +38,7 @@ describe('Dashboard Admin - Página de Secretaria', () => {
       });
     });
 
-    it.skip('Deve criar uma nova secretaria com sucesso', () => {
+    it('Deve criar uma nova secretaria com sucesso', () => {
       cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
         if (req.body.method === 'POST' && req.body.endpoint.includes('/secretaria')) {
           req.alias = 'postSecretaria';
@@ -74,7 +77,7 @@ describe('Dashboard Admin - Página de Secretaria', () => {
 
     });
 
-    it.skip('Deve editar uma secreatria com sucesso', () => {
+    it('Deve editar uma secreatria com sucesso', () => {
       cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
         if (req.body.method === 'PATCH' && req.body.endpoint.includes('/secretaria')) {
           req.alias = 'editSecretaria';
@@ -107,7 +110,7 @@ describe('Dashboard Admin - Página de Secretaria', () => {
       cy.contains(novoNome).should('be.visible');
     });
 
-    it.skip(('Deve deletar uma secretaria com sucesso'), () => {
+    it(('Deve deletar uma secretaria com sucesso'), () => {
       cy.intercept('POST', '/api/auth/secure-fetch').as('deleteSecretaria');
 
       cy.get('[data-test="secretaria-table-body"] tr').first().within(() => {cy.get('[data-test^="secretaria-delete-button"]').click();});
@@ -122,11 +125,9 @@ describe('Dashboard Admin - Página de Secretaria', () => {
       });
       cy.contains('[data-sonner-toast]', 'Secretaria excluída com sucesso!').should('be.visible');
     }) 
-
-
 });
 
-describe('Caminho infeliz', () => {
+describe('Caminho de erro', () => {
   beforeEach(() => {
     cy.login('admin@exemplo.com', 'Senha@123', 'funcionario');
     cy.wait(2000);
@@ -141,9 +142,74 @@ describe('Caminho infeliz', () => {
     cy.getByData('create-secretaria-dialog').should('be.visible');
   
     cy.getByData('submit-button').click();
+  
+    cy.getByData('erro-nome').should('contain', 'Nome é obrigatório');
+    cy.getByData('erro-sigla').should('contain', 'Sigla é obrigatória');
+    cy.getByData('erro-email').should('contain', 'Email é obrigatório');
+    cy.getByData('erro-telefone').should('contain', 'Telefone é obrigatório');
+    cy.getByData('erro-tipo').should('contain', 'Tipo de Secretaria é obrigatório');
+  });
+
+  it('Não deve criar uma secretaria com dados inválidos', () => {
+    cy.getByData('secretaria-add-button').click();
+    cy.getByData('create-secretaria-dialog').should('be.visible');
+  
+    cy.getByData('nome-secretaria-input').type('A');
+    cy.getByData('submit-button').click();
+    cy.getByData('erro-nome').should('contain', 'Nome deve ter pelo menos 3 caracteres');
+
+    cy.getByData('sigla-secretaria-input').type('A');
+    cy.getByData('erro-sigla').should('contain', 'Sigla deve ter pelo menos 2 caracteres');
+  
+    cy.getByData('email-secretaria-input').type('email ruim');
+    cy.getByData('erro-email').should('contain', 'Email inválido');
+  
+    cy.getByData('telefone-secretaria-input').type('123');
+    cy.getByData('erro-telefone').should('contain', 'Telefone inválido');
+  });
+  
+  it('Deve exibir mensagem de erro ao falhar ao editar secretaria', () => {
+    cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
+      if (req.body.method === 'PATCH') {
+        req.reply({
+          statusCode: 400,
+          body: { message: 'Não foi possível editar a secretaria.' }
+        });
+      }
+    }).as('editErro');
+  
+    cy.get('[data-test="secretaria-table-body"] tr').first().within(() => {
+      cy.get('[data-test^="secretaria-edit-button"]').click();
+    });
+  
+    cy.getByData('nome-secretaria-input').clear().type('Erro Editar');
+    cy.getByData('submit-button').click();
+  
+    cy.wait('@editErro');
     cy.get('button:has(.lucide-x)').click();
   
-    cy.contains('[data-sonner-toast]', 'Campo obrigatório: Nome').should('be.visible');
+    cy.contains('[data-sonner-toast]', 'Não foi possível editar a secretaria.').should('be.visible');
+  });
+  
+  it('Deve exibir mensagem de erro ao falhar ao deletar secretaria', () => {
+    cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
+      if (req.body.method === 'DELETE') {
+        req.reply({
+          statusCode: 400,
+          body: { message: 'Erro ao excluir secretaria.' }
+        });
+      }
+    }).as('deleteErro');
+  
+    cy.get('[data-test="secretaria-table-body"] tr').first().within(() => {
+      cy.get('[data-test^="secretaria-delete-button"]').click();
+    });
+  
+    cy.getByData('delete-secretaria-confirm-button').click();
+  
+    cy.wait('@deleteErro').then((interception) => {
+      expect(interception.response.body.message).to.eq('Erro ao excluir secretaria.')
+    });
   });
   
 });

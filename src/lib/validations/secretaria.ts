@@ -25,7 +25,7 @@ export const createSecretariaSchema = z.object({
     .refine((val) => {
       const apenasNumeros = val.replace(/\D/g, '');
       return TELEFONE_REGEX.test(apenasNumeros);
-    }, 'Telefone inválido. Informe DDD e número válidos (ex: (69) 99999-9999)'),
+    }, 'Telefone inválido. Informe DDD e número válidos EX: (69) 99999-9999'),
   
   tipo: z
     .string()
