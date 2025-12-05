@@ -248,6 +248,34 @@ export default function PerfilPage() {
     }
   };
 
+  // Função para cancelar edição e restaurar dados originais
+  const handleCancelEdit = () => {
+    // Restaura os dados originais do usuário no formulário
+    if (user) {
+      const cepUsuario = ('endereco' in user ? user.endereco?.cep : '') || '';
+      
+      setFormData({
+        nome: user.nome || '',
+        celular: formatPhoneNumber(user.celular || ''),
+        nome_social: ('nome_social' in user ? user.nome_social : '') || '',
+        cargo: ('cargo' in user ? user.cargo : '') || '',
+        formacao: ('formacao' in user ? user.formacao : '') || '',
+        endereco: {
+          logradouro: ('endereco' in user ? user.endereco?.logradouro : '') || '',
+          cep: formatCEP(cepUsuario),
+          bairro: ('endereco' in user ? user.endereco?.bairro : '') || '',
+          numero: ('endereco' in user ? user.endereco?.numero?.toString() : '') || '',
+          complemento: ('endereco' in user ? user.endereco?.complemento : '') || '',
+          cidade: ('endereco' in user ? user.endereco?.cidade : '') || '',
+          estado: ('endereco' in user ? user.endereco?.estado : '') || '',
+        },
+      });
+    }
+    
+    // Chama a função original do hook para desativar o modo de edição
+    cancelEdit();
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50" data-test="loading-perfil">
@@ -326,7 +354,7 @@ export default function PerfilPage() {
                 ) : (
                   <>
                     <Button
-                      onClick={cancelEdit}
+                      onClick={handleCancelEdit}
                       className="border-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                       data-test="button-cancelar-edicao"
                     >

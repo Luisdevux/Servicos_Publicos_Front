@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Banner from "@/components/banner";
+import { ImageCarousel } from "@/components/ui/image-carousel";
 import { ChevronLeft, ChevronRight, ClipboardList, Filter, Building2 } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -34,11 +35,12 @@ interface DemandaCard {
   usuarios?: (string | { _id: string; nome: string })[];
   resolucao?: string;
   motivo_devolucao?: string;
+  motivo_rejeicao?: string;
   link_imagem_resolucao?: string | string[];
 }
 
 export default function PedidosSecretariaPage() {
-  const [abaAtiva, setAbaAtiva] = useState<"em-aberto" | "em-andamento" | "concluidas">("em-aberto");
+  const [abaAtiva, setAbaAtiva] = useState<"em-aberto" | "em-andamento" | "concluidas" | "recusadas">("em-aberto");
   const [filtroSelecionado, setFiltroSelecionado] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [demandaSelecionada, setDemandaSelecionada] = useState<DemandaCard | null>(null);
@@ -64,7 +66,6 @@ export default function PedidosSecretariaPage() {
     queryFn: async () => {
       try {
         const result = await demandaService.buscarDemandas();
-        console.log("Demandas carregadas:", result);
         return result;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
@@ -86,10 +87,17 @@ export default function PedidosSecretariaPage() {
   }, [error, router]);
 
   const demandas: DemandaCard[] = response?.data?.docs?.map((demanda: DemandaAPI) => {
-    // Debug: log da demanda completa para ver estrutura
-    if (demanda.status === "Concluída") {
-      console.log("Demanda da API (Concluída):", demanda);
-    }
+    const imagensDemanda = demanda.link_imagem 
+      ? (Array.isArray(demanda.link_imagem) 
+          ? demanda.link_imagem 
+          : [demanda.link_imagem])
+      : [];
+    
+    const imagensResolucao = demanda.link_imagem_resolucao
+      ? (Array.isArray(demanda.link_imagem_resolucao) 
+          ? demanda.link_imagem_resolucao 
+          : [demanda.link_imagem_resolucao])
+      : [];
     
     return {
       id: demanda._id,
@@ -97,11 +105,7 @@ export default function PedidosSecretariaPage() {
       descricao: demanda.descricao,
       tipo: demanda.tipo.toLowerCase(),
       status: demanda.status || 'Em aberto',
-      imagem: demanda.link_imagem 
-        ? (Array.isArray(demanda.link_imagem) 
-            ? demanda.link_imagem 
-            : [demanda.link_imagem])
-        : undefined,
+      imagem: imagensDemanda.length > 0 ? imagensDemanda : undefined,
       endereco: demanda.endereco ? {
         bairro: demanda.endereco.bairro,
         tipoLogradouro: demanda.endereco.logradouro.split(' ')[0] || 'Rua',
@@ -111,11 +115,8 @@ export default function PedidosSecretariaPage() {
       usuarios: demanda.usuarios,
       resolucao: demanda.resolucao,
       motivo_devolucao: demanda.motivo_devolucao,
-      link_imagem_resolucao: demanda.link_imagem_resolucao 
-        ? (Array.isArray(demanda.link_imagem_resolucao) 
-            ? demanda.link_imagem_resolucao 
-            : [demanda.link_imagem_resolucao])
-        : undefined,
+      motivo_rejeicao: demanda.motivo_rejeicao,
+      link_imagem_resolucao: imagensResolucao.length > 0 ? imagensResolucao : undefined,
     };
   }) || [];
 
@@ -257,6 +258,8 @@ export default function PedidosSecretariaPage() {
       statusMatch = demanda.status === "Em andamento";
     } else if (abaAtiva === "concluidas") {
       statusMatch = demanda.status === "Concluída";
+    } else if (abaAtiva === "recusadas") {
+      statusMatch = demanda.status === "Recusada";
     }
 
     // Filtro por tipo
@@ -422,6 +425,27 @@ export default function PedidosSecretariaPage() {
                   </span>
                 )}
               </button>
+
+              <button
+                onClick={() => {
+                  setAbaAtiva("recusadas");
+                  setPaginaAtual(1);
+                }}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  abaAtiva === "recusadas"
+                    ? "border-[#337695] text-[#337695]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Recusadas
+                {demandas.filter(d => d.status === "Recusada").length > 0 && (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    abaAtiva === "recusadas" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
+                  }`}>
+                    {demandas.filter(d => d.status === "Recusada").length}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
 
@@ -452,34 +476,59 @@ export default function PedidosSecretariaPage() {
 
           {demandasFiltradas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16 mb-8">
-              {demandasPaginadas.map((demanda) => (
-                <div 
-                  key={demanda.id}
-                  className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-gray-700 flex-1">
-                      {demanda.titulo}
-                    </h3>
-                    <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium capitalize whitespace-nowrap ${getStatusColor(demanda.tipo)}`}>
-                      {demanda.tipo}
-                    </span>
-                  </div>
-                  
-                  <div className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3">
-                    {demanda.descricao}
-                  </div>
-                  
-                  <Button 
-                    onClick={() => handleAnalisarDemanda(demanda.id)}
-                    className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white"
+              {demandasPaginadas.map((demanda) => {
+                const imagensDemanda = demanda.imagem 
+                  ? (Array.isArray(demanda.imagem) ? demanda.imagem : [demanda.imagem])
+                  : [];
+                const imagensResolucao = demanda.link_imagem_resolucao
+                  ? (Array.isArray(demanda.link_imagem_resolucao) ? demanda.link_imagem_resolucao : [demanda.link_imagem_resolucao])
+                  : [];
+                const imagensParaMostrar = demanda.status === "Concluída" && imagensResolucao.length > 0
+                  ? imagensResolucao
+                  : imagensDemanda;
+
+                return (
+                  <div 
+                    key={demanda.id}
+                    className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden"
                   >
-                    {abaAtiva === "em-aberto" && "Analisar Demanda"}
-                    {abaAtiva === "em-andamento" && "Ver Detalhes"}
-                    {abaAtiva === "concluidas" && "Ver Resolução"}
-                  </Button>
-                </div>
-              ))}
+                    {imagensParaMostrar.length > 0 && (
+                      <div className="w-full h-48 bg-gray-100 relative">
+                        <ImageCarousel
+                          images={imagensParaMostrar}
+                          alt={demanda.status === "Concluída" ? "Imagens da resolução" : "Imagens da demanda"}
+                          className="h-48"
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="p-6 flex flex-col flex-1">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-gray-700 flex-1">
+                          {demanda.titulo}
+                        </h3>
+                        <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium capitalize whitespace-nowrap ${getStatusColor(demanda.tipo)}`}>
+                          {demanda.tipo}
+                        </span>
+                      </div>
+                      
+                      <div className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3">
+                        {demanda.descricao}
+                      </div>
+                      
+                      <Button 
+                        onClick={() => handleAnalisarDemanda(demanda.id)}
+                        className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white"
+                      >
+                        {abaAtiva === "em-aberto" && "Analisar Demanda"}
+                        {abaAtiva === "em-andamento" && "Ver Detalhes"}
+                        {abaAtiva === "concluidas" && "Ver Resolução"}
+                        {abaAtiva === "recusadas" && "Ver Motivo"}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12">
@@ -491,6 +540,7 @@ export default function PedidosSecretariaPage() {
               {abaAtiva === "em-aberto" && "Não há demandas aguardando análise."}
               {abaAtiva === "em-andamento" && "Não há demandas em andamento no momento."}
               {abaAtiva === "concluidas" && "Não há demandas concluídas ainda."}
+              {abaAtiva === "recusadas" && "Não há demandas recusadas."}
             </div>
           </div>
         )}
