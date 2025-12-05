@@ -1,0 +1,45 @@
+{
+  "municipe": {
+    "email": "municipe@exemplo.com",
+    "senha": "Senha@123",
+    "nome": "Munícipe Teste",
+    "cpf": "123.456.789-00",
+    "celular": "(69) 99999-9999"
+  },
+  "operador": {
+    "email": "operador@exemplo.com",
+    "senha": "Senha@123",
+    "nome": "Operador Teste"
+  },
+  "secretario": {
+    "email": "secretario@exemplo.com",
+    "senha": "Senha@123",
+    "nome": "Secretário Teste"
+  },
+  "admin": {
+    "email": "admin@exemplo.com",
+    "senha": "Senha@123",
+    "nome": "Admin Teste"
+  },
+  "enderecos": {
+    "vilhena": {
+      "cep": "76980-000",
+      "cidade": "Vilhena",
+      "estado": "RO",
+      "bairro": "Centro",
+      "logradouro": "Major Amarante",
+      "numero": "1234"
+    },
+    "vilhenaInvalido": {
+      "cep": "01310-100",
+      "cidade": "São Paulo",
+      "estado": "SP"
+    }
+  },
+  "demanda": {
+    "tipos": ["coleta", "iluminação", "animais", "arvores", "pavimentação", "saneamento"],
+    "descricaoPadrao": "Descrição de teste para demanda criada via testes automatizados.",
+    "descricaoMinima": "Teste",
+    "descricaoLonga": "Esta é uma descrição muito longa que serve para testar os limites do campo de descrição. A demanda refere-se a um problema observado na região central da cidade, especificamente na área próxima à praça principal. O problema tem causado transtornos aos moradores locais e necessita de atenção urgente por parte das autoridades competentes."
+  }
+}

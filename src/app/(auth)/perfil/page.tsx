@@ -248,6 +248,34 @@ export default function PerfilPage() {
     }
   };
 
+  // Função para cancelar edição e restaurar dados originais
+  const handleCancelEdit = () => {
+    // Restaura os dados originais do usuário no formulário
+    if (user) {
+      const cepUsuario = ('endereco' in user ? user.endereco?.cep : '') || '';
+      
+      setFormData({
+        nome: user.nome || '',
+        celular: formatPhoneNumber(user.celular || ''),
+        nome_social: ('nome_social' in user ? user.nome_social : '') || '',
+        cargo: ('cargo' in user ? user.cargo : '') || '',
+        formacao: ('formacao' in user ? user.formacao : '') || '',
+        endereco: {
+          logradouro: ('endereco' in user ? user.endereco?.logradouro : '') || '',
+          cep: formatCEP(cepUsuario),
+          bairro: ('endereco' in user ? user.endereco?.bairro : '') || '',
+          numero: ('endereco' in user ? user.endereco?.numero?.toString() : '') || '',
+          complemento: ('endereco' in user ? user.endereco?.complemento : '') || '',
+          cidade: ('endereco' in user ? user.endereco?.cidade : '') || '',
+          estado: ('endereco' in user ? user.endereco?.estado : '') || '',
+        },
+      });
+    }
+    
+    // Chama a função original do hook para desativar o modo de edição
+    cancelEdit();
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50" data-test="loading-perfil">
@@ -267,7 +295,8 @@ export default function PerfilPage() {
     <div className="min-h-screen bg-gray-50" data-test="page-perfil">
       <div className="px-6 sm:px-6 lg:px-40 py-8">
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-8">
-          <div className="h-35 relative bg-global-accent">
+          <div className="h-35 relative bg-global-accent" data-test="perfil-banner">
+            {/* Grid de pontos decorativos */}
             <div className="absolute inset-0 opacity-10">
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -278,6 +307,10 @@ export default function PerfilPage() {
                 <rect width="100%" height="100%" fill="url(#profile-grid)"/>
               </svg>
             </div>
+            
+            {/* Elementos decorativos */}
+            <div className="hidden sm:block absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12" data-test="perfil-banner-quadrado"></div>
+            <div className="absolute bottom-4 right-8 w-10 h-10 border-2 border-white/20 rounded-full" data-test="perfil-banner-circulo"></div>
           </div>
           
           <div className="px-6 sm:px-6 lg:px-12 pb-8">
@@ -321,7 +354,7 @@ export default function PerfilPage() {
                 ) : (
                   <>
                     <Button
-                      onClick={cancelEdit}
+                      onClick={handleCancelEdit}
                       className="border-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                       data-test="button-cancelar-edicao"
                     >

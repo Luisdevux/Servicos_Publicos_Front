@@ -120,4 +120,43 @@ export const usuarioService = {
   async buscarOperadores(): Promise<ApiResponse<PaginatedResponse<Usuarios>>> {
     return getSecure<ApiResponse<PaginatedResponse<Usuarios>>>('/usuarios?nivel_acesso=operador');
   },
+
+  /**
+   * Busca operadores filtrados por secretarias específicas
+   * GET /usuarios?nivel_acesso=operador&secretaria=ID1&secretaria=ID2...
+   */
+  async buscarOperadoresPorSecretarias(secretariaIds: string[]): Promise<ApiResponse<PaginatedResponse<Usuarios>>> {
+    
+    if (secretariaIds.length === 0) {
+      console.warn('Nenhuma secretaria informada, retornando lista vazia');
+      return {
+        message: 'Nenhuma secretaria informada',
+        errors: [],
+        data: {
+          docs: [],
+          totalDocs: 0,
+          limit: 10,
+          page: 1,
+          totalPages: 0,
+          pagingCounter: 1,
+          hasPrevPage: false,
+          hasNextPage: false,
+          prevPage: null,
+          nextPage: null
+        }
+      };
+    }
+    
+    const params = new URLSearchParams();
+    params.append('nivel_acesso', 'operador');
+    secretariaIds.forEach(id => params.append('secretaria', id));
+    
+    const url = `/usuarios?${params.toString()}`;
+    console.log('URL da requisição:', url);
+    
+    const result = await getSecure<ApiResponse<PaginatedResponse<Usuarios>>>(url);
+    console.log('Resultado da API:', result);
+    
+    return result;
+  },
 };
