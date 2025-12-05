@@ -386,7 +386,7 @@ export default function PedidosSecretariaPage() {
       <div className="px-6 sm:px-6 lg:px-40 py-4">
         <div className="mx-auto">
           {/* Abas de Status */}
-          <div className="mb-6 border-b border-gray-200 overflow-x-auto">
+          <div className="mb-6 border-b border-gray-200 overflow-x-auto" data-test="abas-status">
             <div className="flex gap-4 sm:gap-8 min-w-max">
               <button
                 onClick={() => {
@@ -398,6 +398,7 @@ export default function PedidosSecretariaPage() {
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
+                data-test="aba-em-aberto"
               >
                 Em Aberto
                 {demandas.filter(d => d.status === "Em aberto").length > 0 && (
@@ -419,6 +420,7 @@ export default function PedidosSecretariaPage() {
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
+                data-test="aba-em-andamento"
               >
                 Em Andamento
                 {demandas.filter(d => d.status === "Em andamento").length > 0 && (
@@ -440,6 +442,7 @@ export default function PedidosSecretariaPage() {
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
+                data-test="aba-concluidas"
               >
                 Concluídas
                 {demandas.filter(d => d.status === "Concluída").length > 0 && (
@@ -461,6 +464,7 @@ export default function PedidosSecretariaPage() {
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
+                data-test="aba-recusadas"
               >
                 Recusadas
                 {demandas.filter(d => d.status === "Recusada").length > 0 && (
@@ -500,7 +504,7 @@ export default function PedidosSecretariaPage() {
           </div>
 
           {demandasFiltradas.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16 mb-8" data-test="grid-demandas">
               {demandasPaginadas.map((demanda) => {
                 const imagensDemanda = demanda.imagem 
                   ? (Array.isArray(demanda.imagem) ? demanda.imagem : [demanda.imagem])
@@ -516,6 +520,8 @@ export default function PedidosSecretariaPage() {
                   <div 
                     key={demanda.id}
                     className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden"
+                    data-test="card-demanda"
+                    data-demanda-id={demanda.id}
                   >
                     {imagensParaMostrar.length > 0 && (
                       <div className="w-full h-48 bg-gray-100 relative">
@@ -544,6 +550,7 @@ export default function PedidosSecretariaPage() {
                       <Button 
                         onClick={() => handleAnalisarDemanda(demanda.id)}
                         className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white"
+                        data-test="botao-analisar-demanda"
                       >
                         {abaAtiva === "em-aberto" && "Analisar Demanda"}
                         {abaAtiva === "em-andamento" && "Ver Detalhes"}
@@ -570,11 +577,12 @@ export default function PedidosSecretariaPage() {
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4" data-test="paginacao">
             <button
               onClick={handlePaginaAnterior}
               disabled={paginaAtual === 1}
               className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              data-test="botao-pagina-anterior"
             >
               <ChevronLeft size={20} />
             </button>
@@ -587,6 +595,7 @@ export default function PedidosSecretariaPage() {
               onClick={handleProximaPagina}
               disabled={paginaAtual === totalPaginas}
               className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              data-test="botao-proxima-pagina"
             >
               <ChevronRight size={20} />
             </button>
