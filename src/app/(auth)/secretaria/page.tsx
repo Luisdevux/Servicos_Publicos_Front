@@ -8,14 +8,16 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Banner from "@/components/banner";
 import { ImageCarousel } from "@/components/ui/image-carousel";
-import { ChevronLeft, ChevronRight, ClipboardList, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, ClipboardList, Filter, Building2 } from "lucide-react";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/services/api";
-import type { Demanda as DemandaAPI, Usuarios } from "@/types";
+import type { Demanda as DemandaAPI, Usuarios, Secretaria } from "@/types";
 import DetalhesDemandaSecretariaModal from "@/components/detalheDemandaSecretariaModal";
 import { demandaService } from "@/services/demandaService";
+import { usuarioService } from "@/services/usuarioService";
 import { toast } from "sonner";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 //TODO : responsividade filtros, demanda, e paginação
 
@@ -48,6 +50,18 @@ export default function PedidosSecretariaPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  const { data: userProfile } = useUserProfile(session?.user?.id);
+
+  const secretariaIds: string[] = (userProfile?.secretarias || []).map((s: string | Secretaria) => {
+    if (typeof s === 'string') {
+      return s;
+    }
+    return s._id;
+  });
+
+  const secretariasUsuario: Secretaria[] = (userProfile?.secretarias || [])
+    .filter((s: string | Secretaria): s is Secretaria => typeof s !== 'string');
 
   const ITENS_POR_PAGINA = 6;
 
@@ -116,36 +130,26 @@ export default function PedidosSecretariaPage() {
     };
   }) || [];
 
+  // Buscar operadores apenas das mesmas secretarias do secretário logado
   const { data: operadoresResponse } = useQuery({
-    queryKey: ['operadores'],
+    queryKey: ['operadores', secretariaIds],
     queryFn: async () => {
-      try {
-        const result = await fetch('/api/auth/secure-fetch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            endpoint: '/usuarios?nivel_acesso=operador',
-            method: 'GET'
-          })
-        });
-
-        if (!result.ok) {
-          console.error('Erro ao buscar operadores:', result.status, result.statusText);
-          throw new Error('Erro ao buscar operadores');
-        }
-
-        const payload = await result.json();
-
-        return payload;
-      } catch (error) {
-        console.error('Erro na busca de operadores:', error);
-        toast.error('Erro ao carregar operadores', {
-          description: 'Não foi possível carregar a lista de operadores. Tente novamente.'
-        });
-        throw error;
+      console.log('=== DEBUG OPERADORES ===');
+      console.log('userProfile:', userProfile);
+      console.log('userProfile.secretarias:', userProfile?.secretarias);
+      console.log('secretariaIds extraídos:', secretariaIds);
+      
+      if (secretariaIds.length === 0) {
+        console.warn('Usuário sem secretarias vinculadas');
+        return { data: { docs: [] } };
       }
+
+      const result = await usuarioService.buscarOperadoresPorSecretarias(secretariaIds);
+      console.log('Operadores recebidos (filtrados por secretaria):', result?.data?.docs?.length || 0);
+      console.log('Operadores detalhes:', result?.data?.docs);
+      return result;
     },
-    enabled: status === 'authenticated',
+    enabled: status === 'authenticated' && secretariaIds.length > 0,
     retry: 1,
   });
 
@@ -278,7 +282,7 @@ export default function PedidosSecretariaPage() {
     return statusMatch && tipoMatch;
   });
 
-  const totalPaginas = Math.ceil(demandasFiltradas.length / ITENS_POR_PAGINA);
+  const totalPaginas = Math.max(1, Math.ceil(demandasFiltradas.length / ITENS_POR_PAGINA));
   const indiceInicial = (paginaAtual - 1) * ITENS_POR_PAGINA;
   const indiceFinal = indiceInicial + ITENS_POR_PAGINA;
   const demandasPaginadas = demandasFiltradas.slice(indiceInicial, indiceFinal);
@@ -345,17 +349,51 @@ export default function PedidosSecretariaPage() {
         className="mb-4"
       />
 
+      {/* Indicador de Secretarias */}
+      {secretariaIds.length > 0 && (
+        <div className="px-6 sm:px-6 lg:px-40" data-test="indicador-secretarias-container">
+          <div className="flex items-center gap-2 py-3 px-4 bg-blue-50 border border-blue-100 rounded-lg mb-4" data-test="indicador-secretarias">
+            <Building2 className="h-4 w-4 text-[#337695] shrink-0" data-test="indicador-secretarias-icone" />
+            <span className="text-sm text-gray-600 shrink-0" data-test="indicador-secretarias-label">
+              {secretariaIds.length === 1 ? 'Secretaria:' : 'Secretarias:'}
+            </span>
+            <div className="flex flex-wrap gap-2" data-test="indicador-secretarias-lista">
+              {secretariasUsuario.length > 0 ? (
+                // Se temos os objetos populados, mostrar o nome
+                secretariasUsuario.map((sec) => (
+                  <span 
+                    key={sec._id} 
+                    className="text-sm font-medium text-[#337695] bg-white px-2 py-0.5 rounded border border-blue-200"
+                    data-test={`indicador-secretaria-${sec._id}`}
+                  >
+                    {sec.nome}
+                  </span>
+                ))
+              ) : (
+                // Fallback: mostrar quantidade quando só temos IDs
+                <span 
+                  className="text-sm font-medium text-[#337695] bg-white px-2 py-0.5 rounded border border-blue-200"
+                  data-test="indicador-secretarias-quantidade"
+                >
+                  {secretariaIds.length} vinculada{secretariaIds.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="px-6 sm:px-6 lg:px-40 py-4">
         <div className="mx-auto">
           {/* Abas de Status */}
-          <div className="mb-6 border-b border-gray-200">
-            <div className="flex gap-8">
+          <div className="mb-6 border-b border-gray-200 overflow-x-auto">
+            <div className="flex gap-4 sm:gap-8 min-w-max">
               <button
                 onClick={() => {
                   setAbaAtiva("em-aberto");
                   setPaginaAtual(1);
                 }}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                   abaAtiva === "em-aberto"
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -376,7 +414,7 @@ export default function PedidosSecretariaPage() {
                   setAbaAtiva("em-andamento");
                   setPaginaAtual(1);
                 }}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                   abaAtiva === "em-andamento"
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -397,7 +435,7 @@ export default function PedidosSecretariaPage() {
                   setAbaAtiva("concluidas");
                   setPaginaAtual(1);
                 }}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                   abaAtiva === "concluidas"
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -436,24 +474,26 @@ export default function PedidosSecretariaPage() {
             </div>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-6" data-test="filtro-container">
 
 
-            <div className="flex items-center gap-4">
-              <Filter className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-700">Filtrar por tipo:</span>
-              <Select value={filtroSelecionado} onValueChange={handleFiltroChange}>
-                <SelectTrigger className="w-64">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4" data-test="filtro-tipo-wrapper">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-gray-400" data-test="filtro-icone" />
+                <span className="text-sm text-gray-700" data-test="filtro-label">Filtrar por tipo:</span>
+              </div>
+              <Select value={filtroSelecionado} onValueChange={handleFiltroChange} data-test="filtro-select">
+                <SelectTrigger className="w-full sm:w-64" data-test="filtro-select-trigger">
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os tipos</SelectItem>
-                  <SelectItem value="iluminação">Iluminação</SelectItem>
-                  <SelectItem value="coleta">Coleta</SelectItem>
-                  <SelectItem value="saneamento">Saneamento</SelectItem>
-                  <SelectItem value="árvores">Árvores</SelectItem>
-                  <SelectItem value="animais">Animais</SelectItem>
-                  <SelectItem value="pavimentação">Pavimentação</SelectItem>
+                <SelectContent data-test="filtro-select-content">
+                  <SelectItem value="todos" data-test="filtro-option-todos">Todos os tipos</SelectItem>
+                  <SelectItem value="iluminação" data-test="filtro-option-iluminacao">Iluminação</SelectItem>
+                  <SelectItem value="coleta" data-test="filtro-option-coleta">Coleta</SelectItem>
+                  <SelectItem value="saneamento" data-test="filtro-option-saneamento">Saneamento</SelectItem>
+                  <SelectItem value="árvores" data-test="filtro-option-arvores">Árvores</SelectItem>
+                  <SelectItem value="animais" data-test="filtro-option-animais">Animais</SelectItem>
+                  <SelectItem value="pavimentação" data-test="filtro-option-pavimentacao">Pavimentação</SelectItem>
                 </SelectContent>
               </Select>
             </div>
