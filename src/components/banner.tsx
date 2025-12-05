@@ -88,7 +88,7 @@ export default function Banner({
         </div>
 
         {/* Elementos decorativos */}
-        <div className="absolute top-32 left-32 w-16 h-16 border-2 border-white/20 rounded-lg rotate-12"></div>
+        <div className="hidden sm:block absolute top-32 left-32 w-16 h-16 border-2 border-white/20 rounded-lg rotate-12"></div>
         <div className="absolute bottom-40 right-40 w-12 h-12 border-2 border-white/20 rounded-full"></div>
 
         {/* Conteúdo do banner */}

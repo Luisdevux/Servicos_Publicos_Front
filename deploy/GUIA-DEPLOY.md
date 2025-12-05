@@ -131,7 +131,11 @@ exit
 
 ### Atualizar imagem
 ```bash
-docker compose build
+# Rebuild do frontend (se mudou NEXT_PUBLIC_* deve rebuild)
+cd /home/yuri/Documentos/fabrica/servicos-publicos-front
+docker build \
+  --build-arg NEXT_PUBLIC_API_URL=https://servicospublicos-api.app.fslab.dev \
+  -t yurizetoles/servicos_publicos_front:latest .
 docker push yurizetoles/servicos_publicos_front:latest
 kubectl rollout restart deployment/servicos-front-publicos
 kubectl rollout status deployment/servicos-front-publicos
