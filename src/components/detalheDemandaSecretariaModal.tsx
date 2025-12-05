@@ -174,7 +174,7 @@ export default function DetalhesDemandaSecretariaModal({
                   <h3 className="text-lg font-medium text-global-text-primary">
                     Endereço do ocorrido
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Bairro</label>
                       <div className="p-2 rounded-md bg-global-bg-select text-sm">

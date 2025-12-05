@@ -229,7 +229,7 @@ export default function DetalhesDemandaOperadorModal({
                   <h3 className="text-lg font-medium text-global-text-primary">
                     Endereço do ocorrido
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Bairro</label>
                       <div className="p-2 rounded-md bg-global-bg-select text-sm">
@@ -301,7 +301,7 @@ export default function DetalhesDemandaOperadorModal({
             <div className="flex gap-3 px-6 pb-6 shrink-0">
               <Button
                 onClick={() => setShowDevolverModal(true)}
-                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
               >
                 Devolver
               </Button>
@@ -340,7 +340,7 @@ export default function DetalhesDemandaOperadorModal({
               <Button
                 onClick={handleDevolver}
                 disabled={!motivoDevolucao.trim() || isDevolvendo}
-                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
               >
                 {isDevolvendo ? "Devolvendo..." : "Confirmar Devolução"}
               </Button>
@@ -417,7 +417,7 @@ export default function DetalhesDemandaOperadorModal({
               </div>
 
               {previewUrls.length > 0 && (
-                <div className="grid grid-cols-3 gap-3 mb-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
                   {previewUrls.map((url, index) => (
                     <div key={url} className="relative w-full h-32 rounded-lg overflow-hidden border-2 border-global-border group">
                       <Image
