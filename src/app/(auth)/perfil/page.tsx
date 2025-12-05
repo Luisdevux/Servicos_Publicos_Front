@@ -280,8 +280,8 @@ export default function PerfilPage() {
               </svg>
             </div>
             
-            {/* Elementos decorativos - quadrado e círculo */}
-            <div className="absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12" data-test="perfil-banner-quadrado"></div>
+            {/* Elementos decorativos */}
+            <div className="hidden sm:block absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12" data-test="perfil-banner-quadrado"></div>
             <div className="absolute bottom-4 right-8 w-10 h-10 border-2 border-white/20 rounded-full" data-test="perfil-banner-circulo"></div>
           </div>
           

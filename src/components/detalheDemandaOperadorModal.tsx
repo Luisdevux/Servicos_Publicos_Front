@@ -189,8 +189,8 @@ export default function DetalhesDemandaOperadorModal({
               </svg>
             </div>
 
-            {/* Elementos decorativos geométricos */}
-            <div className="absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12"></div>
+            {/* Elementos decorativos */}
+            <div className="hidden sm:block absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12"></div>
             <div className="absolute bottom-4 right-8 w-10 h-10 border-2 border-white/20 rounded-full"></div>
 
             <DialogTitle className="text-3xl font-bold text-center text-white drop-shadow-md relative z-10">
@@ -368,8 +368,8 @@ export default function DetalhesDemandaOperadorModal({
               </svg>
             </div>
 
-            {/* Elementos decorativos geométricos */}
-            <div className="absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12"></div>
+            {/* Elementos decorativos - quadrado oculto no mobile */}
+            <div className="hidden sm:block absolute top-4 left-8 w-12 h-12 border-2 border-white/20 rounded-lg rotate-12"></div>
             <div className="absolute bottom-4 right-8 w-10 h-10 border-2 border-white/20 rounded-full"></div>
 
             <DialogTitle className="text-3xl font-bold text-center text-white drop-shadow-md relative z-10">
