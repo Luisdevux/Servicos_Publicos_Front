@@ -227,7 +227,7 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 p-6 max-h-[calc(95vh-140px)] overflow-y-auto" data-test="create-secretaria-form">
+        <form onSubmit={handleSubmit} className="space-y-6 p-6 max-h-[calc(95vh-140px)] overflow-y-auto" data-test="create-secretaria-form" noValidate>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -243,7 +243,6 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
                     placeholder="Secretaria Municipal de Iluminação Pública"
                     className="border-global-border focus:border-global-accent focus:ring-global-accent pr-10"
                     type='text'
-                    required
                     data-test="nome-secretaria-input"
                     disabled={isSubmitting}
                   />
@@ -262,7 +261,6 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
                     onChange={(e) => setSigla(e.target.value)}
                     placeholder="SEMILU"
                     className="border-global-border focus:border-global-accent focus:ring-global-accent"
-                    required
                     type='text'
                     data-test="sigla-secretaria-input"
                     disabled={isSubmitting}
@@ -285,7 +283,6 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
                     placeholder="iluminacao@prefeitura.gov.br"
                     className="border-global-border focus:border-global-accent focus:ring-global-accent"
                     type='email'
-                    required
                     data-test="email-secretaria-input"
                     disabled={isSubmitting}
                   />
@@ -305,7 +302,6 @@ export function CreateSecretariaModal({ open, onOpenChange, secretaria }: Create
                     placeholder="(69) 99999-9999"
                     type='tel'
                     className="border-global-border focus:border-global-accent focus:ring-global-accent"
-                    required
                     data-test="telefone-secretaria-input"
                     disabled={isSubmitting}
                   />
