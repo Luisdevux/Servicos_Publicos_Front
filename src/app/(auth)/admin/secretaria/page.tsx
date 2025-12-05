@@ -62,7 +62,7 @@ export default function SecretariaAdminPage() {
     : secretarias;
 
   return (
-    <div className="min-h-screen bg-global-bg">
+    <div className="min-h-screen bg-global-bg" data-test="secretaria-admin-page">
       <div className="px-6 sm:px-6 py-6 md:py-8">
         <div className="mx-auto space-y-6">
           <div className="flex flex-col md:flex-row gap-3 md:items-end md:justify-between">
@@ -70,6 +70,7 @@ export default function SecretariaAdminPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
+                    data-test="secretaria-search-input"
                     placeholder="Pesquisar por nome ou sigla"
                     value={pendingSearchText}
                     onChange={(e) => setPendingSearchText(e.target.value)}
@@ -80,6 +81,7 @@ export default function SecretariaAdminPage() {
             
             <div>
               <Button
+                data-test="secretaria-add-button"
                 className="bg-global-text-primary hover:bg-global-text-secondary text-white"
                 onClick={() => setOpenCreate(true)}
               >
@@ -90,7 +92,7 @@ export default function SecretariaAdminPage() {
 
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-200" data-test="secretaria-table">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
@@ -101,31 +103,32 @@ export default function SecretariaAdminPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-200" data-test="secretaria-table-body">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500" data-test="secretaria-loading">
                         Carregando secretarias...
                       </td>
                     </tr>
                   ) : secretariasFiltradas.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500" data-test="secretaria-empty">
                         Nenhuma secretaria encontrada.
                       </td>
                     </tr>
                   ) : (
                     secretariasFiltradas.map((s) => (
-                      <tr key={s._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.nome}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.sigla}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.email}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.telefone}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.tipo}</td>
+                      <tr key={s._id} className="hover:bg-gray-50" data-test={`secretaria-row-${s._id}`}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-test={`secretaria-nome-${s._id}`}>{s.nome}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-test={`secretaria-sigla-${s._id}`}>{s.sigla}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-test={`secretaria-email-${s._id}`}>{s.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-test={`secretaria-telefone-${s._id}`}>{s.telefone}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-test={`secretaria-tipo-${s._id}`}>{s.tipo}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
+                              data-test={`secretaria-edit-button-${s._id}`}
                               onClick={() => {
                                 setSelectedSecretaria(s);
                                 setOpenEdit(true);
@@ -137,6 +140,7 @@ export default function SecretariaAdminPage() {
                             </button>
                             <button
                               type="button"
+                              data-test={`secretaria-delete-button-${s._id}`}
                               onClick={() => {
                                 setSecretariaToDelete(s);
                                 setOpenDelete(true);
@@ -158,8 +162,9 @@ export default function SecretariaAdminPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-4 p-4">
+      <div className="flex items-center justify-center gap-4 p-4" data-test="secretaria-pagination">
         <button
+          data-test="secretaria-pagination-prev"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={!hasPrevPage}
           className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -167,11 +172,12 @@ export default function SecretariaAdminPage() {
           <ChevronLeft size={20} />
         </button>
 
-        <div className="flex items-center gap-2 text-sm text-global-text-primary">
+        <div className="flex items-center gap-2 text-sm text-global-text-primary" data-test="secretaria-pagination-info">
           <span>Página {Math.min(page, totalPages)} de {totalPages}</span>
         </div>
 
         <button
+          data-test="secretaria-pagination-next"
           onClick={() => setPage((p) => p + 1)}
           disabled={!hasNextPage}
           className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
