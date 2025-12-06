@@ -147,11 +147,6 @@ describe('Página Inicial - Munícipe', () => {
     });
   });
 
-  /**
-   * NOTA: Os testes de usuário autenticado requerem credenciais válidas.
-   * Configure as variáveis de ambiente CYPRESS_MUNICIPE_EMAIL e CYPRESS_MUNICIPE_SENHA
-   * ou atualize as credenciais no arquivo de fixtures.
-   */
   describe('Usuário autenticado (Munícipe)', () => {
     // Pular testes se não houver credenciais válidas configuradas
     before(function() {
@@ -215,7 +210,6 @@ describe('Página Inicial - Munícipe', () => {
       servicos.forEach(({ card, urlPart }) => {
         cy.visit(FRONTEND_URL);
         cy.getByData(card).click();
-        // Usa match parcial para evitar problemas com URL encoding
         cy.url().should('include', '/demanda/');
         cy.url().then((url) => {
           const decodedUrl = decodeURIComponent(url);
@@ -257,9 +251,7 @@ describe('Página Inicial - Munícipe', () => {
       }).then((response) => {
         if (response.status === 200 && response.body?.data?.user?.accessToken) {
           authToken = response.body.data.user.accessToken;
-          cy.log('✓ Token obtido com sucesso');
         } else {
-          cy.log(`⚠ Falha ao obter token: status ${response.status}`);
         }
       });
     });
@@ -303,7 +295,6 @@ describe('Página Inicial - Munícipe', () => {
         
         // Verifica que cada tipo de demanda retornado pela API tem um card correspondente
         if (Array.isArray(tiposDemandaAPI) && tiposDemandaAPI.length > 0) {
-          cy.log(`API retornou ${tiposDemandaAPI.length} tipos de demanda`);
           
           // Verifica se o grid de serviços existe
           cy.getByData('grid-servicos').should('exist');
@@ -326,7 +317,7 @@ describe('Página Inicial - Munícipe', () => {
         failOnStatusCode: false,
         timeout: 10000
       }).then((response) => {
-        // API deve retornar erro de autenticação (401 ou 400)
+        // API deve retornar erro de autenticação (401 ou similar)
         expect(response.status).to.be.oneOf([400, 401, 403]);
       });
     });
@@ -386,7 +377,6 @@ describe('Página Inicial - Munícipe', () => {
       
       cy.getByData('pagina-inicial').should('be.visible').then(() => {
         const loadTime = performance.now() - startTime;
-        cy.log(`Tempo de carregamento: ${loadTime}ms`);
         // Página deve carregar em menos de 10 segundos
         expect(loadTime).to.be.lessThan(10000);
       });
