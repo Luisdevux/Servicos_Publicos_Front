@@ -16,8 +16,8 @@
  */
 
 describe('Página de Perfil - Munícipe', () => {
-  const API_URL = 'https://servicospublicos-api.app.fslab.dev';
-  const FRONTEND_URL = 'https://servicospublicos.app.fslab.dev';
+  const API_URL = 'https://servicospublicos-api-qa.app.fslab.dev';
+  const FRONTEND_URL = 'https://servicospublicos-qa.app.fslab.dev';
 
   // Credenciais de teste (munícipe) - atualize com credenciais válidas
   const MUNICIPE_EMAIL = Cypress.env('MUNICIPE_EMAIL') || 'municipe@exemplo.com';
