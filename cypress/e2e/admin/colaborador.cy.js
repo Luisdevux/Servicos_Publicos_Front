@@ -13,11 +13,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     cy.contains('Carregando colaboradores...').should('not.exist', { timeout: 30000 });
   });
 
-//   afterEach(() => {
-//     cy.contains('button', 'Sair').click();
-//   });
-
-  it.skip('Deve exibir os elementos principais da página', () => {
+  it('Deve exibir os elementos principais da página', () => {
     cy.get('input[placeholder="Pesquisar por nome, CPF ou portaria"]').should('be.visible');
     cy.contains('button', 'Nível de acesso').should('be.visible');
     cy.contains('button', 'Status').should('be.visible');
@@ -36,7 +32,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     });
   });
 
-  it.skip('Deve exibir pelo menos um colaborador na tabela ou mensagem de "Nenhum colaborador encontrado"', () => {
+  it('Deve exibir pelo menos um colaborador na tabela ou mensagem de "Nenhum colaborador encontrado"', () => {
     cy.get('tbody').within(() => {
       cy.get('tr').then(($rows) => {
         if ($rows.length > 0) {
@@ -48,7 +44,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     });
   });
 
-  it.skip('Deve filtrar colaborador pelo campo de busca por nome', () => {
+  it('Deve filtrar colaborador pelo campo de busca por nome', () => {
     cy.get('input[placeholder="Pesquisar por nome, CPF ou portaria"]')
       .type('Administrador');
     
@@ -57,16 +53,16 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     cy.contains('td', 'Administrador').should('exist');
   });
 
-  it.skip('Deve filtrar colaborador pelo campo de busca por CPF', () => {
+  it('Deve filtrar colaborador pelo campo de busca por CPF', () => {
     cy.get('input[placeholder="Pesquisar por nome, CPF ou portaria"]')
       .type('00000000191');
     
     cy.wait(500);
     
-    cy.contains('td', '000.000.001.91').should('exist');
+    cy.contains('td', '000.000.001-91').should('exist');
   });
 
-  it.skip('Deve filtrar colaborador pelo campo de busca por portaria', () => {
+  it('Deve filtrar colaborador pelo campo de busca por portaria', () => {
     cy.get('input[placeholder="Pesquisar por nome, CPF ou portaria"]')
       .type('ADM-2020');
     
@@ -75,7 +71,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     cy.contains('td', 'ADM-2020').should('exist');
   });
 
-  it.skip('Deve filtrar colaboradores por nível de acesso - Operador', () => {
+  it('Deve filtrar colaboradores por nível de acesso - Operador', () => {
     cy.contains('button', 'Nível de acesso').click();
     cy.get('div[role="option"]').contains('Operador').click();
     
@@ -83,7 +79,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     cy.get('tbody tr').should('have.length.at.least', 1);
   });
 
-  it.skip('Deve filtrar colaboradores por nível de acesso - Secretário', () => {
+  it('Deve filtrar colaboradores por nível de acesso - Secretário', () => {
     cy.contains('button', 'Nível de acesso').click();
     cy.get('div[role="option"]').contains('Secretário').click();
     
@@ -92,7 +88,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     cy.get('tbody tr').should('have.length.at.least', 1);
   });
 
-  it.skip('Deve filtrar colaboradores por nível de acesso - Administrador', () => {
+  it('Deve filtrar colaboradores por nível de acesso - Administrador', () => {
     cy.contains('button', 'Nível de acesso').click();
     cy.get('div[role="option"]').contains('Administrador').click();
     
@@ -101,7 +97,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     cy.get('tbody tr').should('have.length.at.least', 1);
   });
 
-  it.skip('Deve filtrar colaboradores por status - Ativo', () => {
+  it('Deve filtrar colaboradores por status - Ativo', () => {
     cy.contains('button', 'Status').click();
     cy.get('div[role="option"]').contains('Ativo').click();
     
@@ -115,7 +111,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     });
   });
 
-  it.skip('Deve filtrar colaboradores por status - Inativo', () => {
+  it('Deve filtrar colaboradores por status - Inativo', () => {
     cy.contains('button', 'Status').click();
     cy.get('div[role="option"]').contains('Inativo').click();
     
@@ -132,7 +128,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     });
   });
 
-  it.skip('Deve criar um novo colaborador com sucesso', () => {
+  it('Deve criar um novo colaborador com sucesso', () => {
     cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
       if (req.body.method === 'POST' && req.body.endpoint.includes('/usuarios')) {
         req.alias = 'postColaborador';
@@ -176,21 +172,49 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     cy.contains(nome).should('be.visible');
   });
 
-  it.skip('Deve editar um colaborador com sucesso', () => {
+  it('Deve editar um colaborador com sucesso', () => {
     cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
       if (req.body.method === 'PATCH' && req.body.endpoint.includes('/usuarios')) {
         req.alias = 'editColaborador';
       }
     });
 
-    cy.get('tbody tr').first().within(() => {
+    cy.get('tbody tr').then(($rows) => {
+      let $rowToEdit = null;
+      let nomeColaborador = '';
+      let emailColaborador = '';
+      
+      for (let i = 0; i < $rows.length; i++) {
+        const nome = $rows.eq(i).find('td').eq(0).text().trim();
+        const email = $rows.eq(i).find('td').eq(1).text().trim();
+        
+        const isAdministrador = nome === 'Administrador' || email === 'admin@exemplo.com';
+        
+        if (!isAdministrador) {
+          $rowToEdit = $rows.eq(i);
+          nomeColaborador = nome;
+          emailColaborador = email;
+          break;
+        }
+      }
+      
+      if (!$rowToEdit) {
+        cy.log('Nenhum colaborador encontrado para editar (apenas Administrador existe)');
+        return;
+      }
+      
+      expect(nomeColaborador).not.to.equal('Administrador');
+      expect(emailColaborador).not.to.equal('admin@exemplo.com');
+      
+      cy.wrap($rowToEdit).within(() => {
         cy.get('button:has(svg.lucide-pencil)').click({ force: true });
+      });
     });
 
     cy.getByData('dialog-content-criar-colaborador').should('be.visible');
 
-    const novoNome = `Administrador ${Date.now()}`;
-    const novoCargo = `Administrador ${Date.now()}`;
+    const novoNome = `Colaborador Editado ${Date.now()}`;
+    const novoCargo = `Cargo Editado ${Date.now()}`;
     const telefone = '(69) 99999-9999';
     const cep = ('76980632');
 
@@ -215,7 +239,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     cy.contains(novoNome).should('be.visible');
   });
 
-  it.skip('Deve deletar um colaborador com sucesso', () => {
+  it('Deve deletar um colaborador com sucesso', () => {
     cy.get('tbody tr', { timeout: 30000 }).should('exist');
     
     cy.get('tbody').within(() => {
@@ -230,18 +254,30 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     
     cy.get('tbody tr').then(($rows) => {
       let $rowToDelete = null;
+      let nomeColaborador = '';
+      let emailColaborador = '';
       
       for (let i = 0; i < $rows.length; i++) {
-        const nome = $rows.eq(i).find('td').first().text().trim().toLowerCase();
-        if (nome !== 'administrador') {
+        const nome = $rows.eq(i).find('td').eq(0).text().trim();
+        const email = $rows.eq(i).find('td').eq(1).text().trim();
+        
+        const isAdministrador = nome === 'Administrador' || email === 'admin@exemplo.com';
+        
+        if (!isAdministrador) {
           $rowToDelete = $rows.eq(i);
+          nomeColaborador = nome;
+          emailColaborador = email;
           break;
         }
       }
       
       if (!$rowToDelete) {
+        cy.log('Nenhum colaborador encontrado para deletar (apenas Administrador existe)');
         return;
       }
+      
+      expect(nomeColaborador).not.to.equal('Administrador');
+      expect(emailColaborador).not.to.equal('admin@exemplo.com');
       
       cy.wrap($rowToDelete).within(() => {
         cy.get('button:has(svg.lucide-trash)').click({ force: true });
@@ -259,7 +295,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     });
   });
 
-  it.skip('Deve abrir modal de detalhes ao clicar em uma linha da tabela', () => {
+  it('Deve abrir modal de detalhes ao clicar em uma linha da tabela', () => {
     cy.get('table').should('be.visible')
     cy.wait(2000);
 
@@ -322,6 +358,58 @@ describe('Caminho de erro', () => {
     cy.getByData('erro-cpf').should('contain', 'CPF deve conter 11 dígitos');
     cy.getByData('erro-celular').should('contain', 'Celular deve conter 11 dígitos no formato (69) 99999-9999');
     cy.getByData('erro-cnh').should('contain', 'CNH deve conter 11 dígitos');
+  });
+
+  it('Deve exibir mensagem de erro ao falhar ao deletar colaborador', () => {
+    cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
+      if (req.body.method === 'DELETE' && req.body.endpoint.includes('/usuarios')) {
+        req.reply({
+          statusCode: 400,
+          body: { message: 'Erro ao excluir colaborador.' }
+        });
+      }
+    }).as('deleteErro');
+
+    cy.get('tbody tr').then(($rows) => {
+      let $rowToDelete = null;
+      let nomeColaborador = '';
+      let emailColaborador = '';
+      
+      for (let i = 0; i < $rows.length; i++) {
+        const nome = $rows.eq(i).find('td').eq(0).text().trim();
+        const email = $rows.eq(i).find('td').eq(1).text().trim();
+        
+        const isAdministrador = nome === 'Administrador' || email === 'admin@exemplo.com';
+        
+        if (!isAdministrador) {
+          $rowToDelete = $rows.eq(i);
+          nomeColaborador = nome;
+          emailColaborador = email;
+          break;
+        }
+      }
+      
+      if (!$rowToDelete) {
+        cy.log('Nenhum colaborador encontrado para deletar (apenas Administrador existe)');
+        return;
+      }
+      
+      expect(nomeColaborador).not.to.equal('Administrador');
+      expect(emailColaborador).not.to.equal('admin@exemplo.com');
+      
+      cy.wrap($rowToDelete).within(() => {
+        cy.get('button:has(svg.lucide-trash)').click({ force: true });
+      });
+
+      cy.get('[role="dialog"]', { timeout: 5000 }).should('be.visible');
+      cy.getByData('delete-secretaria-confirm-button').click();
+
+      cy.wait('@deleteErro').then((interception) => {
+        expect(interception.request.body.method).to.equal('DELETE');
+        expect(interception.response.statusCode).to.equal(400);
+        expect(interception.response.body.message).to.eq('Erro ao excluir colaborador.')
+      });
+    });
   });
 });
 
