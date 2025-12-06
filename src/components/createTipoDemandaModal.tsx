@@ -2,6 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+ import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Upload, X, Loader2, CheckCircle2 } from 'lucide-react';
@@ -11,9 +13,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -23,6 +32,7 @@ import { TIPOS_DEMANDA } from '@/types';
 import type { Usuarios } from '@/types';
 import type { CreateTipoDemandaData, UpdateTipoDemandaData } from '@/types/tipoDemanda';
 import type { TipoDemandaModel } from '@/types';
+import { createTipoDemandaSchema, type CreateTipoDemandaFormValues } from '@/lib/validations/tipoDemanda';
 
 interface CreateTipoDemandaModalProps {
   open: boolean;
@@ -35,14 +45,20 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
   const queryClient = useQueryClient();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [titulo, setTitulo] = useState('');
-  const [descricao, setDescricao] = useState('');
-  const [subdescricao, setSubdescricao] = useState('');
-  const [icone, setIcone] = useState('');
-  const [linkImagem, setLinkImagem] = useState('');
-  const [tipo, setTipo] = useState('');
   const [imagem, setImagem] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const form = useForm<CreateTipoDemandaFormValues>({
+    resolver: zodResolver(createTipoDemandaSchema),
+    defaultValues: {
+      titulo: '',
+      descricao: '',
+      subdescricao: '',
+      icone: '',
+      link_imagem: '',
+      tipo: '',
+    },
+  });
 
   useQuery({
     queryKey: ['usuarios', 'all-for-tipo-demanda', open],
@@ -67,20 +83,24 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
 
   useEffect(() => {
     if (open && tipoDemanda) {
-      setTitulo(tipoDemanda.titulo || '');
-      setDescricao(tipoDemanda.descricao || '');
-      setSubdescricao(tipoDemanda.subdescricao || '');
-      setIcone(tipoDemanda.icone || '');
-      setLinkImagem(tipoDemanda.link_imagem || '');
-      setTipo(tipoDemanda.tipo || '');
+      form.reset({
+        titulo: tipoDemanda.titulo || '',
+        descricao: tipoDemanda.descricao || '',
+        subdescricao: tipoDemanda.subdescricao || '',
+        icone: tipoDemanda.icone || '',
+        link_imagem: tipoDemanda.link_imagem || '',
+        tipo: tipoDemanda.tipo || '',
+      });
       setImagem(null);
       if (tipoDemanda.link_imagem && (tipoDemanda.link_imagem.startsWith('http://') || tipoDemanda.link_imagem.startsWith('https://') || tipoDemanda.link_imagem.startsWith('data:'))) {
         setPreviewUrl(tipoDemanda.link_imagem);
       } else {
         setPreviewUrl(null);
       }
+    } else if (!open) {
+      form.reset();
     }
-  }, [open, tipoDemanda]);
+  }, [open, tipoDemanda, form]);
 
   useEffect(() => {
     const currentPreview = previewUrl;
@@ -91,13 +111,6 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
     };
   }, [previewUrl]);
 
-  const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
-      onOpenChange(false);
-    } else {
-      onOpenChange(true);
-    }
-  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -141,28 +154,29 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
     toast.info('Imagem removida');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: CreateTipoDemandaFormValues) => {
     if (isSubmitting) return;
-
-    if (!titulo.trim()) {
-      toast.error('Campo obrigatório: Título', {
-        description: 'Preencha o título da demanda',
-      });
-      return;
-    }
 
     setIsSubmitting(true);
     try {
       if (tipoDemanda?._id) {
         const updatePayload: UpdateTipoDemandaData = {};
         
-        if (titulo.trim() !== tipoDemanda.titulo) updatePayload.titulo = titulo.trim();
-        if (descricao.trim() !== tipoDemanda.descricao) updatePayload.descricao = descricao.trim();
-        if (subdescricao.trim() !== (tipoDemanda.subdescricao || '')) updatePayload.subdescricao = subdescricao.trim();
-        if ((icone.trim() || '') !== (tipoDemanda.icone || '')) updatePayload.icone = icone.trim() || '';
-        if ((linkImagem.trim() || '') !== (tipoDemanda.link_imagem || '')) updatePayload.link_imagem = linkImagem.trim() || '';
-        if (tipo.trim() !== tipoDemanda.tipo) updatePayload.tipo = tipo.trim();
+        const trimmed = {
+          titulo: data.titulo.trim(),
+          descricao: data.descricao.trim(),
+          subdescricao: data.subdescricao?.trim() || '',
+          icone: data.icone?.trim() || '',
+          link_imagem: data.link_imagem?.trim() || '',
+          tipo: data.tipo.trim(),
+        };
+
+        if (trimmed.titulo !== tipoDemanda.titulo) updatePayload.titulo = trimmed.titulo;
+        if (trimmed.descricao !== tipoDemanda.descricao) updatePayload.descricao = trimmed.descricao;
+        if (trimmed.subdescricao !== (tipoDemanda.subdescricao || '')) updatePayload.subdescricao = trimmed.subdescricao;
+        if (trimmed.icone !== (tipoDemanda.icone || '')) updatePayload.icone = trimmed.icone;
+        if (trimmed.link_imagem !== (tipoDemanda.link_imagem || '')) updatePayload.link_imagem = trimmed.link_imagem;
+        if (trimmed.tipo !== tipoDemanda.tipo) updatePayload.tipo = trimmed.tipo;
 
         if (Object.keys(updatePayload).length === 0 && !imagem) {
           toast.info('Nenhuma alteração para salvar.');
@@ -185,12 +199,12 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
         toast.success('Tipo de demanda atualizado com sucesso!');
       } else {
         const payload: CreateTipoDemandaData = {
-          titulo: titulo.trim(),
-          descricao: descricao.trim(),
-          subdescricao: subdescricao.trim(),
-          icone: icone.trim() || '',
-          link_imagem: linkImagem.trim() || '',
-          tipo: tipo.trim(),
+          titulo: data.titulo.trim(),
+          descricao: data.descricao.trim(),
+          subdescricao: data.subdescricao?.trim() || '',
+          icone: data.icone?.trim() || '',
+          link_imagem: data.link_imagem?.trim() || '',
+          tipo: data.tipo.trim(),
         };
 
         const response = await tipoDemandaService.criarTipoDemanda(payload);
@@ -201,12 +215,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
 
         toast.success('Tipo de demanda criado com sucesso!');
         
-        setTitulo('');
-        setDescricao('');
-        setSubdescricao('');
-        setIcone('');
-        setLinkImagem('');
-        setTipo('');
+        form.reset();
         setImagem(null);
         setPreviewUrl(null);
       }
@@ -223,7 +232,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange} modal>
+    <Dialog open={open} onOpenChange={(o) => { if (!isSubmitting) onOpenChange(o); }} modal>
       <DialogContent
         className="max-w-3xl max-h-[95vh] overflow-hidden p-0 bg-white border-none shadow-2xl"
         data-test="create-tipo-demanda-dialog"
@@ -255,48 +264,87 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-3 p-6 max-h-[calc(95vh-140px)] overflow-y-auto" data-test="create-tipo-demanda-form">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Título</Label>
-              <Input 
-                value={titulo} 
-                onChange={(e) => setTitulo(e.target.value)} 
-                placeholder="Coleta de Entulho" 
-                disabled={isSubmitting}
-                data-test="input-titulo-tipo-demanda"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select value={tipo} onValueChange={(v) => setTipo(v)}>
-                <SelectTrigger data-test="select-tipo-tipo-demanda">
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent data-test="select-tipo-options">
-                  {TIPOS_DEMANDA.map((t) => (
-                    <SelectItem key={t} value={t} data-test={`select-tipo-option-${t.toLowerCase().replace(/\s+/g, '-')}`}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+        <div className="p-6 max-h-[calc(95vh-140px)] overflow-y-auto">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3" data-test="create-tipo-demanda-form" noValidate>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="titulo"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-titulo-wrapper">
+                      <FormLabel className="text-global-text-primary text-sm font-medium flex items-center gap-2">
+                        <span className="text-red-500">*</span>
+                        Título
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Coleta de Entulho"
+                          className="border-global-border focus:border-global-accent focus:ring-global-accent"
+                          data-test="input-titulo-tipo-demanda"
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                      <FormMessage data-test="erro-titulo" />
+                    </FormItem>
+                  )}
+                />
 
-          <div className="space-y-2">
-            <Label>Descrição</Label>
-            <Textarea 
-              value={descricao} 
-              onChange={(e) => setDescricao(e.target.value)} 
-              placeholder="Solicite coleta de entulho, restos de construção, reforma e materiais volumosos que não são coletados no lixo comum" 
-              disabled={isSubmitting}
-              data-test="input-descricao-tipo-demanda"
-            />
-          </div>
+                <FormField
+                  control={form.control}
+                  name="tipo"
+                  render={({ field }) => (
+                    <FormItem data-test="campo-tipo-wrapper">
+                      <FormLabel className="text-global-text-primary text-sm font-medium flex items-center gap-2">
+                        <span className="text-red-500">*</span>
+                        Tipo
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
+                        <FormControl>
+                          <SelectTrigger data-test="select-tipo-tipo-demanda">
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent data-test="select-tipo-options">
+                          {TIPOS_DEMANDA.map((t) => (
+                            <SelectItem key={t} value={t} data-test={`select-tipo-option-${t.toLowerCase().replace(/\s+/g, '-')}`}>{t}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage data-test="erro-tipo" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="descricao"
+                render={({ field }) => (
+                  <FormItem data-test="campo-descricao-wrapper">
+                    <FormLabel className="text-global-text-primary text-sm font-medium flex items-center gap-2">
+                      <span className="text-red-500">*</span>
+                      Descrição
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Solicite coleta de entulho, restos de construção, reforma e materiais volumosos que não são coletados no lixo comum"
+                        className="border-global-border focus:border-global-accent focus:ring-global-accent"
+                        data-test="input-descricao-tipo-demanda"
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage data-test="erro-descricao" />
+                  </FormItem>
+                )}
+              />
 
           <div className="space-y-3">
-            <Label className="text-global-text-secondary text-base font-semibold">
+            <label className="text-global-text-secondary text-base font-semibold">
               Imagem do card
-            </Label>
+            </label>
 
             {previewUrl && (
               <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-global-border group" data-test="preview-imagem-container">
@@ -356,36 +404,41 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
             </p>
           </div>
 
-          <div className="flex gap-3 pt-2" data-test="create-tipo-demanda-actions">
-            <Button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
-              disabled={isSubmitting}
-              data-test="button-cancelar"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all"
-              data-test="button-criar-tipo"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  {tipoDemanda ? 'Salvar alterações' : 'Criar Tipo de Demanda'}
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+              <div className="flex gap-3 pt-2" data-test="create-tipo-demanda-actions">
+                <Button
+                  type="button"
+                  onClick={() => onOpenChange(false)}
+                  className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
+                  disabled={isSubmitting}
+                  data-test="button-cancelar"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={cn(
+                    "flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
+                    isSubmitting && "opacity-70 cursor-not-allowed"
+                  )}
+                  data-test="button-criar-tipo"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {tipoDemanda ? 'Salvando...' : 'Criando...'}
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      {tipoDemanda ? 'Salvar alterações' : 'Criar Tipo de Demanda'}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

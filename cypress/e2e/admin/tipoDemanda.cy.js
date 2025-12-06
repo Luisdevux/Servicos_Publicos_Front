@@ -1,7 +1,6 @@
 /// <reference types="cypress"/>
 
 describe('Gerenciamento de Tipos de Demanda - Caminho feliz', () => {
-
     let tipoCriado = null;
   
     beforeEach(() => {
@@ -15,7 +14,7 @@ describe('Gerenciamento de Tipos de Demanda - Caminho feliz', () => {
       cy.contains('Carregando tipos de demanda...').should('not.exist', { timeout: 30000 });
     });
 
-    it.skip('Deve exibir os elementos principais da página', () => {
+    it('Deve exibir os elementos principais da página', () => {
         cy.get('input[placeholder="Pesquisar por título"]').should('be.visible');
         cy.contains('button', 'Todos').should('be.visible');
         cy.contains('button', 'Adicionar tipo').should('be.visible');
@@ -29,7 +28,7 @@ describe('Gerenciamento de Tipos de Demanda - Caminho feliz', () => {
         });
     });
 
-    it.skip('Deve exibir pelo menos um tipo de demanda ou mensagem de vazio', () => {
+    it('Deve exibir pelo menos um tipo de demanda ou mensagem de vazio', () => {
         cy.get('tbody tr').then(($rows) => {
           if ($rows.length > 0) {
             cy.get('td').first().should('not.contain', 'Carregando');
@@ -39,14 +38,14 @@ describe('Gerenciamento de Tipos de Demanda - Caminho feliz', () => {
         });
     });
 
-    it.skip('Deve buscar tipo de demanda pelo título', () => {
+    it('Deve buscar tipo de demanda pelo título', () => {
         cy.get('input[placeholder="Pesquisar por título"]').type('Animal');
         cy.wait(500);
     
         cy.contains('td', 'Animal', { matchCase: false }).should('exist');
     });
 
-    it.skip('Deve filtrar tipos de demanda por tipo', () => {
+    it('Deve filtrar tipos de demanda por tipo', () => {
         cy.contains('button', 'Todos').click();
         cy.contains('[role="option"]', 'Coleta').click();
     
@@ -91,7 +90,7 @@ describe('Gerenciamento de Tipos de Demanda - Caminho feliz', () => {
         cy.contains(titulo).should('be.visible');
     });
 
-    it.skip('Deve editar um tipo de demanda com sucesso', () => {
+    it('Deve editar um tipo de demanda com sucesso', () => {
         cy.then(() => {
           expect(tipoCriado).to.not.be.null;
         });
@@ -129,7 +128,7 @@ describe('Gerenciamento de Tipos de Demanda - Caminho feliz', () => {
         cy.contains(novoTitulo).should('be.visible');
     });
 
-    it.skip('Deve excluir um tipo de demanda com sucesso', () => {
+    it('Deve excluir um tipo de demanda com sucesso', () => {
         cy.then(() => {
             expect(tipoCriado).to.not.be.null;
         });
@@ -158,6 +157,67 @@ describe('Gerenciamento de Tipos de Demanda - Caminho feliz', () => {
         });
     
         cy.contains('[data-sonner-toast]', 'Tipo de demanda excluído com sucesso!').should('be.visible');
-    });
+    });    
+});
+
+describe('Caminho de erro', () => {
+
+    beforeEach(() => {
+        cy.login('admin@exemplo.com', 'Senha@123', 'funcionario');
+        cy.wait(2000);
+        cy.url().should('include', '/admin/dashboard');
+        cy.visit(`/admin/tipoDemanda`);
+        cy.wait(1000);
     
+        cy.get('table').should('be.visible');
+        cy.contains('Carregando tipos de demanda...').should('not.exist', { timeout: 30000 });
+    });
+
+    it('Não deve criar tipo de demanda com campos obrigatórios vazios', () => {
+        cy.getByData('button-adicionar-tipo-demanda').click();
+    
+        cy.getByData('create-tipo-demanda-dialog').should('be.visible');
+    
+        cy.getByData('button-criar-tipo').click();
+    
+        cy.getByData('erro-titulo').should('contain', 'Título é obrigatório');
+        cy.getByData('erro-tipo').should('contain', 'Tipo é obrigatório');
+        cy.getByData('erro-descricao').should('contain', 'Descrição é obrigatória');
+    });
+
+    it('Não deve criar tipo de demanda com dados inválidos', () => {
+        cy.getByData('button-adicionar-tipo-demanda').click();
+        cy.getByData('create-tipo-demanda-dialog').should('be.visible');
+    
+        cy.getByData('input-titulo-tipo-demanda').type('A');
+        cy.getByData('input-descricao-tipo-demanda').type('Teste');
+    
+        cy.getByData('button-criar-tipo').click();
+    
+        cy.getByData('erro-titulo').should('contain', 'Título deve ter pelo menos 3 caracteres');
+        cy.getByData('erro-descricao').should('contain', 'Descrição deve ter pelo menos 10 caracteres');
+      });
+
+
+    it('Deve exibir mensagem de erro ao falhar ao deletar tipo de demanda', () => {
+        cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
+          if (req.body.method === 'DELETE' && req.body.endpoint.includes('/tipoDemanda')) {
+            req.reply({
+              statusCode: 400,
+              body: { message: 'Erro ao excluir tipo de demanda.' }
+            });
+          }
+        }).as('deleteErro');
+    
+        cy.get('tbody tr').first().within(() => {
+          cy.get('button:has(svg.lucide-trash)').click({ force: true });
+        });
+    
+        cy.getByData('delete-secretaria-dialog').should('be.visible');
+        cy.getByData('delete-secretaria-confirm-button').click();
+    
+        cy.wait('@deleteErro').then((interception) => {
+          expect(interception.response.body.message).to.eq('Erro ao excluir tipo de demanda.')
+        });
+      });
 });
