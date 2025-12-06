@@ -115,6 +115,7 @@ export default function ColaboradorAdminPage() {
                   value={pendingSearchText}
                   onChange={(e) => setPendingSearchText(e.target.value)}
                   className="w-72 pl-9"
+                  data-test="input-search-colaborador"
                 />
               </div>
               <Select value={nivelFilter} onValueChange={setNivelFilter}>

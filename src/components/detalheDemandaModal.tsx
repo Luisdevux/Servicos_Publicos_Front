@@ -61,7 +61,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose, disableA
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose} data-test="detalhe-demanda-modal">
       <DialogContent 
         className="max-w-2xl! max-h-[90vh]! overflow-hidden p-0 bg-white border-none flex flex-col"
         data-test="detalhe-demanda-modal"
@@ -81,7 +81,7 @@ export default function DetalhesDemandaModal({ pedido, isOpen, onClose, disableA
           <div className="absolute top-1/2 right-8 w-8 h-8 border-2 border-current rotate-45 opacity-30"></div>
         </div>
 
-        <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg shrink-0 relative overflow-hidden">
+        <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg shrink-0 relative overflow-hidden" data-test="modal-header">
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
               <defs>
