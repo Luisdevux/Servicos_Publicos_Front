@@ -68,7 +68,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
     });
 
     it('Deve exibir o banner com título do tipo de demanda', () => {
-      // Banner não tem classe específica, verificar pelo conteúdo
       cy.contains('Serviços de').should('be.visible');
     });
 
@@ -131,7 +130,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         .clear()
         .type('teste');
       
-      // Aguarda o debounce (500ms) + a requisição
       cy.wait('@searchTiposDemanda', { timeout: 10000 });
     });
 
@@ -186,13 +184,12 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
     it('Deve navegar para a próxima página quando disponível', () => {
       cy.getByData('demanda-cards-grid').should('exist');
       cy.contains('Página').should('exist');
-      // Verifica se há mais de uma página olhando o texto "Página X de Y"
       cy.contains(/Página \d+ de (\d+)/).invoke('text').then((text) => {
         const match = text.match(/Página \d+ de (\d+)/);
         const totalPages = match ? parseInt(match[1]) : 1;
         
         if (totalPages > 1) {
-          // Há próxima página - botão de next deve estar habilitado
+          // Se tem uma próxima página - botão de next deve estar habilitado
         } else {
           // Só uma página
         }
@@ -202,7 +199,7 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
     it('Deve verificar existência de controles de paginação na primeira página', () => {
       cy.getByData('demanda-cards-grid').should('exist');
       cy.contains('Página 1').should('exist');
-      // Verifica que existem botões de navegação (chevrons)
+      // Verifica que existem botões de navegação
       cy.get('button').should('have.length.at.least', 2);
     });
   });
@@ -265,9 +262,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       
       // Verifica que o label de upload existe (scroll para visualizar)
       cy.getByData('image-upload-label').scrollIntoView().should('exist');
-      
-      // O upload real de arquivo é complexo com validação de magic bytes
-      // Verificamos apenas que o campo existe e está funcional
     });
 
     it('Deve verificar que botão de remover imagem existe quando há preview', () => {
@@ -278,9 +272,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       
       // Verifica que o input de imagem existe
       cy.getByData('image-input').should('exist');
-      
-      // O grid de preview pode não existir inicialmente (só aparece com imagens)
-      // Verificamos apenas que o dialog e input estão funcionais
     });
 
     it('Deve fechar o dialog ao clicar em cancelar', () => {
@@ -338,10 +329,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
     it('Deve verificar que campos obrigatórios têm validação', () => {
       // Clica em submit sem preencher nada
       cy.getByData('submit-button').click();
-      
-      // A validação ocorre de duas formas:
-      // 1. Validação HTML5 nativa (Preencha este campo)
-      // 2. Validação JavaScript com toast (Campo obrigatório: X)
       
       // Verificamos que o dialog NÃO fechou (pois há validação)
       cy.getByData('create-demanda-dialog').should('be.visible');
@@ -538,7 +525,7 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         if (docs.length > 0) {
           const primeiroItem = docs[0];
           expect(primeiroItem).to.have.property('titulo');
-          expect(primeiroItem).to.have.property('tipo'); // A API usa 'tipo', não 'categoria'
+          expect(primeiroItem).to.have.property('tipo');
         }
       });
     });
@@ -635,8 +622,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       cy.wait('@searchRequest').then((interception) => {
         // O secure-fetch envia no body o endpoint real
         const endpoint = interception.request.body?.endpoint || '';
-        
-        // Verifica se o endpoint de busca contém tipoDemanda
         
         // O endpoint deve conter tipoDemanda
         expect(endpoint).to.include('tipoDemanda');

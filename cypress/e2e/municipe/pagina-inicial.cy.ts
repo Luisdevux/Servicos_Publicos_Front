@@ -210,7 +210,6 @@ describe('Página Inicial - Munícipe', () => {
       servicos.forEach(({ card, urlPart }) => {
         cy.visit(FRONTEND_URL);
         cy.getByData(card).click();
-        // Usa match parcial para evitar problemas com URL encoding
         cy.url().should('include', '/demanda/');
         cy.url().then((url) => {
           const decodedUrl = decodeURIComponent(url);
@@ -318,7 +317,7 @@ describe('Página Inicial - Munícipe', () => {
         failOnStatusCode: false,
         timeout: 10000
       }).then((response) => {
-        // API deve retornar erro de autenticação (401 ou 400)
+        // API deve retornar erro de autenticação (401 ou similar)
         expect(response.status).to.be.oneOf([400, 401, 403]);
       });
     });
