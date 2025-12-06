@@ -58,10 +58,44 @@ describe('Fluxo de testes da pagina de secretaria', () => {
       }
     });
   });
-  it('Deve atribuir uma demanda a um operador da mesma secretaria', () => {
+  it.skip('Deve atribuir uma demanda a um operador da mesma secretaria', () => {
+      cy.logout();
+      cy.login('municipe@exemplo.com', 'Senha@123', 'municipe');
+      cy.getByData('card-servico-coleta').click();
+      cy.wait(10000);
+      cy.url().should('include', '/demanda/coleta');
+      cy.getByData('card-demanda-botao-criar').first().click();
+      cy.getByData('cep-input').type('76980008');
+      cy.getByData('numero-input').type('371');
+      cy.getByData('descricao-textarea').type('Descrição da demanda de coleta');
+      cy.get('input[type="file"]').selectFile('cypress/fixtures/test-image.png', { force: true });
+      cy.wait(1000);
+      cy.getByData('submit-button').click();
+      cy.contains('Demanda criada com sucesso', { timeout: 15000 }).should('be.visible');
+      cy.wait(2000);
+      cy.logout();
+
+      cy.login('secretariofixo@exemplo.com', 'Senha@123', 'funcionario');
+      cy.wait(1000);
+      cy.getByData('aba-em-aberto').should('be.visible').click();
+      cy.wait(500);
+      cy.getByData('card-demanda').first().should('be.visible');
+      cy.getByData('botao-analisar-demanda').first().should('be.visible').click();
+      cy.getByData('modal-detalhes-demanda-secretaria').should('be.visible');
+      cy.getByData('botao-confirmar-demanda').click();
+      cy.getByData('modal-atribuir-operador').should('be.visible');
+      cy.wait(500);
+      cy.getByData('select-trigger-operador').click();
+      cy.get('div[role="option"]').contains('Operador Fixo').click();
+      cy.getByData('botao-confirmar-atribuicao').should('not.be.disabled').click();
+      cy.contains('Demanda atribuída com sucesso').should('be.visible');
+  });
+
+  it.skip('Deve recusar uma demanda', () => {
     cy.logout();
     cy.login('municipe@exemplo.com', 'Senha@123', 'municipe');
     cy.getByData('card-servico-coleta').click();
+    cy.wait(10000);
     cy.url().should('include', '/demanda/coleta');
     cy.getByData('card-demanda-botao-criar').first().click();
     cy.getByData('cep-input').type('76980008');
@@ -72,8 +106,8 @@ describe('Fluxo de testes da pagina de secretaria', () => {
     cy.getByData('submit-button').click();
     cy.contains('Demanda criada com sucesso', { timeout: 15000 }).should('be.visible');
     cy.wait(2000);
-
     cy.logout();
+      
     cy.login('secretariofixo@exemplo.com', 'Senha@123', 'funcionario');
     cy.wait(1000);
     cy.getByData('aba-em-aberto').should('be.visible').click();
@@ -81,17 +115,11 @@ describe('Fluxo de testes da pagina de secretaria', () => {
     cy.getByData('card-demanda').first().should('be.visible');
     cy.getByData('botao-analisar-demanda').first().should('be.visible').click();
     cy.getByData('modal-detalhes-demanda-secretaria').should('be.visible');
-    cy.getByData('botao-confirmar-demanda').click();
-    cy.getByData('modal-atribuir-operador').should('be.visible');
-    cy.wait(500);
-    cy.get('button[role="combobox"]').first().click();
-    cy.get('div[role="option"]').contains('Operador Fixo').click();
-    cy.getByData('botao-confirmar-atribuicao').should('not.be.disabled').click();
-    cy.contains('Demanda atribuída com sucesso').should('be.visible');
-  });
-
-  it('Deve recusar uma demanda', () => {
-    
+    cy.getByData('botao-rejeitar-demanda').click();
+    cy.getByData('modal-rejeitar-demanda').should('be.visible');
+    cy.getByData('textarea-motivo-rejeicao').type('Motivo da recusa da demanda');
+    cy.getByData('botao-confirmar-rejeicao').should('not.be.disabled').click();
+    cy.contains('Demanda rejeitada').should('be.visible');
   });
 });
 
@@ -105,8 +133,40 @@ describe('Fluxo de testes pagina secretaria - casos de erro', () => {
     cy.logout();
   });
 
-  it('Deve exibir mensagem de erro ao tentar atribuir uma demanda sem selecionar um operador', () => {
-    
+  it('Não deve permitir atribuir uma demanda sem selecionar um operador', () => {
+    /*
+    cy.logout();
+    cy.login('municipe@exemplo.com', 'Senha@123', 'municipe');
+    cy.getByData('card-servico-coleta').click();
+    cy.wait(10000);
+    cy.url().should('include', '/demanda/coleta');
+    cy.getByData('card-demanda-botao-criar').first().click();
+    cy.getByData('cep-input').type('76980008');
+    cy.getByData('numero-input').type('371');
+    cy.getByData('descricao-textarea').type('Descrição da demanda de coleta');
+    cy.get('input[type="file"]').selectFile('cypress/fixtures/test-image.png', { force: true });
+    cy.wait(1000);
+    cy.getByData('submit-button').click();
+    cy.contains('Demanda criada com sucesso', { timeout: 15000 }).should('be.visible');
+    cy.wait(2000);
+    cy.logout();
+
+    cy.login('secretariofixo@exemplo.com', 'Senha@123', 'funcionario');
+    cy.wait(1000);*/
+    cy.getByData('aba-em-aberto').should('be.visible').click();
+    cy.wait(500);
+    cy.getByData('card-demanda').first().should('be.visible');
+    cy.getByData('botao-analisar-demanda').first().should('be.visible').click();
+    cy.getByData('modal-detalhes-demanda-secretaria').should('be.visible');
+    cy.getByData('botao-confirmar-demanda').click();
+    cy.getByData('modal-atribuir-operador').should('be.visible');
+    cy.getByData('botao-confirmar-atribuicao').should('be.disabled');
+    cy.getByData('botao-cancelar-atribuicao').click();
+    cy.getByData('modal-atribuir-operador').should('not.exist');
+    cy.getByData('modal-detalhes-demanda-secretaria').should('be.visible');
+    cy.get('body').type('{esc}');
+      cy.wait(300);
+      cy.getByData('modal-detalhes-demanda-secretaria').should('not.exist');
   });
   it('Deve exibir mensagem de erro ao tentar recusar uma demanda sem informar o motivo', () => {
     

@@ -388,7 +388,7 @@ export default function DetalhesDemandaSecretariaModal({
                 Selecione o operador responsável
               </label>
               <Select value={operadorSelecionado} onValueChange={setOperadorSelecionado} data-test="select-operador">
-                <SelectTrigger>
+                <SelectTrigger data-test="select-trigger-operador">
                   <SelectValue placeholder="Escolha um operador" />
                 </SelectTrigger>
                 <SelectContent>
