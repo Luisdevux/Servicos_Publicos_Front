@@ -260,8 +260,12 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       // Verifica que o input de imagem existe (pode estar oculto)
       cy.getByData('image-input').should('exist');
       
-      // Verifica que o label de upload existe (scroll para visualizar)
-      cy.getByData('image-upload-label').scrollIntoView().should('exist');
+      // Faz upload de imagem
+      cy.getByData('image-input').selectFile('cypress/fixtures/test-image.png', { force: true });
+      cy.wait(500);
+      
+      // Verifica preview da imagem carregada
+      cy.get('img[alt*="Preview"]').should('exist');
     });
 
     it('Deve verificar que botão de remover imagem existe quando há preview', () => {
@@ -293,24 +297,34 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       cy.getByData('card-demanda-botao-criar').first().click({ force: true });
       
       // Preenche o formulário
-      cy.getByData('cep-input').clear().type('76980-000');
-      cy.wait(1500); // Aguarda busca do CEP
+      cy.getByData('cep-input').clear().type('76982-306');
+      cy.wait(2000); // Aguarda busca do CEP e autocomplete
       
       cy.getByData('bairro-input').clear().type('Centro');
       cy.getByData('logradouro-input').clear().type('Major Amarante');
       cy.getByData('numero-input').clear().type('1234');
-      cy.getByData('complemento-input').clear().type('Próximo à praça');
-      cy.getByData('descricao-textarea').clear().type('Descrição de teste para a demanda de coleta de lixo na região central.');
+      
+      // Scroll para campo de complemento antes de preencher
+      cy.getByData('complemento-input').scrollIntoView().clear().type('Próximo à praça');
+      
+      cy.getByData('descricao-textarea').scrollIntoView().clear().type('Descrição de teste para a demanda de coleta de lixo na região central.');
+      
+      // Upload de imagem REAL
+      cy.getByData('image-input').selectFile('cypress/fixtures/test-image.png', { force: true });
+      cy.wait(500);
       
       // Verifica que todos os campos foram preenchidos
-      cy.getByData('cep-input').should('have.value', '76980-000');
+      cy.getByData('cep-input').should('have.value', '76982-306');
       cy.getByData('bairro-input').invoke('val').should('not.be.empty');
       cy.getByData('logradouro-input').invoke('val').should('not.be.empty');
       cy.getByData('numero-input').should('have.value', '1234');
       cy.getByData('descricao-textarea').invoke('val').should('not.be.empty');
       
+      // Verifica preview da imagem
+      cy.get('img[alt*="Preview"]').should('exist');
+      
       // Verifica que o botão de submit existe e está visível
-      cy.getByData('submit-button').should('exist').and('be.visible');
+      cy.getByData('submit-button').scrollIntoView().should('exist').and('be.visible');
       
     });
   });
@@ -361,11 +375,8 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       cy.getByData('cep-input').clear().type('01310-100');
       cy.wait(1500);
       
-      // O autocomplete não deve preencher para CEPs fora de Vilhena
-      // Ou pode mostrar mensagem de erro
-      cy.getByData('bairro-input').invoke('val').then((val) => {
-        // Se o bairro não foi preenchido automaticamente, o CEP é inválido para Vilhena
-      });
+      // Deve exibir mensagem de erro de CEP fora de Vilhena
+      cy.contains(/76980-000 a 76999-999|Vilhena/i).should('be.visible');
       
     });
   });
@@ -432,7 +443,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
   describe('Consistência entre Frontend e API', () => {
     // Armazena dados para comparação entre API e Frontend
     let authToken: string;
-    let userId: string;
 
     before(function() {
       // Obtém token de autenticação via API
@@ -448,7 +458,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       }).then((response) => {
         if (response.status === 200 && response.body?.data?.user) {
           authToken = response.body.data.user.accessToken;
-          userId = response.body.data.user._id || response.body.data.user.id;
         } else {
           cy.log(`Falha ao obter token: status ${response.status}`);
         }
@@ -483,7 +492,7 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
           cy.getByData('demanda-cards-grid').should('exist');
 
           // Para cada item da API, verifica se há um card correspondente no frontend
-          tiposDemandaAPI.slice(0, 3).forEach((item: { titulo?: string; _id?: string }, index: number) => {
+          tiposDemandaAPI.slice(0, 3).forEach((item: { titulo?: string; _id?: string }) => {
             if (item.titulo) {
               cy.getByData('demanda-cards-grid')
                 .should('contain', item.titulo);
@@ -572,7 +581,7 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
 
       const timestampUnico = Date.now();
       const dadosDemanda = {
-        cep: '76980-000',
+        cep: '76982-306',
         bairro: 'Centro',
         logradouro: 'Major Amarante',
         numero: '1234',
@@ -594,9 +603,16 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       cy.getByData('numero-input').clear().type(dadosDemanda.numero);
       cy.getByData('descricao-textarea').clear().type(dadosDemanda.descricao);
 
+      // Upload de imagem REAL
+      cy.getByData('image-input').selectFile('cypress/fixtures/test-image.png', { force: true });
+      cy.wait(500);
+
       // Verifica que os campos foram preenchidos corretamente
       cy.getByData('cep-input').should('have.value', dadosDemanda.cep);
       cy.getByData('numero-input').should('have.value', dadosDemanda.numero);
+      
+      // Verifica preview da imagem
+      cy.get('img[alt*="Preview"]').should('exist');
       
     });
 
@@ -636,10 +652,8 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         },
         failOnStatusCode: false
       }).then((apiResponse) => {
-        
-        if (apiResponse.status === 200) {
-          const totalResults = apiResponse.body?.data?.totalDocs || apiResponse.body?.data?.length || 0;
-        }
+        // Verifica que a API respondeu
+        expect(apiResponse.status).to.be.oneOf([200, 404]);
       });
     });
 
@@ -662,6 +676,8 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
           },
           failOnStatusCode: false
         }).then((apiResponse) => {
+          // Verifica que a API respondeu com sucesso
+          expect(apiResponse.status).to.be.oneOf([200, 404]);
         });
       });
 
