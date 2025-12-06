@@ -2,7 +2,7 @@ import { defineConfig } from "cypress";
 
 export default defineConfig({
   e2e: {
-    baseUrl: 'https://servicospublicos.app.fslab.dev',
+    baseUrl: 'http://localhost:3000',
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
@@ -21,8 +21,8 @@ export default defineConfig({
     },
     // Variáveis de ambiente
     env: {
-      API_URL: 'https://servicospublicos-api.app.fslab.dev',
-      FRONTEND_URL: 'https://servicospublicos.app.fslab.dev',
+      API_URL: 'http://localhost:8000',
+      FRONTEND_URL: 'http://localhost:3000',
     },
     // Ignorar erros de certificado
     chromeWebSecurity: false,
