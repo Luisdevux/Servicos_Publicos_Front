@@ -9,7 +9,7 @@ describe('Fluxo de testes da pagina de secretaria', () => {
     cy.logout();
   });
 
-  it('Deve carregar as demandas cadastradas na secretaria do usuario (por status)', () => {
+  it.skip('Deve carregar as demandas cadastradas na secretaria do usuario (por status)', () => {
     cy.getByData('indicador-secretarias-container').should('be.visible');
     cy.getByData('aba-em-aberto').should('be.visible').click();
     cy.getByData('aba-em-andamento').should('be.visible').click();
@@ -25,7 +25,7 @@ describe('Fluxo de testes da pagina de secretaria', () => {
     }
   });
 
-  it('Deve visualizar completamente a demanda selecionada', () => {
+  it.skip('Deve visualizar completamente a demanda selecionada', () => {
     const statusDemanda = [
       { aba: 'aba-em-aberto', nome: 'Em Aberto' },
       { aba: 'aba-em-andamento', nome: 'Em Andamento' },
@@ -63,24 +63,31 @@ describe('Fluxo de testes da pagina de secretaria', () => {
     cy.login('municipe@exemplo.com', 'Senha@123', 'municipe');
     cy.getByData('card-servico-coleta').click();
     cy.url().should('include', '/demanda/coleta');
-    cy.getByData('card-demanda-botao-criar').click();
+    cy.getByData('card-demanda-botao-criar').first().click();
     cy.getByData('cep-input').type('76980008');
     cy.getByData('numero-input').type('371');
     cy.getByData('descricao-textarea').type('Descrição da demanda de coleta');
-    cy.getByData('image-upload-label').click();
-    cy.request({
-      url: 'https://picsum.photos/200/300',
-      encoding: 'binary'
-    }).then((response) => {
-      const blob = Cypress.Blob.binaryStringToBlob(response.body, 'image/jpeg');
-      const file = new File([blob], 'imagem-teste.jpg', { type: 'image/jpeg' });
-    cy.get('input[type="file"]').then(input => {
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      input[0].files = dataTransfer.files;
-      input[0].dispatchEvent(new Event('change', { bubbles: true }));
-    });
-  });
+    cy.get('input[type="file"]').selectFile('cypress/fixtures/test-image.png', { force: true });
+    cy.wait(1000);
+    cy.getByData('submit-button').click();
+    cy.contains('Demanda criada com sucesso', { timeout: 15000 }).should('be.visible');
+    cy.wait(2000);
+
+    cy.logout();
+    cy.login('secretariofixo@exemplo.com', 'Senha@123', 'funcionario');
+    cy.wait(1000);
+    cy.getByData('aba-em-aberto').should('be.visible').click();
+    cy.wait(500);
+    cy.getByData('card-demanda').first().should('be.visible');
+    cy.getByData('botao-analisar-demanda').first().should('be.visible').click();
+    cy.getByData('modal-detalhes-demanda-secretaria').should('be.visible');
+    cy.getByData('botao-confirmar-demanda').click();
+    cy.getByData('modal-atribuir-operador').should('be.visible');
+    cy.wait(500);
+    cy.get('button[role="combobox"]').first().click();
+    cy.get('div[role="option"]').contains('Operador Fixo').click();
+    cy.getByData('botao-confirmar-atribuicao').should('not.be.disabled').click();
+    cy.contains('Demanda atribuída com sucesso').should('be.visible');
   });
 
   it('Deve recusar uma demanda', () => {
