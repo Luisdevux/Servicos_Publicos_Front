@@ -1,3 +1,4 @@
+
 describe('Fluxo de testes da pagina de secretaria', () => {
   
   beforeEach(() => {
@@ -31,7 +32,6 @@ describe('Fluxo de testes da pagina de secretaria', () => {
       { aba: 'aba-concluidas', nome: 'Concluídas' },
       { aba: 'aba-recusadas', nome: 'Recusadas' }
     ];
-
     let demandaEncontrada = false;
 
     for (let status of statusDemanda) {
@@ -59,9 +59,53 @@ describe('Fluxo de testes da pagina de secretaria', () => {
     });
   });
   it('Deve atribuir uma demanda a um operador da mesma secretaria', () => {
-    
+    cy.logout();
+    cy.login('municipe@exemplo.com', 'Senha@123', 'municipe');
+    cy.getByData('card-servico-coleta').click();
+    cy.url().should('include', '/demanda/coleta');
+    cy.getByData('card-demanda-botao-criar').click();
+    cy.getByData('cep-input').type('76980008');
+    cy.getByData('numero-input').type('371');
+    cy.getByData('descricao-textarea').type('Descrição da demanda de coleta');
+    cy.getByData('image-upload-label').click();
+    cy.request({
+      url: 'https://picsum.photos/200/300',
+      encoding: 'binary'
+    }).then((response) => {
+      const blob = Cypress.Blob.binaryStringToBlob(response.body, 'image/jpeg');
+      const file = new File([blob], 'imagem-teste.jpg', { type: 'image/jpeg' });
+    cy.get('input[type="file"]').then(input => {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      input[0].files = dataTransfer.files;
+      input[0].dispatchEvent(new Event('change', { bubbles: true }));
+    });
   });
+  });
+
   it('Deve recusar uma demanda', () => {
     
   });
+});
+
+describe('Fluxo de testes pagina secretaria - casos de erro', () => {
+  
+  beforeEach(() => {
+    cy.login('secretariofixo@exemplo.com', 'Senha@123', 'funcionario');
+  });
+
+  afterEach(() => {
+    cy.logout();
+  });
+
+  it('Deve exibir mensagem de erro ao tentar atribuir uma demanda sem selecionar um operador', () => {
+    
+  });
+  it('Deve exibir mensagem de erro ao tentar recusar uma demanda sem informar o motivo', () => {
+    
+  });
+});
+describe('Fluxo de testes pagina secretaria - consistencia API e FRONT ', () => {
+
+
 });
