@@ -51,21 +51,21 @@ export function DeleteConfirmModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange} data-test="delete-secretaria-modal">
-      <DialogContent className="max-w-md" data-test="delete-secretaria-dialog">
+    <Dialog open={open} onOpenChange={handleOpenChange} data-test="delete-demanda-modal">
+      <DialogContent className="max-w-md" data-test="delete-demanda-dialog">
         <DialogHeader className="text-center mb-2 flex flex-col items-center justify-center">
-          <DialogTitle data-test="delete-secretaria-title">{title}</DialogTitle>
-          <DialogDescription className="text-center mt-2" data-test="delete-secretaria-description">
+          <DialogTitle data-test="delete-demanda-title">{title}</DialogTitle>
+          <DialogDescription className="text-center mt-2" data-test="delete-demanda-description">
             {description}{' '}
-            <strong className="text-black" data-test="delete-secretaria-item-name">{itemName}</strong> ?
+            <strong className="text-black" data-test="delete-demanda-item-name">{itemName}</strong> ?
           </DialogDescription>
         </DialogHeader>
-        <div className="flex gap-3 justify-end" data-test="delete-secretaria-actions">
+        <div className="flex gap-3 justify-end" data-test="delete-demanda-actions">
           <Button
             className="border-2 border-global-bg-select bg-white hover:bg-global-bg-select"
             onClick={() => onOpenChange(false)}
             disabled={isDeleting}
-            data-test="delete-secretaria-cancel-button"
+            data-test="delete-demanda-cancel-button"
           >
             Cancelar
           </Button>
@@ -73,7 +73,7 @@ export function DeleteConfirmModal({
             className="bg-red-600 hover:bg-red-700 text-white"
             disabled={isDeleting}
             onClick={handleDelete}
-            data-test="delete-secretaria-confirm-button"
+            data-test="delete-demanda-confirm-button"
           >
             {isDeleting ? 'Excluindo...' : 'Excluir'}
           </Button>

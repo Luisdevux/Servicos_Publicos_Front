@@ -194,6 +194,7 @@ export default function DemandasAdminPage() {
                   value={pendingSearchText}
                   onChange={(e) => setPendingSearchText(e.target.value)}
                   className="w-72 pl-9"
+                  data-test="input-search-demanda"
                 />
               </div>
               <Select value={filtroTipo} onValueChange={setFiltroTipo}>
@@ -298,6 +299,7 @@ export default function DemandasAdminPage() {
                               }}
                               className="p-1.5 hover:bg-blue-50 rounded text-blue-600 cursor-pointer"
                               aria-label="Ver detalhes"
+                              data-test="button-ver-detalhes-demanda"
                             >
                               <Eye className="h-4 w-4" />
                             </button>
@@ -309,6 +311,7 @@ export default function DemandasAdminPage() {
                               }}
                               className="p-1.5 hover:bg-red-50 rounded text-red-600 cursor-pointer"
                               aria-label="Excluir"
+                              data-test="button-excluir-demanda"
                             >
                               <Trash className="h-4 w-4" />
                             </button>
