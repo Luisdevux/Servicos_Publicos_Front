@@ -66,6 +66,7 @@ describe('Página de Demandas - Caminho Feliz', () => {
             cy.getByData('button-ver-detalhes-demanda').first().click();
     
             cy.getByData('detalhe-demanda-modal').should('be.visible');
+            cy.wait(500);
     
             cy.getByData('modal-header', { timeout: 8000 }).should('be.visible')
               .invoke('text')

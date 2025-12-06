@@ -1,6 +1,37 @@
 /// <reference types="cypress"/>
 
+function gerarCPF() {
+  const base = '05109';
+  const resto = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+  let cpf = base + resto;
+
+  let soma = 0;
+  for (let i = 0; i < 9; i++) {
+    soma += parseInt(cpf.charAt(i)) * (10 - i);
+  }
+  let digito1 = 11 - (soma % 11);
+  if (digito1 >= 10) digito1 = 0;
+  cpf += digito1;
+
+  soma = 0;
+  for (let i = 0; i < 10; i++) {
+    soma += parseInt(cpf.charAt(i)) * (11 - i);
+  }
+  let digito2 = 11 - (soma % 11);
+  if (digito2 >= 10) digito2 = 0;
+  cpf += digito2;
+
+  return cpf;
+}
+
+function gerarCNH() {
+  const base = '05109';
+  const resto = String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+  return base + resto;
+}
+
 describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
+  let colaboradorCriado = null;
   
   beforeEach(() => {
     cy.login('admin@exemplo.com', 'Senha@123', 'funcionario');
@@ -140,14 +171,18 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     cy.getByData('dialog-content-criar-colaborador').should('be.visible');
 
     const nome = `Colaborador Teste ${Date.now()}`;
-    const email = `colaborador${Date.now()}@teste.com`;
-    const cpf = '12345678901';
-    const celular = '(69) 99999-9999';
+    colaboradorCriado = nome;
 
-    cy.getByData('input-nome').type(nome);
+    const email = `colaborador${Date.now()}@teste.com`;
+    const cpf = gerarCPF();
+    const celular = '(69) 99999-9999';
+    const cnh = gerarCNH();
+
+    cy.getByData('input-nome').type(colaboradorCriado);
     cy.getByData('input-email').type(email);
     cy.getByData('input-cpf').type(cpf);
     cy.getByData('input-celular').type(celular);
+    cy.getByData('input-cnh').type(cnh);
     cy.getByData('input-data-nascimento').type('2000-01-01');
     cy.getByData('input-cargo').type('Cargo Teste');
     cy.getByData('input-portaria').type('PORT-TEST-2025');
@@ -157,6 +192,7 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
     cy.getByData('input-cep').type('76980632');
     cy.wait(500);
     cy.getByData('input-numero').type('1111');
+    cy.getByData('lista-secretarias').find('label').first().click();
 
     cy.getByData('button-criar-colaborador').click();
 
@@ -167,53 +203,32 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
 
     cy.contains('[data-sonner-toast]', 'Colaborador criado com sucesso!').should('be.visible');
 
-    cy.get('input[placeholder="Pesquisar por nome, CPF ou portaria"]').type(nome);
+    cy.get('input[placeholder="Pesquisar por nome, CPF ou portaria"]').type(colaboradorCriado);
     cy.wait(500);
-    cy.contains(nome).should('be.visible');
+    cy.contains(colaboradorCriado).should('be.visible');
   });
 
   it('Deve editar um colaborador com sucesso', () => {
+    cy.then(() => {
+      expect(colaboradorCriado).to.not.be.null;
+    });
     cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
       if (req.body.method === 'PATCH' && req.body.endpoint.includes('/usuarios')) {
         req.alias = 'editColaborador';
       }
     });
 
-    cy.get('tbody tr').then(($rows) => {
-      let $rowToEdit = null;
-      let nomeColaborador = '';
-      let emailColaborador = '';
-      
-      for (let i = 0; i < $rows.length; i++) {
-        const nome = $rows.eq(i).find('td').eq(0).text().trim();
-        const email = $rows.eq(i).find('td').eq(1).text().trim();
-        
-        const isAdministrador = nome === 'Administrador' || email === 'admin@exemplo.com';
-        
-        if (!isAdministrador) {
-          $rowToEdit = $rows.eq(i);
-          nomeColaborador = nome;
-          emailColaborador = email;
-          break;
-        }
-      }
-      
-      if (!$rowToEdit) {
-        cy.log('Nenhum colaborador encontrado para editar (apenas Administrador existe)');
-        return;
-      }
-      
-      expect(nomeColaborador).not.to.equal('Administrador');
-      expect(emailColaborador).not.to.equal('admin@exemplo.com');
-      
-      cy.wrap($rowToEdit).within(() => {
-        cy.get('button:has(svg.lucide-pencil)').click({ force: true });
-      });
+    cy.getByData('input-search-colaborador').type(colaboradorCriado);
+    cy.wait(500);
+
+    cy.get('tbody tr').last().within(() => {
+      cy.get('button:has(svg.lucide-pencil)').click({ force: true });
     });
 
     cy.getByData('dialog-content-criar-colaborador').should('be.visible');
 
     const novoNome = `Colaborador Editado ${Date.now()}`;
+    colaboradorCriado = novoNome;
     const novoCargo = `Cargo Editado ${Date.now()}`;
     const telefone = '(69) 99999-9999';
     const cep = ('76980632');
@@ -240,59 +255,32 @@ describe('Dashboard Admin - Página de Colaborador - Caminho feliz', () => {
   });
 
   it('Deve deletar um colaborador com sucesso', () => {
-    cy.get('tbody tr', { timeout: 30000 }).should('exist');
-    
-    cy.get('tbody').within(() => {
-      cy.get('td').first().should('not.contain', 'Carregando colaboradores...');
+    cy.then(() => {
+      expect(colaboradorCriado).to.not.be.null;
     });
-    
+
     cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
       if (req.body.method === 'DELETE' && req.body.endpoint.includes('/usuarios')) {
         req.alias = 'deleteColaborador';
       }
-    }).as('deleteColaborador');
-    
-    cy.get('tbody tr').then(($rows) => {
-      let $rowToDelete = null;
-      let nomeColaborador = '';
-      let emailColaborador = '';
-      
-      for (let i = 0; i < $rows.length; i++) {
-        const nome = $rows.eq(i).find('td').eq(0).text().trim();
-        const email = $rows.eq(i).find('td').eq(1).text().trim();
-        
-        const isAdministrador = nome === 'Administrador' || email === 'admin@exemplo.com';
-        
-        if (!isAdministrador) {
-          $rowToDelete = $rows.eq(i);
-          nomeColaborador = nome;
-          emailColaborador = email;
-          break;
-        }
-      }
-      
-      if (!$rowToDelete) {
-        cy.log('Nenhum colaborador encontrado para deletar (apenas Administrador existe)');
-        return;
-      }
-      
-      expect(nomeColaborador).not.to.equal('Administrador');
-      expect(emailColaborador).not.to.equal('admin@exemplo.com');
-      
-      cy.wrap($rowToDelete).within(() => {
-        cy.get('button:has(svg.lucide-trash)').click({ force: true });
-      });
-      
-      cy.get('[role="dialog"]', { timeout: 5000 }).should('be.visible');
-      cy.contains('button', 'Excluir').click({ force: true });
-      
-      cy.wait('@deleteColaborador', { timeout: 10000 }).then((interception) => {
-        expect(interception.request.body.method).to.equal('DELETE');
-        expect(interception.response.statusCode).to.equal(200);
-      });
-      
-      cy.contains('[data-sonner-toast]', 'Colaborador excluído com sucesso!', { timeout: 5000 }).should('be.visible');
     });
+
+    cy.getByData('input-search-colaborador').clear().type(colaboradorCriado);
+    cy.wait(1000);
+
+    cy.get('tbody tr').last().within(() => {
+      cy.get('button:has(svg.lucide-trash)').click({ force: true });
+    });
+    
+    cy.get('[role="dialog"]', { timeout: 5000 }).should('be.visible');
+    cy.contains('button', 'Excluir').click({ force: true });
+    
+    cy.wait('@deleteColaborador', { timeout: 10000 }).then((interception) => {
+      expect(interception.request.body.method).to.equal('DELETE');
+      expect(interception.response.statusCode).to.equal(200);
+    });
+    
+    cy.contains('[data-sonner-toast]', 'Colaborador excluído com sucesso!', { timeout: 5000 }).should('be.visible');
   });
 
   it('Deve abrir modal de detalhes ao clicar em uma linha da tabela', () => {
