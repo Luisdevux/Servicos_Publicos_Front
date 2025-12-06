@@ -10,16 +10,13 @@
  * - Validações do formulário de criação
  * - Upload de imagens
  * - Consistência entre API e Frontend
- * 
- * NOTA: Estes testes requerem um usuário munícipe válido para autenticação.
- * Configure as credenciais corretas ou os testes serão pulados.
  */
 
 describe('Página de Demanda por Tipo - Munícipe', () => {
   const API_URL = 'https://servicospublicos-api-qa.app.fslab.dev';
   const FRONTEND_URL = 'https://servicospublicos-qa.app.fslab.dev';
 
-  // Credenciais de teste (munícipe) - atualize com credenciais válidas
+  // Credenciais de teste (munícipe)
   const MUNICIPE_EMAIL = Cypress.env('MUNICIPE_EMAIL') || 'municipe@exemplo.com';
   const MUNICIPE_SENHA = Cypress.env('MUNICIPE_SENHA') || 'Senha@123';
 
@@ -45,7 +42,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
     cy.wait(3000);
     cy.url().then((url) => {
       if (url.includes('/login')) {
-        cy.log('Login falhou, testes serão pulados. Verifique credenciais válidas.');
         this.skip();
       }
     });
@@ -197,10 +193,8 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         
         if (totalPages > 1) {
           // Há próxima página - botão de next deve estar habilitado
-          cy.log(`✓ Encontradas ${totalPages} páginas - botão de próxima habilitado`);
         } else {
           // Só uma página
-          cy.log('✓ Apenas 1 página disponível');
         }
       });
     });
@@ -210,7 +204,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       cy.contains('Página 1').should('exist');
       // Verifica que existem botões de navegação (chevrons)
       cy.get('button').should('have.length.at.least', 2);
-      cy.log('✓ Controles de paginação estão presentes');
     });
   });
 
@@ -275,7 +268,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       
       // O upload real de arquivo é complexo com validação de magic bytes
       // Verificamos apenas que o campo existe e está funcional
-      cy.log('✓ Campo de upload de imagem existe e está acessível');
     });
 
     it('Deve verificar que botão de remover imagem existe quando há preview', () => {
@@ -289,8 +281,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       
       // O grid de preview pode não existir inicialmente (só aparece com imagens)
       // Verificamos apenas que o dialog e input estão funcionais
-      cy.log('✓ Formulário de criação de demanda está funcional');
-      cy.log('  - Botões de remover seguem padrão: remove-image-button-{index}');
     });
 
     it('Deve fechar o dialog ao clicar em cancelar', () => {
@@ -331,9 +321,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       // Verifica que o botão de submit existe e está visível
       cy.getByData('submit-button').should('exist').and('be.visible');
       
-      cy.log('✓ Formulário preenchido corretamente');
-      cy.log('  - CEP, Bairro, Logradouro, Número e Descrição preenchidos');
-      cy.log('  - Nota: Upload de imagem requer interação manual para validação de magic bytes');
     });
   });
 
@@ -359,8 +346,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       // Verificamos que o dialog NÃO fechou (pois há validação)
       cy.getByData('create-demanda-dialog').should('be.visible');
       
-      cy.log('✓ Validação de campos obrigatórios está funcionando');
-      cy.log('  - Dialog permanece aberto quando campos obrigatórios estão vazios');
     });
 
     it('Deve manter campos com valores válidos após validação falhar', () => {
@@ -376,14 +361,12 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       cy.getByData('cep-input').should('have.value', '76980-000');
       cy.getByData('bairro-input').should('have.value', 'Centro');
       
-      cy.log('✓ Valores são preservados após falha de validação');
     });
 
     it('Deve exibir informação sobre imagem obrigatória no formulário', () => {
       // Verifica que há indicação de que imagem é obrigatória
       cy.contains(/obrigat|mínimo.*imagem/i).should('exist');
       
-      cy.log('✓ Informação sobre obrigatoriedade de imagem está visível');
     });
 
     it('Deve verificar CEP fora de Vilhena não autocompleta', () => {
@@ -395,10 +378,8 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       // Ou pode mostrar mensagem de erro
       cy.getByData('bairro-input').invoke('val').then((val) => {
         // Se o bairro não foi preenchido automaticamente, o CEP é inválido para Vilhena
-        cy.log(`Bairro após CEP de SP: "${val}"`);
       });
       
-      cy.log('✓ Sistema trata CEPs fora de Vilhena');
     });
   });
 
@@ -481,9 +462,8 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         if (response.status === 200 && response.body?.data?.user) {
           authToken = response.body.data.user.accessToken;
           userId = response.body.data.user._id || response.body.data.user.id;
-          cy.log(`✓ Token obtido, userId: ${userId}`);
         } else {
-          cy.log(`⚠ Falha ao obter token: status ${response.status}`);
+          cy.log(`Falha ao obter token: status ${response.status}`);
         }
       });
     });
@@ -511,7 +491,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         cy.getByData('demanda-page').should('be.visible');
 
         if (Array.isArray(tiposDemandaAPI) && tiposDemandaAPI.length > 0) {
-          cy.log(`✓ API retornou ${tiposDemandaAPI.length} tipos de demanda`);
 
           // Verifica que o grid de cards existe
           cy.getByData('demanda-cards-grid').should('exist');
@@ -519,15 +498,13 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
           // Para cada item da API, verifica se há um card correspondente no frontend
           tiposDemandaAPI.slice(0, 3).forEach((item: { titulo?: string; _id?: string }, index: number) => {
             if (item.titulo) {
-              cy.log(`  - Verificando item ${index + 1}: "${item.titulo}"`);
               cy.getByData('demanda-cards-grid')
                 .should('contain', item.titulo);
             }
           });
 
-          cy.log('✓ Cards do frontend correspondem aos dados da API');
         } else {
-          cy.log('⚠ API não retornou tipos de demanda para categoria "coleta"');
+          cy.log('API não retornou tipos de demanda para categoria "coleta"');
         }
       });
     });
@@ -554,9 +531,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
           expect(responseData).to.have.property('docs');
           expect(responseData).to.have.property('totalDocs');
           expect(responseData).to.have.property('page');
-          cy.log('✓ Resposta da API possui estrutura de paginação');
-          cy.log(`  - Total de documentos: ${responseData.totalDocs}`);
-          cy.log(`  - Página atual: ${responseData.page}`);
         }
 
         // Verifica estrutura de cada item
@@ -565,8 +539,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
           const primeiroItem = docs[0];
           expect(primeiroItem).to.have.property('titulo');
           expect(primeiroItem).to.have.property('tipo'); // A API usa 'tipo', não 'categoria'
-          cy.log('✓ Estrutura do item está correta');
-          cy.log(`  - Primeiro item: "${primeiroItem.titulo}"`);
         }
       });
     });
@@ -596,12 +568,10 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
           // Verifica se há informações de paginação no frontend
           cy.getByData('demanda-cards-grid').should('exist');
           
-          cy.log(`✓ API reporta ${totalDocsAPI} itens em ${totalPagesAPI} página(s)`);
           
           // Se houver mais de uma página, testa navegação
           if (totalPagesAPI > 1) {
             cy.contains(/próxima|next|>/i).should('exist');
-            cy.log('✓ Botão de próxima página existe (consistente com API)');
           }
         }
       });
@@ -641,9 +611,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
       cy.getByData('cep-input').should('have.value', dadosDemanda.cep);
       cy.getByData('numero-input').should('have.value', dadosDemanda.numero);
       
-      cy.log('✓ Formulário preenchido com dados de teste');
-      cy.log(`  - Descrição inclui timestamp: ${timestampUnico}`);
-      cy.log('  - Nota: Envio real requer upload de imagem válido');
     });
 
     it('Deve verificar que filtros do frontend geram requisições corretas para API', function() {
@@ -670,7 +637,6 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         const endpoint = interception.request.body?.endpoint || '';
         
         // Verifica se o endpoint de busca contém tipoDemanda
-        cy.log(`✓ Requisição de busca enviada para: ${endpoint}`);
         
         // O endpoint deve conter tipoDemanda
         expect(endpoint).to.include('tipoDemanda');
@@ -685,11 +651,9 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
         },
         failOnStatusCode: false
       }).then((apiResponse) => {
-        cy.log(`✓ API respondeu com status: ${apiResponse.status}`);
         
         if (apiResponse.status === 200) {
           const totalResults = apiResponse.body?.data?.totalDocs || apiResponse.body?.data?.length || 0;
-          cy.log(`  - Total de resultados para "${termoBusca}": ${totalResults}`);
         }
       });
     });
@@ -713,14 +677,12 @@ describe('Página de Demanda por Tipo - Munícipe', () => {
           },
           failOnStatusCode: false
         }).then((apiResponse) => {
-          cy.log(`Tipo "${tipo}": API status ${apiResponse.status}`);
         });
       });
 
       // Navega pelo frontend para verificar que todas as categorias são acessíveis
       cy.visit(`${FRONTEND_URL}/demanda/coleta`);
       cy.getByData('demanda-page').should('be.visible');
-      cy.log('✓ Frontend navega corretamente para página de demanda');
     });
   });
 });
