@@ -10,16 +10,13 @@
  * - Logout
  * - Persistência de dados
  * - Consistência entre API e Frontend
- * 
- * NOTA: Estes testes requerem um usuário munícipe válido para autenticação.
- * Configure as credenciais corretas ou os testes serão pulados.
  */
 
 describe('Página de Perfil - Munícipe', () => {
-  const API_URL = 'https://servicospublicos-api.app.fslab.dev';
-  const FRONTEND_URL = 'https://servicospublicos.app.fslab.dev';
+  const API_URL = 'https://servicospublicos-api-qa.app.fslab.dev';
+  const FRONTEND_URL = 'https://servicospublicos-qa.app.fslab.dev';
 
-  // Credenciais de teste (munícipe) - atualize com credenciais válidas
+  // Credenciais de teste (munícipe)
   const MUNICIPE_EMAIL = Cypress.env('MUNICIPE_EMAIL') || 'municipe@exemplo.com';
   const MUNICIPE_SENHA = Cypress.env('MUNICIPE_SENHA') || 'Senha@123';
 
@@ -42,7 +39,6 @@ describe('Página de Perfil - Munícipe', () => {
     cy.wait(3000);
     cy.url().then((url) => {
       if (url.includes('/login')) {
-        cy.log('Login falhou, testes serão pulados. Verifique credenciais válidas.');
         this.skip();
       }
     });
@@ -417,9 +413,8 @@ describe('Página de Perfil - Munícipe', () => {
         if (response.status === 200 && response.body?.data?.user) {
           authToken = response.body.data.user.accessToken;
           userId = response.body.data.user._id || response.body.data.user.id;
-          cy.log(`✓ Token obtido, userId: ${userId}`);
         } else {
-          cy.log(`⚠ Falha ao obter token: status ${response.status}`);
+          cy.log(`Falha ao obter token: status ${response.status}`);
         }
       });
     });
@@ -451,25 +446,21 @@ describe('Página de Perfil - Munícipe', () => {
           // Compara nome da API com o exibido no frontend
           if (userDataAPI.nome) {
             cy.getByData('perfil-titulo').should('contain', userDataAPI.nome);
-            cy.log(`✓ Nome da API: "${userDataAPI.nome}" corresponde ao frontend`);
           }
 
           // Compara email da API com o exibido no frontend
           if (userDataAPI.email) {
             cy.getByData('perfil-campo-email').should('contain', userDataAPI.email);
-            cy.log(`✓ Email da API: "${userDataAPI.email}" corresponde ao frontend`);
           }
 
           // Verifica CPF (pode estar formatado diferente)
           if (userDataAPI.cpf) {
             cy.getByData('perfil-campo-cpf').should('exist');
-            cy.log(`✓ CPF existe na API e no frontend`);
           }
 
           // Verifica celular
           if (userDataAPI.celular) {
             cy.getByData('perfil-campo-celular').should('exist');
-            cy.log(`✓ Celular da API: "${userDataAPI.celular}"`);
           }
 
           // Verifica endereço
@@ -483,7 +474,6 @@ describe('Página de Perfil - Munícipe', () => {
             if (userDataAPI.endereco.logradouro) {
               cy.getByData('perfil-campo-logradouro').should('exist');
             }
-            cy.log(`✓ Endereço da API corresponde aos campos do frontend`);
           }
         }
       });
@@ -540,16 +530,13 @@ describe('Página de Perfil - Munícipe', () => {
         
         // Verifica se o nome foi atualizado na API
         expect(userDataAPI.nome).to.equal(dadosAtualizacao.nome);
-        cy.log(`✓ Nome persistido na API: "${userDataAPI.nome}"`);
 
         // Verifica se o celular foi atualizado
         const celularAPI = userDataAPI.celular?.replace(/\D/g, '');
         expect(celularAPI).to.include(dadosAtualizacao.celular);
-        cy.log(`✓ Celular persistido na API: "${userDataAPI.celular}"`);
 
         // Verifica se o número do endereço foi atualizado
         expect(userDataAPI.endereco?.numero?.toString()).to.equal(dadosAtualizacao.numero);
-        cy.log(`✓ Número do endereço persistido na API: "${userDataAPI.endereco?.numero}"`);
       });
     });
 
@@ -582,7 +569,6 @@ describe('Página de Perfil - Munícipe', () => {
           cy.getByData('perfil-titulo').should('contain', userDataAPI.nome);
         }
 
-        cy.log('✓ Dados do frontend permanecem consistentes com a API após reload');
       });
     });
 
@@ -608,10 +594,6 @@ describe('Página de Perfil - Munícipe', () => {
         expect(userData).to.have.property('email');
         expect(userData).to.have.property('cpf');
         
-        cy.log('✓ Estrutura da resposta da API está correta');
-        cy.log(`  - nome: ${userData.nome}`);
-        cy.log(`  - email: ${userData.email}`);
-        cy.log(`  - cpf: ${userData.cpf ? '***' : 'N/A'}`);
       });
     });
   });
