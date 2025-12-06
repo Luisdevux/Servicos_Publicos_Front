@@ -2,7 +2,7 @@
 
 **Projeto Vilhena+Pública - Sistema de Gestão de Serviços Públicos Municipais**
 
-**versão 2.1**
+**versão 2.2**
 
 ---
 
@@ -14,6 +14,7 @@
 | 04/12/2025 | 1.1 | Atualização após correções de testes e bug de descarte de alterações | Equipe de QA |
 | 06/12/2025 | 2.0 | Reestruturação completa: adição de módulos Admin, Autenticação e fluxos completos | Equipe de QA |
 | 06/12/2025 | 2.1 | Adição de módulos Operador, Secretaria e Componentes Globais (100% cobertura) | Equipe de QA |
+| 06/12/2025 | 2.2 | Simplificação da seção 4.2.2 - foco em casos essenciais com prioridades | Equipe de QA |
 
 ---
 
@@ -252,42 +253,26 @@ Este plano de testes abrange todos os módulos do sistema: **Autenticação (No-
 | CT024 | Deve ter elementos com atributos de acessibilidade adequados | RNF006 |
 | CT025 | Deve exibir imagens com atributos alt adequados | RNF006 |
 
-#### 4.2.2 Página de Demanda por Tipo
+#### 4.2.2 Página de Demanda por Tipo e Criação de Demanda
 
-| ID | Caso de Teste | Requisitos |
-|----|---------------|------------|
-| CT030 | Deve renderizar a página de demanda corretamente | RF009 |
-| CT031 | Deve exibir o banner com título do tipo de demanda | RF009 |
-| CT032 | Deve exibir o botão de voltar | RF009 |
-| CT033 | Deve exibir o campo de busca | RF010 |
-| CT034 | Deve exibir o botão de filtros | RF010 |
-| CT035 | Deve exibir o grid de cards de demanda quando há dados | RF009 |
-| CT036 | Deve carregar corretamente cada tipo de demanda (coleta, iluminação, animais, árvores, pavimentação, saneamento) | RF009 |
-| CT037 | Deve navegar de volta ao clicar em "Voltar" | RF009 |
-| CT038 | Deve permitir digitar no campo de busca | RF010 |
-| CT039 | Deve realizar busca com debounce ao digitar | RF010 |
-| CT040 | Deve limpar a busca ao clicar no botão de limpar | RF010 |
-| CT041 | Deve exibir/ocultar filtros ao clicar no botão | RF010 |
-| CT042 | Deve trocar de tipo ao clicar em um chip de filtro | RF010 |
-| CT043 | Deve exibir informações de paginação | RF010 |
-| CT044 | Deve navegar para a próxima página quando disponível | RF010 |
-| CT045 | Deve verificar existência de controles de paginação na primeira página | RF010 |
-| CT046 | Deve abrir o dialog de criação ao clicar em "Solicitar Serviço" | RF009 |
-| CT047 | Deve exibir todos os campos obrigatórios no formulário | RF009 |
-| CT048 | Deve preencher automaticamente endereço ao digitar CEP válido | RF021 |
-| CT049 | Deve verificar existência do campo de upload de imagem | RF009 |
-| CT050 | Deve verificar que botão de remover imagem existe quando há preview | RF009 |
-| CT051 | Deve fechar o dialog ao clicar em cancelar | RF009 |
-| CT052 | Deve criar demanda com sucesso preenchendo campos obrigatórios (validação de formulário) | RF009 |
-| CT053 | Deve verificar que campos obrigatórios têm validação | RF009 |
-| CT054 | Deve manter campos com valores válidos após validação falhar | RF009 |
-| CT055 | Deve exibir informação sobre imagem obrigatória no formulário | RF009 |
-| CT056 | Deve verificar CEP fora de Vilhena não autocompleta | RF022 |
-| CT057 | Deve exibir skeleton durante carregamento | RNF002 |
-| CT058 | Deve exibir mensagem quando não há serviços encontrados | RF009 |
-| CT059 | Deve exibir botão de tentar novamente em caso de erro | RNF010 |
-| CT060 | Deve exibir dados da API corretamente nos cards | RF009 |
-| CT061 | Deve enviar dados corretos para a API ao criar demanda | RF009 |
+| ID | Caso de Teste | Requisitos | Prioridade |
+|----|---------------|------------|------------|
+| CT030 | Deve renderizar a página de demanda corretamente | RF009 | Alta |
+| CT031 | Deve exibir o banner com título do tipo de demanda | RF009 | Média |
+| CT032 | Deve carregar corretamente cada tipo de demanda (coleta, iluminação, animais, árvores, pavimentação, saneamento) | RF009 | Alta |
+| CT033 | Deve exibir campo de busca e permitir filtrar serviços | RF010 | Média |
+| CT034 | Deve exibir controles de paginação quando há mais itens | RF010 | Média |
+| CT035 | Deve abrir o modal de criação ao clicar em "Criar demanda" | RF009 | Alta |
+| CT036 | Deve exibir todos os campos obrigatórios no formulário (CEP, bairro, logradouro, número, descrição, imagem) | RF009 | Alta |
+| CT037 | Deve preencher endereço automaticamente ao digitar CEP válido de Vilhena | RF021, RF022 | Alta |
+| CT038 | Deve rejeitar CEP fora da região de Vilhena (76980-000 a 76999-999) | RF022 | Alta |
+| CT039 | Deve fazer upload de imagem real e exibir preview | RF009 | Alta |
+| CT040 | Deve exibir erro ao submeter sem imagem obrigatória | RF009 | Alta |
+| CT041 | Deve exibir erros ao submeter formulário sem campos obrigatórios | RF009 | Alta |
+| CT042 | Deve exibir erro para descrição muito curta (mín. 10 caracteres) | RF009 | Média |
+| CT043 | Deve fechar o modal ao clicar em cancelar | RF009 | Média |
+| CT044 | Deve criar demanda com sucesso (fluxo completo com upload real) | RF009 | Alta |
+| CT045 | Deve exibir toast de sucesso após criação | RNF011 | Alta |
 
 #### 4.2.3 Meus Pedidos (Pedidos do Munícipe)
 
@@ -706,4 +691,4 @@ npx cypress open
 
 **Documento elaborado em:** 04 de dezembro de 2025
 
-**Última atualização:** 06 de dezembro de 2025 - versão 2.1
+**Última atualização:** 06 de dezembro de 2025 - versão 2.2
