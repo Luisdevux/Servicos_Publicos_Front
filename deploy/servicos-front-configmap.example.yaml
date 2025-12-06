@@ -1,3 +1,5 @@
+# CONFIGMAP EXAMPLE - Frontend Serviços Públicos
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,20 +8,21 @@ metadata:
     io.kompose.service: servicos-front-publicos
 
 data:
-  # Environment
+  # AMBIENTE
   NODE_ENV: "production"
   
   # API URLs
+  # Server-side (chamadas do Next.js server - interno no cluster)
   API_URL_SERVER_SIDED: "http://servicospublicos-api:80"
   
   # Client-side (chamadas do navegador - URL pública)
   NEXT_PUBLIC_API_URL: "https://servicospublicos-api.app.fslab.dev"
   
-  # NextAuth Configuration
+  # NEXTAUTH
   NEXTAUTH_URL: "https://servicospublicos.app.fslab.dev"
   
-  # GERAR EM PRODUÇÃO: openssl rand -base64 48
-  NEXTAUTH_SECRET: "<REPLACE_WITH_SECURE_VALUE>"
+  # GERAR: openssl rand -base64 48
+  NEXTAUTH_SECRET: "<GERAR_COM_OPENSSL>"
   
   # Proxy OAuth Callback
   PROXY_OAUTH_CALLBACK: "true"
