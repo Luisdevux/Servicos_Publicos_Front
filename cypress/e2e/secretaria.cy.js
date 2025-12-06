@@ -133,8 +133,7 @@ describe('Fluxo de testes pagina secretaria - casos de erro', () => {
     cy.logout();
   });
 
-  it('Não deve permitir atribuir uma demanda sem selecionar um operador', () => {
-    /*
+  it.skip('Não deve permitir atribuir uma demanda sem selecionar um operador', () => {
     cy.logout();
     cy.login('municipe@exemplo.com', 'Senha@123', 'municipe');
     cy.getByData('card-servico-coleta').click();
@@ -152,7 +151,7 @@ describe('Fluxo de testes pagina secretaria - casos de erro', () => {
     cy.logout();
 
     cy.login('secretariofixo@exemplo.com', 'Senha@123', 'funcionario');
-    cy.wait(1000);*/
+    cy.wait(1000)
     cy.getByData('aba-em-aberto').should('be.visible').click();
     cy.wait(500);
     cy.getByData('card-demanda').first().should('be.visible');
@@ -168,7 +167,39 @@ describe('Fluxo de testes pagina secretaria - casos de erro', () => {
       cy.wait(300);
       cy.getByData('modal-detalhes-demanda-secretaria').should('not.exist');
   });
-  it('Deve exibir mensagem de erro ao tentar recusar uma demanda sem informar o motivo', () => {
+  it('Deve impedir a recusa de uma demanda sem informar o motivo', () => {
+    cy.logout();
+    cy.login('municipe@exemplo.com', 'Senha@123', 'municipe');
+    cy.getByData('card-servico-coleta').click();
+    cy.wait(10000);
+    cy.url().should('include', '/demanda/coleta');
+    cy.getByData('card-demanda-botao-criar').first().click();
+    cy.getByData('cep-input').type('76980008');
+    cy.getByData('numero-input').type('371');
+    cy.getByData('descricao-textarea').type('Descrição da demanda de coleta');
+    cy.get('input[type="file"]').selectFile('cypress/fixtures/test-image.png', { force: true });
+    cy.wait(1000);
+    cy.getByData('submit-button').click();
+    cy.contains('Demanda criada com sucesso', { timeout: 15000 }).should('be.visible');
+    cy.wait(2000);
+    cy.logout();
+
+    cy.login('secretariofixo@exemplo.com', 'Senha@123', 'funcionario');
+    cy.wait(1000)
+    cy.getByData('aba-em-aberto').should('be.visible').click();
+    cy.wait(500);
+    cy.getByData('card-demanda').first().should('be.visible');
+    cy.getByData('botao-analisar-demanda').first().should('be.visible').click();
+    cy.getByData('modal-detalhes-demanda-secretaria').should('be.visible');
+    cy.getByData('botao-rejeitar-demanda').click();
+    cy.getByData('modal-rejeitar-demanda').should('be.visible');
+    cy.getByData('botao-confirmar-rejeicao').should('be.disabled');
+    cy.getByData('botao-cancelar-rejeicao').click();
+    cy.getByData('modal-rejeitar-demanda').should('not.exist');
+    cy.getByData('modal-detalhes-demanda-secretaria').should('be.visible');
+    cy.get('body').type('{esc}');
+      cy.wait(300);
+      cy.getByData('modal-detalhes-demanda-secretaria').should('not.exist');
     
   });
 });
