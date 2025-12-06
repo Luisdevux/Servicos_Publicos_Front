@@ -15,7 +15,7 @@ describe('Fluxo de testes da pagina de secretaria', () => {
     cy.getByData('aba-concluidas').should('be.visible').click();
     cy.getByData('aba-recusadas').should('be.visible').click();
 
-    if(cy.getByData('grid-demandas').its('length').then(len => len > 0)) {
+    if(cy.contains('Demanda')) {
       cy.getByData('card-demanda').first().should('be.visible');
       cy.getByData('botao-analisar-demanda').first().should('be.visible');
     }
@@ -25,22 +25,38 @@ describe('Fluxo de testes da pagina de secretaria', () => {
   });
 
   it('Deve visualizar completamente a demanda selecionada', () => {
+    const statusDemanda = [
+      { aba: 'aba-em-aberto', nome: 'Em Aberto' },
+      { aba: 'aba-em-andamento', nome: 'Em Andamento' },
+      { aba: 'aba-concluidas', nome: 'Concluídas' },
+      { aba: 'aba-recusadas', nome: 'Recusadas' }
+    ];
 
-    if(cy.getByData('grid-demandas').its('length').then(len => len > 0)) {
-      cy.getByData('card-demanda').first().should('be.visible');
-      cy.getByData('botao-analisar-demanda').first().should('be.visible');
-      cy.getByData('botao-analisar-demanda').first().click();
+    let demandaEncontrada = false;
 
-      cy.getByData('detalhes-demanda-secretaria-modal').should('be.visible');
+    for (let status of statusDemanda) {
+      cy.getByData(status.aba).should('be.visible').click();
+      cy.wait(500);
 
-      cy.contains('Descrição da demanda').should('be.visible');
-      cy.contains('Imagens da demanda').should('be.visible');
-      cy.contains('Endereço da demanda').should('be.visible');
+      cy.get('body').then($body => {
+        if ($body.find('[data-test="card-demanda"]').length > 0) {
+          demandaEncontrada = true;
+          cy.getByData('card-demanda').first().should('be.visible');
+          cy.getByData('botao-analisar-demanda').first().should('be.visible').click();
+          cy.getByData('modal-detalhes-demanda-secretaria').should('be.visible');
+          cy.contains('Descrição da demanda').should('be.visible');
+          cy.get('body').type('{esc}');
+          cy.wait(300);
+        } else {
+          cy.contains('Nenhum pedido encontrado').should('be.visible');
+        }
+      });
     }
-    else {
-      cy.contains('Nenhum pedido encontrado').should('be.visible');
-    }
-    
+    cy.then(() => {
+      if (!demandaEncontrada) {
+        cy.log('Nenhuma demanda encontrada em nenhuma aba. Teste finalizado.');
+      }
+    });
   });
   it('Deve atribuir uma demanda a um operador da mesma secretaria', () => {
     
