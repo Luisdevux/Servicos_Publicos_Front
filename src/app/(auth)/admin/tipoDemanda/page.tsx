@@ -68,6 +68,7 @@ export default function TipoDemandaAdminPage() {
                   value={pendingSearchTitulo}
                   onChange={(e) => setPendingSearchTitulo(e.target.value)}
                   className="w-64 pl-9"
+                  data-test="input-titulo"
                 />
               </div>
               <Select value={selectedTipo || "all"} onValueChange={(value) => setSelectedTipo(value === "all" ? "" : value)}>
@@ -89,6 +90,7 @@ export default function TipoDemandaAdminPage() {
               <Button
                 className="bg-global-text-primary hover:bg-global-text-secondary text-white"
                 onClick={() => setOpenCreate(true)}
+                data-test="button-adicionar-tipo-demanda"
               >
                 <Plus className="h-4 w-4 mr-2" /> Adicionar tipo de demanda
               </Button>

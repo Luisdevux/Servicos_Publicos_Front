@@ -255,21 +255,27 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-3 p-6 max-h-[calc(95vh-140px)] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="space-y-3 p-6 max-h-[calc(95vh-140px)] overflow-y-auto" data-test="create-tipo-demanda-form">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Título</Label>
-              <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Coleta de Entulho" disabled={isSubmitting} />
+              <Input 
+                value={titulo} 
+                onChange={(e) => setTitulo(e.target.value)} 
+                placeholder="Coleta de Entulho" 
+                disabled={isSubmitting}
+                data-test="input-titulo-tipo-demanda"
+              />
             </div>
             <div className="space-y-2">
               <Label>Tipo</Label>
               <Select value={tipo} onValueChange={(v) => setTipo(v)}>
-                <SelectTrigger>
+                <SelectTrigger data-test="select-tipo-tipo-demanda">
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent data-test="select-tipo-options">
                   {TIPOS_DEMANDA.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                    <SelectItem key={t} value={t} data-test={`select-tipo-option-${t.toLowerCase().replace(/\s+/g, '-')}`}>{t}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -278,7 +284,13 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
 
           <div className="space-y-2">
             <Label>Descrição</Label>
-            <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Solicite coleta de entulho, restos de construção, reforma e materiais volumosos que não são coletados no lixo comum" disabled={isSubmitting} />
+            <Textarea 
+              value={descricao} 
+              onChange={(e) => setDescricao(e.target.value)} 
+              placeholder="Solicite coleta de entulho, restos de construção, reforma e materiais volumosos que não são coletados no lixo comum" 
+              disabled={isSubmitting}
+              data-test="input-descricao-tipo-demanda"
+            />
           </div>
 
           <div className="space-y-3">
@@ -287,12 +299,13 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
             </Label>
 
             {previewUrl && (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-global-border group">
+              <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-global-border group" data-test="preview-imagem-container">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={previewUrl}
                   alt="Preview"
                   className="w-full h-full object-cover"
+                  data-test="preview-imagem"
                   onError={() => {
                     if (previewUrl?.startsWith('blob:')) {
                       URL.revokeObjectURL(previewUrl);
@@ -305,6 +318,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
                   onClick={handleRemoveImage}
                   className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10 cursor-pointer"
                   aria-label="Remover imagem"
+                  data-test="button-remover-imagem"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -320,6 +334,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-global-accent hover:shadow-lg hover:brightness-110 text-white"
                 )}
+                data-test="label-upload-imagem"
               >
                 <Upload className="w-4 h-4" />
                 <span className="text-sm">
@@ -332,6 +347,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
                   onChange={handleImageChange}
                   disabled={isSubmitting}
                   className="hidden"
+                  data-test="input-imagem"
                 />
               </label>
             </div>
@@ -340,12 +356,13 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
             </p>
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-2" data-test="create-tipo-demanda-actions">
             <Button
               type="button"
               onClick={() => onOpenChange(false)}
               className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
               disabled={isSubmitting}
+              data-test="button-cancelar"
             >
               Cancelar
             </Button>
@@ -353,6 +370,7 @@ export function CreateTipoDemandaModal({ open, onOpenChange, tipoDemanda, onSave
               type="submit"
               disabled={isSubmitting}
               className="flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all"
+              data-test="button-criar-tipo"
             >
               {isSubmitting ? (
                 <>
