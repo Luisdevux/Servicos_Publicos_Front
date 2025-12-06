@@ -29,7 +29,7 @@ export const createColaboradorSchema = z.object({
   celular: z
     .string()
     .min(1, 'Celular é obrigatório')
-    .regex(CELULAR_REGEX, 'Celular deve conter 11 dígitos no formato (69)999999999'),
+    .regex(CELULAR_REGEX, 'Celular deve conter 11 dígitos no formato (69) 99999-9999'),
   
   cnh: z
     .string()

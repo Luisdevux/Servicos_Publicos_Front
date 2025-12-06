@@ -159,7 +159,7 @@ Cypress.Commands.add("waitForPageLoad", () => {
 // COMANDO: Interceptar API
 // ==========================================
 Cypress.Commands.add("interceptApi", (method: string, urlPattern: string, alias: string) => {
-  const apiUrl = Cypress.env('API_URL') || 'https://servicospublicos-api.app.fslab.dev';
+  const apiUrl = Cypress.env('API_URL') || 'http://localhost:8000';
   cy.intercept(method as Cypress.HttpMethod, `${apiUrl}${urlPattern}`).as(alias);
 });
 

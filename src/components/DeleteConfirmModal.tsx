@@ -36,7 +36,10 @@ export function DeleteConfirmModal({
       await onConfirm();
       onOpenChange(false);
     } catch (error) {
-      toast.error('Erro ao excluir secretaria.');
+      const errorMessage = error instanceof Error && error.message 
+        ? error.message 
+        : 'Erro ao excluir item.';
+      toast.error(errorMessage);
     } finally {
       setIsDeleting(false);
     }
