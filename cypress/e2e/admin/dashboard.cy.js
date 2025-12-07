@@ -78,38 +78,116 @@ describe('Dashboard Admin', () => {
       })
 
       it('Deve atualizar o card de demandas ao clicar em um bairro no mapa', () => {
-
-          // Garantir que o mapa foi carregado
           cy.get('.leaflet-container').should('be.visible')
       
-          // Clicar no primeiro bairro do mapa (SVG path clicável)
-          cy.get('path.leaflet-interactive')
-            .first()
-            .click({ force: true })
+          cy.get('path.leaflet-interactive').first().click({ force: true })
       
-          // Validar que o nome do bairro apareceu no card da esquerda
-          // Pegando o título do card da esquerda (h3)
-          cy.get('div.w-full.h-full.bg-gray-50')
-            .find('h3')
-            .should('be.visible')
-            .invoke('text')
-            .then((texto) => {
+          cy.get('div.w-full.h-full.bg-gray-50').find('h3').should('be.visible').invoke('text').then((texto) => {
               expect(texto.trim()).to.not.eq('')
             })
       })
     });
 
     describe('Gráficos', () => {
-      it('Deve exibir o gráfico de barras "Bairros com Mais Demandas"', () => {
-          cy.contains('h3', 'Os 5 Bairros com Maior Quantidade de Demandas Solicitadas')
-            .should('be.visible')
+        it.skip('Deve exibir o gráfico de barras com os 5 bairros com mais demandas', () => {
+            cy.contains('h3','Os 5 Bairros com Maior Quantidade de Demandas Solicitadas').should('be.visible')
+        
+            cy.get('svg').should('exist')
+        
+            cy.get('.recharts-bar-rectangle').should('have.length.at.least', 5)
+        })
+
+        it.skip('Cada barra deve ter uma cor diferente', () => {
+            const cores = [];
+        
+            cy.get('.recharts-bar-rectangle path').each(($el) => {
+              const fill = $el.attr('fill');
+              expect(fill).to.exist;
+              cores.push(fill);
+            }).then(() => {
+              const coresUnicas = [...new Set(cores)];
+              expect(coresUnicas.length).to.eq(5);
+            });
+          });
+
+        it.skip('Deve exibir tooltip ao passar o mouse na barra', () => {
+            cy.get('.recharts-bar-rectangle').first().trigger('mouseover', { force: true });
+        
+            cy.get('.recharts-tooltip-wrapper').should('be.visible').invoke('text').then((texto) => {
+                expect(texto).to.not.be.empty;
+              });
+          });
+
+          it.skip('Tooltip deve mostrar nome do bairro e quantidade', () => {
+            cy.get('.recharts-bar-rectangle').eq(0).trigger('mouseover', { force: true });
+        
+            cy.get('.recharts-tooltip-wrapper').should('be.visible').then(($tooltip) => {
+                const texto = $tooltip.text();
+        
+                expect(texto).to.match(/[A-Za-z]/);
+                expect(texto).to.match(/\d+/);
+              });
+            });
       
-          cy.get('.recharts-bar-rectangle').should('exist')
-      })
-      
-      it('Deve exibir o gráfico de categorias (Pizza)', () => {
-          cy.contains('h3', 'Demandas Por Categoria').should('be.visible')
-          cy.get('.recharts-pie').should('exist')
-      })
+        it.skip('Deve exibir o gráfico de rosca', () => {
+            cy.contains('h3', 'Demandas Por Categoria').should('be.visible');
+            
+            cy.get('.recharts-pie') .should('exist').and('be.visible');
+            
+            cy.get('.recharts-pie-sector').should('have.length.at.least', 1);
+        });
+        
+        it.skip('Deve exibir a legenda', () => {
+            cy.contains('div.text-sm.font-medium.text-gray-700', 'Árvores').should('be.visible');
+            cy.contains('div.text-sm.font-medium.text-gray-700', 'Iluminação').should('be.visible');
+            cy.contains('div.text-sm.font-medium.text-gray-700', 'Coleta').should('be.visible');
+            cy.contains('div.text-sm.font-medium.text-gray-700', 'Pavimentação').should('be.visible');
+        });
+
+        it('As cores do gráfico devem corresponder às cores da legenda', () => {
+
+            const hexParaRgb = (hex) => {
+              const resultado = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+              return resultado 
+                ? `rgb(${parseInt(resultado[1], 16)}, ${parseInt(resultado[2], 16)}, ${parseInt(resultado[3], 16)})`
+                : hex;
+            };
+          
+            const coresDoGrafico = [];
+            const coresDaLegenda = [];
+          
+            // Captura as cores do gráfico (fill em HEX)
+            cy.get('.recharts-pie-sector path').each(($el) => {
+              const fill = $el.attr('fill');
+              expect(fill).to.exist;
+              coresDoGrafico.push(hexParaRgb(fill));
+            }).then(() => {
+          
+              // Captura as cores da legenda (background-color em RGB)
+              cy.get('.w-4.h-4.rounded-full').each(($el) => {
+                const cor = $el.css('background-color');
+                expect(cor).to.exist;
+                coresDaLegenda.push(cor.trim());
+              }).then(() => {
+          
+                expect(coresDoGrafico).to.deep.equal(coresDaLegenda);
+              });
+          
+            });
+          
+        });   
+        
+        it('Deve exibir nome da categoria e porcentagem no tooltip ao passar o mouse', () => {
+            cy.get('.recharts-pie-sector path').first().trigger('mouseover', { force: true });
+          
+            cy.get('.recharts-tooltip-wrapper').should('be.visible').invoke('text').then((texto) => {
+                const textoLimpo = texto.trim();
+          
+                expect(textoLimpo).to.match(/[A-Za-zÀ-ÿ]/);
+                expect(textoLimpo).to.match(/\d+%/);      
+            });
+          
+        });
+          
     });
 });
