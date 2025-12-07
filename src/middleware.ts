@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 // Rotas públicas que não precisam de autenticação
-const PUBLIC_PATHS = ['/', '/login', '/signup', '/recover-password', '/cadastro', '/esqueci-senha', '/nova-senha', '/verificar-email', '/aguardando-verificacao'] as const;
+const PUBLIC_PATHS = ['/', '/login', '/signup', '/recover-password', '/cadastro', '/esqueci-senha', '/nova-senha', '/verificar-email', '/aguardando-verificacao', '/politica-de-privacidade', '/termos-de-uso'] as const;
 
 // Rotas que apenas usuários não autenticados podem acessar
 const AUTH_ONLY_PATHS = ['/login', '/signup', '/cadastro'] as const;

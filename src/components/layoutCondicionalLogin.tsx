@@ -3,6 +3,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 
@@ -26,6 +27,13 @@ interface ConditionalLayoutProps {
 
 export default function ConditionalLayout({ children, dadosFooter }: ConditionalLayoutProps) {
   const pathname = usePathname();
+  const [is404, setIs404] = useState(false);
+
+  useEffect(() => {
+    // Detecta se é uma página 404 verificando se o children contém o marcador
+    const hasNotFoundMarker = document.querySelector('[data-not-found-page="true"]');
+    setIs404(!!hasNotFoundMarker);
+  }, [pathname, children]);
   
   // Rotas onde não devemos mostrar header e footer
   const hideHeaderFooter = 
@@ -36,7 +44,8 @@ export default function ConditionalLayout({ children, dadosFooter }: Conditional
     pathname?.startsWith('/verificar-email') || 
     pathname?.startsWith('/aguardando-verificacao') || 
     pathname?.startsWith('/admin') || 
-    pathname?.startsWith('/admin/dashboard');
+    pathname?.startsWith('/admin/dashboard') ||
+    is404;
     
   if (hideHeaderFooter) {
     return <>{children}</>;
