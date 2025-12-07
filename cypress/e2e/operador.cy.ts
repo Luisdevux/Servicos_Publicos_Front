@@ -36,7 +36,7 @@ describe('Painel do Operador', () => {
     cy.logout();
   });
 
-  describe.skip('Renderização da Página', () => {
+  describe('Renderização da Página', () => {
     it('Deve renderizar a página do operador corretamente', () => {
       cy.url().should('include', '/operador');
       cy.getByData('page-operador').should('exist').and('be.visible');
@@ -59,8 +59,8 @@ describe('Painel do Operador', () => {
     });
   });
 
-  describe.skip('Abas de Status', () => {
-    it.skip('Deve exibir abas "Aguardando Resolução" e "Concluídas"', () => {
+  describe('Abas de Status', () => {
+    it('Deve exibir abas "Aguardando Resolução" e "Concluídas"', () => {
       cy.getByData('abas-status').should('exist').and('be.visible');
       cy.getByData('aba-aguardando-resolucao')
         .should('exist')
@@ -120,7 +120,7 @@ describe('Painel do Operador', () => {
     });
   });
 
-  describe.skip('Filtros', () => {
+  describe('Filtros', () => {
     it('Deve exibir seção de filtros', () => {
       cy.getByData('filtro-container').should('exist').and('be.visible');
     });
@@ -161,7 +161,7 @@ describe('Painel do Operador', () => {
     });
   });
 
-  describe.skip('Grid de Demandas', () => {
+  describe('Grid de Demandas', () => {
     it('Deve exibir grid de demandas ou mensagem de lista vazia', () => {
       cy.get('body').then(($body) => {
         if ($body.find('[data-test="card-demanda"]').length > 0) {
@@ -206,7 +206,7 @@ describe('Painel do Operador', () => {
     });
   });
 
-  describe.skip('Modal de Detalhes da Demanda', () => {
+  describe('Modal de Detalhes da Demanda', () => {
     it('Deve abrir modal ao clicar em "Analisar"', () => {
       cy.getByData('aba-aguardando-resolucao').click();
       cy.wait(1000);
@@ -292,7 +292,7 @@ describe('Painel do Operador', () => {
   });
 
   describe('Devolver Demanda', () => {
-    it.skip('Deve abrir modal de devolução ao clicar em "Devolver"', () => {
+    it('Deve abrir modal de devolução ao clicar em "Devolver"', () => {
       cy.getByData('aba-aguardando-resolucao').click();
       cy.wait(1000);
 
@@ -311,7 +311,7 @@ describe('Painel do Operador', () => {
       cy.get('body').type('{esc}');
     });
 
-    it.skip('Deve exibir campo de motivo obrigatório no modal de devolução', () => {
+    it('Deve exibir campo de motivo obrigatório no modal de devolução', () => {
       cy.getByData('aba-aguardando-resolucao').click();
       cy.wait(1000);
 
@@ -330,7 +330,7 @@ describe('Painel do Operador', () => {
       cy.get('body').type('{esc}');
     });
 
-    it.skip('Deve permitir cancelar devolução', () => {
+    it('Deve permitir cancelar devolução', () => {
       cy.getByData('aba-aguardando-resolucao').click();
       cy.wait(1000);
 
@@ -346,7 +346,7 @@ describe('Painel do Operador', () => {
       cy.get('body').type('{esc}');
     });
 
-    it.skip('Deve validar que o motivo é obrigatório', () => {
+    it('Deve validar que o motivo é obrigatório', () => {
       cy.getByData('aba-aguardando-resolucao').click();
       cy.wait(1000);
 
@@ -367,7 +367,7 @@ describe('Painel do Operador', () => {
       cy.get('body').type('{esc}');
     });
 
-    it.skip('Deve exibir botão de confirmar devolução', () => {
+    it('Deve exibir botão de confirmar devolução', () => {
       cy.getByData('aba-aguardando-resolucao').click();
       cy.wait(1000);
 
@@ -389,7 +389,7 @@ describe('Painel do Operador', () => {
   });
 
   describe('Resolver Demanda', () => {
-    it.skip('Deve abrir modal de resolução ao clicar em "Resolver"', () => {
+    it('Deve abrir modal de resolução ao clicar em "Resolver"', () => {
       cy.getByData('aba-aguardando-resolucao').click();
       cy.wait(1000);
 
@@ -408,7 +408,7 @@ describe('Painel do Operador', () => {
       cy.get('body').type('{esc}');
     });
 
-    it.skip('Deve exibir campo de descrição da resolução obrigatório', () => {
+    it('Deve exibir campo de descrição da resolução obrigatório', () => {
       cy.getByData('aba-aguardando-resolucao').click();
       cy.wait(1000);
 
@@ -471,6 +471,9 @@ describe('Painel do Operador', () => {
           cy.getByData('modal-resolver-demanda').should('be.visible');
           
           cy.getByData('botao-confirmar-resolucao').should('be.disabled');
+
+          cy.getByData('botao-cancelar-resolucao').click();
+          cy.wait(300);
         }
       });
       cy.get('body').type('{esc}');
@@ -485,7 +488,10 @@ describe('Painel do Operador', () => {
           cy.getByData('botao-analisar-demanda').first().click();
           cy.getByData('botao-resolver-demanda').click();
           cy.getByData('modal-resolver-demanda').should('be.visible');
+          cy.getByData('textarea-descricao-resolucao').type('Descrição da resolução para teste automatizado.');
           cy.getByData('botao-confirmar-resolucao').should('exist');
+          cy.getByData('botao-cancelar-resolucao').click();
+          cy.wait(300);
         }
       });
       cy.get('body').type('{esc}');
@@ -654,6 +660,7 @@ describe('Painel do Operador', () => {
               cy.getByData('modal-carousel-imagens').should('exist').and('be.visible');
             }
           });
+          cy.get('body').type('{esc}');
         }
       });
     });
@@ -672,6 +679,7 @@ describe('Painel do Operador', () => {
               cy.getByData('modal-carousel-imagens-resolucao').should('exist').and('be.visible');
             }
           });
+          cy.get('body').type('{esc}');
         }
       });
     });
