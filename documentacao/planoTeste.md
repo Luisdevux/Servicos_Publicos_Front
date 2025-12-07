@@ -338,14 +338,12 @@ Este plano de testes abrange todos os módulos do sistema: **Autenticação (No-
 
 | Funcionalidades | Comportamento Esperado | Verificações | Critérios de Aceite |
 |-----------------|------------------------|--------------|---------------------|
-| Renderização do Dashboard | ● Ao acessar /admin/dashboard, deve carregar a página. <br>● Deve exibir 4 cards de métricas: Demandas, Colaboradores ativos, Operadores ativos, Secretarias. <br>● Cada card deve ter ícone e valor. | ● Cards visíveis <br>● Valores numéricos <br>● Ícones corretos | ● Dashboard renderizado |
+| Renderização do Dashboard | ● Ao acessar /admin/dashboard, deve carregar a página. <br>● Deve exibir 4 cards de métricas: Demandas, Colaboradores ativos, Operadores ativos, Secretarias. <br>● Cada card deve ter valor. | ● Cards visíveis <br>● Valores numéricos <br>● Ícones corretos | ● Dashboard renderizado |
 | Métricas em Tempo Real | ● Os valores devem ser carregados da API. <br>● Deve exibir loading durante carregamento. <br>● Valores devem refletir dados reais. | ● Requisição para /dashboard/metricas <br>● Dados corretos | ● Métricas atualizadas |
 | Mapa de Demandas por Bairro | ● Deve exibir mapa interativo de Vilhena. <br>● Bairros devem ser coloridos conforme quantidade de demandas. <br>● Ao clicar em bairro, deve exibir detalhes. | ● Mapa carregado <br>● Cores aplicadas <br>● Interatividade funcional | ● Mapa interativo |
 | Card de Informações do Bairro | ● Ao selecionar bairro no mapa, deve exibir card com detalhes. <br>● Deve listar demandas do bairro. <br>● Deve permitir navegação pelas demandas. | ● Card atualizado <br>● Demandas listadas | ● Informações por bairro |
 | Gráfico de Barras (Top 5 Bairros) | ● Deve exibir gráfico com os 5 bairros com mais demandas. <br>● Barras devem ter cores distintas. <br>● Deve exibir valores. | ● Gráfico renderizado <br>● Dados corretos <br>● Cores aplicadas | ● Gráfico funcional |
 | Gráfico de Rosca (Demandas por Categoria) | ● Deve exibir gráfico de rosca com distribuição por categoria. <br>● Deve exibir legenda. <br>● Cores devem corresponder às categorias. | ● Gráfico renderizado <br>● Legenda visível <br>● Proporções corretas | ● Gráfico funcional |
-| Sessão Expirada | ● Ao receber erro 498 ou "expirado", deve exibir toast e redirecionar para login. | ● Toast exibido <br>● Redirecionamento | ● Tratamento de sessão |
-| Responsividade | ● Dashboard deve adaptar para diferentes viewports. <br>● Gráficos devem redimensionar. | ● Layout adaptado | ● Design responsivo |
 
 #### 4.3.2 Gerenciamento de Secretarias
 
