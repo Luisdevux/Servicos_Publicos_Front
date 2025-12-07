@@ -187,6 +187,7 @@ export default function DetalhesDemandaOperadorModal({
       <Dialog open={isOpen && !showDevolverModal && !showResolverModal} onOpenChange={onClose}>
         <DialogContent 
           className="max-w-2xl! max-h-[90vh]! overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
+          data-test="modal-detalhes-demanda-operador"
         >
           {/* Background decorativo */}
           <div className="absolute inset-0 pointer-events-none opacity-5 z-0">
@@ -333,12 +334,14 @@ export default function DetalhesDemandaOperadorModal({
               <Button
                 onClick={() => setShowDevolverModal(true)}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                data-test="botao-devolver-demanda"
               >
                 Devolver
               </Button>
               <Button
                 onClick={() => setShowResolverModal(true)}
                 className="flex-1 bg-global-accent hover:bg-global-accent-hover text-white"
+                data-test="botao-resolver-demanda"
               >
                 Resolver
               </Button>
@@ -348,7 +351,7 @@ export default function DetalhesDemandaOperadorModal({
       </Dialog>
 
       <Dialog open={showDevolverModal} onOpenChange={setShowDevolverModal}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="max-w-md bg-white" data-test="modal-devolver-demanda">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-gray-900">
               Motivo da Devolução
@@ -360,11 +363,13 @@ export default function DetalhesDemandaOperadorModal({
               value={motivoDevolucao}
               onChange={(e) => setMotivoDevolucao(e.target.value)}
               className="min-h-[120px]"
+              data-test="textarea-motivo-devolucao"
             />
             <div className="flex gap-3">
               <Button
                 onClick={() => setShowDevolverModal(false)}
                 className="flex-1 border border-gray-300"
+                data-test="botao-cancelar-devolucao"
               >
                 Cancelar
               </Button>
@@ -372,6 +377,7 @@ export default function DetalhesDemandaOperadorModal({
                 onClick={handleDevolver}
                 disabled={!motivoDevolucao.trim() || isDevolvendo}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+                data-test="botao-confirmar-devolucao"
               >
                 {isDevolvendo ? "Devolvendo..." : "Confirmar Devolução"}
               </Button>
@@ -381,7 +387,7 @@ export default function DetalhesDemandaOperadorModal({
       </Dialog>
 
       <Dialog open={showResolverModal} onOpenChange={setShowResolverModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-white border-none shadow-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-white border-none shadow-2xl" data-test="modal-resolver-demanda">
           <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden">
             {/* Grid de pontos decorativos */}
             <div className="absolute inset-0 opacity-10">
@@ -433,6 +439,7 @@ export default function DetalhesDemandaOperadorModal({
                   descricaoResolucao.length > 500 && "border-red-500 focus:border-red-500 focus:ring-red-500"
                 )}
                 required
+                data-test="textarea-descricao-resolucao"
               />
             </div>
 
@@ -501,6 +508,7 @@ export default function DetalhesDemandaOperadorModal({
                 disabled={previewUrls.length >= 3}
                 className="hidden"
                 id="upload-resolucao"
+                data-test="input-upload-imagens-resolucao"
               />
 
               <p className="text-xs text-global-text-primary">
@@ -523,6 +531,7 @@ export default function DetalhesDemandaOperadorModal({
                 }}
                 disabled={isResolvendo}
                 className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
+                data-test="botao-cancelar-resolucao"
               >
                 Cancelar
               </Button>
@@ -533,6 +542,7 @@ export default function DetalhesDemandaOperadorModal({
                   "flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
                   (isResolvendo || !descricaoResolucao.trim() || imagensResolucao.length === 0) && "opacity-70 cursor-not-allowed"
                 )}
+                data-test="botao-confirmar-resolucao"
               >
                 {isResolvendo ? (
                   <>
