@@ -234,55 +234,56 @@ export default function DetalhesDemandaOperadorModal({
             <div className="space-y-6">
               {demanda.descricao && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-global-text-primary">
+                  <h3 className="text-lg font-medium text-global-text-primary" data-test="modal-titulo-descricao">
                     Descrição da demanda
                   </h3>
-                  <div className="bg-global-bg-select p-4 rounded-md">
+                  <div className="bg-global-bg-select p-4 rounded-md" data-test="modal-descricao">
                     <p>{demanda.descricao}</p>
                   </div>
                 </div>
               )}
 
               {demanda.imagem && (
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium text-global-text-primary">
+                <div className="space-y-2" data-test="modal-imagens-demanda-container">
+                  <h3 className="text-lg font-medium text-global-text-primary" data-test="modal-titulo-imagens">
                     {Array.isArray(demanda.imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
                   </h3>
                   <ImageCarousel 
                     images={Array.isArray(demanda.imagem) ? demanda.imagem : [demanda.imagem]}
                     alt="Imagem da demanda"
                     className="h-48"
+                    data-test="modal-carousel-imagens"
                   />
                 </div>
               )}
 
               {demanda.endereco && (
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium text-global-text-primary">
+                <div className="space-y-2" data-test="modal-endereco-container">
+                  <h3 className="text-lg font-medium text-global-text-primary" data-test="modal-titulo-endereco">
                     Endereço do ocorrido
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Bairro</label>
-                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="modal-endereco-bairro">
                         {demanda.endereco.bairro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Tipo de logradouro</label>
-                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="modal-endereco-tipo-logradouro">
                         {demanda.endereco.tipoLogradouro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Logradouro</label>
-                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="modal-endereco-logradouro">
                         {demanda.endereco.logradouro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Número</label>
-                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="modal-endereco-numero">
                         {demanda.endereco.numero}
                       </div>
                     </div>
@@ -294,11 +295,11 @@ export default function DetalhesDemandaOperadorModal({
               {demanda.status === "Concluída" && (
                 <>
                   {demanda.resolucao && (
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-global-text-primary">
+                    <div className="space-y-2" data-test="modal-resolucao-container">
+                      <h3 className="text-lg font-medium text-global-text-primary" data-test="modal-titulo-resolucao">
                         Descrição da conclusão da demanda
                       </h3>
-                      <div className="bg-green-50 p-4 rounded-md border border-green-200">
+                      <div className="bg-green-50 p-4 rounded-md border border-green-200" data-test="modal-resolucao">
                         <p className="text-global-text-primary">{demanda.resolucao}</p>
                       </div>
                     </div>
@@ -312,14 +313,15 @@ export default function DetalhesDemandaOperadorModal({
                         : [];
                     
                     return imagensResolucao.length > 0 ? (
-                      <div className="space-y-2">
-                        <h3 className="text-lg font-medium text-global-text-primary">
+                      <div className="space-y-2" data-test="modal-imagens-resolucao-container">
+                        <h3 className="text-lg font-medium text-global-text-primary" data-test="modal-titulo-imagens-resolucao">
                           {imagensResolucao.length > 1 ? 'Imagens da conclusão' : 'Imagem da conclusão'}
                         </h3>
                         <ImageCarousel 
                           images={imagensResolucao}
                           alt="Imagem da conclusão"
                           className="h-48"
+                          data-test="modal-carousel-imagens-resolucao"
                         />
                       </div>
                     ) : null;
