@@ -3,7 +3,7 @@ import { defineConfig } from "cypress";
 export default defineConfig({
   e2e: {
     // AMBIENTE QA - Testes Cypress
-    baseUrl: 'http://localhost:3000',
+    baseUrl: 'https://servicospublicos-qa.app.fslab.dev',
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
