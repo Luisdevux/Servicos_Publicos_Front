@@ -1,6 +1,23 @@
 /// <reference types="cypress"/>
 
-describe('Dashboard Admin - Página de Secretaria - Caminho feliz', () => {
+/**
+ * Testes E2E - Página de Secretarias
+ * 
+ * Cobertura:
+ * - Renderização da página
+ * - Tabela de secretarias com colunas (Nome, Sigla, Email, Telefone, Tipo)
+ * - Campo de busca
+ * - Criação de secretaria
+ * - Edição de secretaria
+ * - Exclusão de secretaria
+ * - Validação de campos obrigatórios
+ * - Validação de dados inválidos
+ * - Tratamento de erros (criação, edição, exclusão)
+ * - Estado vazio
+ * - Loading state
+ */
+
+describe('Dashboard Admin - Página de Secretaria', () => {
   
   beforeEach(() => {
     cy.login('admin@exemplo.com', 'Senha@123', 'funcionario');
@@ -10,10 +27,7 @@ describe('Dashboard Admin - Página de Secretaria - Caminho feliz', () => {
     cy.wait(1000);
   });
 
-  afterEach(() => {
-    cy.contains('button', 'Sair').click();
-  })
-
+  describe('Renderização e elementos visuais', () => {
     it('Deve exibir a tabela de secretarias com todas as colunas', () => {
       cy.get('table', { timeout: 10000 }).should('be.visible');
 
@@ -37,7 +51,9 @@ describe('Dashboard Admin - Página de Secretaria - Caminho feliz', () => {
         });
       });
     });
+  });
 
+  describe('Criação de secretaria', () => {
     it('Deve criar uma nova secretaria com sucesso', () => {
       cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
         if (req.body.method === 'POST' && req.body.endpoint.includes('/secretaria')) {
@@ -76,7 +92,9 @@ describe('Dashboard Admin - Página de Secretaria - Caminho feliz', () => {
       cy.contains(nome).should('be.visible');
 
     });
+  });
 
+  describe('Edição de secretaria', () => {
     it('Deve editar uma secreatria com sucesso', () => {
       cy.intercept('POST', '/api/auth/secure-fetch', (req) => {
         if (req.body.method === 'PATCH' && req.body.endpoint.includes('/secretaria')) {
@@ -109,14 +127,16 @@ describe('Dashboard Admin - Página de Secretaria - Caminho feliz', () => {
       cy.getByData('secretaria-search-input').clear().type(novoNome);
       cy.contains(novoNome).should('be.visible');
     });
+  });
 
+  describe('Exclusão de secretaria', () => {
     it(('Deve deletar uma secretaria com sucesso'), () => {
       cy.intercept('POST', '/api/auth/secure-fetch').as('deleteSecretaria');
 
       cy.get('[data-test="secretaria-table-body"] tr').first().within(() => {cy.get('[data-test^="secretaria-delete-button"]').click();});
 
-      cy.getByData('delete-secretaria-dialog').should('be.visible');
-      cy.getByData('delete-secretaria-confirm-button').click();
+      cy.getByData('delete-demanda-dialog').should('be.visible');
+      cy.getByData('delete-demanda-confirm-button').click();
 
       cy.wait('@deleteSecretaria').then((interception) => {
         expect(interception.request.body.method).to.equal('DELETE');
@@ -125,9 +145,10 @@ describe('Dashboard Admin - Página de Secretaria - Caminho feliz', () => {
       });
       cy.contains('[data-sonner-toast]', 'Secretaria excluída com sucesso!').should('be.visible');
     }) 
+  });
 });
 
-describe('Caminho de erro', () => {
+describe('Validação de formulário', () => {
   beforeEach(() => {
     cy.login('admin@exemplo.com', 'Senha@123', 'funcionario');
     cy.wait(2000);
@@ -136,36 +157,50 @@ describe('Caminho de erro', () => {
     cy.wait(1000);
   });
 
-  it('Não deve criar uma secretaria com campos obrigatórios vazios', () => {
-    cy.getByData('secretaria-add-button').click();
+  describe('Validação de campos obrigatórios', () => {
+    it('Não deve criar uma secretaria com campos obrigatórios vazios', () => {
+      cy.getByData('secretaria-add-button').click();
 
-    cy.getByData('create-secretaria-dialog').should('be.visible');
-  
-    cy.getByData('submit-button').click();
-  
-    cy.getByData('erro-nome').should('contain', 'Nome é obrigatório');
-    cy.getByData('erro-sigla').should('contain', 'Sigla é obrigatória');
-    cy.getByData('erro-email').should('contain', 'Email é obrigatório');
-    cy.getByData('erro-telefone').should('contain', 'Telefone é obrigatório');
-    cy.getByData('erro-tipo').should('contain', 'Tipo de Secretaria é obrigatório');
+      cy.getByData('create-secretaria-dialog').should('be.visible');
+    
+      cy.getByData('submit-button').click();
+    
+      cy.getByData('erro-nome').should('contain', 'Nome é obrigatório');
+      cy.getByData('erro-sigla').should('contain', 'Sigla é obrigatória');
+      cy.getByData('erro-email').should('contain', 'Email é obrigatório');
+      cy.getByData('erro-telefone').should('contain', 'Telefone é obrigatório');
+      cy.getByData('erro-tipo').should('contain', 'Tipo de Secretaria é obrigatório');
+    });
   });
 
-  it('Não deve criar uma secretaria com dados inválidos', () => {
-    cy.getByData('secretaria-add-button').click();
-    cy.getByData('create-secretaria-dialog').should('be.visible');
-  
-    cy.getByData('nome-secretaria-input').type('A');
-    cy.getByData('submit-button').click();
-    cy.getByData('erro-nome').should('contain', 'Nome deve ter pelo menos 3 caracteres');
+  describe('Validação de dados inválidos', () => {
+    it('Não deve criar uma secretaria com dados inválidos', () => {
+      cy.getByData('secretaria-add-button').click();
+      cy.getByData('create-secretaria-dialog').should('be.visible');
+    
+      cy.getByData('nome-secretaria-input').type('A');
+      cy.getByData('submit-button').click();
+      cy.getByData('erro-nome').should('contain', 'Nome deve ter pelo menos 3 caracteres');
 
-    cy.getByData('sigla-secretaria-input').type('A');
-    cy.getByData('erro-sigla').should('contain', 'Sigla deve ter pelo menos 2 caracteres');
-  
-    cy.getByData('email-secretaria-input').type('email ruim');
-    cy.getByData('erro-email').should('contain', 'Email inválido');
-  
-    cy.getByData('telefone-secretaria-input').type('123');
-    cy.getByData('erro-telefone').should('contain', 'Telefone inválido');
+      cy.getByData('sigla-secretaria-input').type('A');
+      cy.getByData('erro-sigla').should('contain', 'Sigla deve ter pelo menos 2 caracteres');
+    
+      cy.getByData('email-secretaria-input').type('email ruim');
+      cy.getByData('erro-email').should('contain', 'Email inválido');
+    
+      cy.getByData('telefone-secretaria-input').type('123');
+      cy.getByData('erro-telefone').should('contain', 'Telefone inválido');
+    });
+  });
+});
+
+describe('Tratamento de erros', () => {
+  beforeEach(() => {
+    cy.login('admin@exemplo.com', 'Senha@123', 'funcionario');
+    cy.wait(2000);
+    cy.url().should('include', '/admin/dashboard');
+    cy.visit(`/admin/secretaria`);
+    cy.wait(1000);
   });
   
   it('Deve exibir mensagem de erro ao falhar ao editar secretaria', () => {
@@ -205,7 +240,7 @@ describe('Caminho de erro', () => {
       cy.get('[data-test^="secretaria-delete-button"]').click();
     });
   
-    cy.getByData('delete-secretaria-confirm-button').click();
+    cy.getByData('delete-demanda-confirm-button').click();
   
     cy.wait('@deleteErro').then((interception) => {
       expect(interception.response.body.message).to.eq('Erro ao excluir secretaria.')
