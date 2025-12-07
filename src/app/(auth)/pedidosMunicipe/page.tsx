@@ -148,7 +148,7 @@ export default function MeusPedidosPage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-global-bg">
+    <div className="min-h-screen bg-global-bg" data-test="page-meus-pedidos">
       <Banner
         icone={ClipboardList}
         titulo="Meus Pedidos"
@@ -161,6 +161,7 @@ export default function MeusPedidosPage() {
             <Button
               onClick={() => router.push('/')}
               className="h-10 px-4 bg-transparent border border-gray-200 text-global-text-primary hover:bg-gray-50"
+              data-test="button-voltar"
             >
               <ChevronLeft className="w-4 h-4 mr-2" />
               <span className="font-medium">Voltar</span>
@@ -168,7 +169,7 @@ export default function MeusPedidosPage() {
           </div>
 
           {/* Abas de Status com Separador */}
-          <div className="mb-6 border-b border-gray-200 overflow-x-auto">
+          <div className="mb-6 border-b border-gray-200 overflow-x-auto" data-test="filtros-status">
             <div className="flex gap-4 md:gap-8 min-w-max md:min-w-0">
               <button
                 onClick={() => {
@@ -180,6 +181,7 @@ export default function MeusPedidosPage() {
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
+                data-test="filtro-todos"
               >
                 Todas
                 {contadorTodos > 0 && (
@@ -201,6 +203,7 @@ export default function MeusPedidosPage() {
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
+                data-test="filtro-aguardando"
               >
                 Aguardando Aprovação
                 {contadorAguardando > 0 && (
@@ -222,6 +225,7 @@ export default function MeusPedidosPage() {
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
+                data-test="filtro-aceito"
               >
                 Aceitas
                 {contadorAceitos > 0 && (
@@ -243,6 +247,7 @@ export default function MeusPedidosPage() {
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
+                data-test="filtro-concluida"
               >
                 Concluídas
                 {contadorConcluidas > 0 && (
@@ -264,6 +269,7 @@ export default function MeusPedidosPage() {
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
+                data-test="filtro-recusado"
               >
                 Recusadas
                 {contadorRecusados > 0 && (
@@ -278,7 +284,7 @@ export default function MeusPedidosPage() {
           </div>
 
           <div className="mb-6">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500" data-test="contador-pedidos">
               {isLoading ? "Carregando..." : obterTextoFiltro(totalDocs, filtroSelecionado)}
             </span>
           </div>
@@ -291,7 +297,7 @@ export default function MeusPedidosPage() {
               ))}
             </div>
           ) : pedidos.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-test="grid-pedidos">
               {pedidos.map((pedido) => (
                 <CardPedido
                   key={pedido.id}
@@ -301,9 +307,9 @@ export default function MeusPedidosPage() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-16">
+            <div className="flex flex-col items-center justify-center py-16" data-test="estado-vazio">
               <ClipboardList className="h-16 w-16 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-global-text-primary mb-2">
+              <h3 className="text-lg font-medium text-global-text-primary mb-2" data-test="estado-vazio-titulo">
                 Nenhum pedido encontrado
               </h3>
               <p className="text-sm text-gray-500 text-center">
@@ -316,18 +322,19 @@ export default function MeusPedidosPage() {
           )}
 
           {pedidos.length > 0 && (
-            <div className="flex items-center justify-center gap-4 pt-8">
+            <div className="flex items-center justify-center gap-4 pt-8" data-test="paginacao">
               <button
                 onClick={handlePaginaAnterior}
                 disabled={!response?.data?.hasPrevPage}
                 className="flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 aria-label="Página anterior"
+                data-test="button-pagina-anterior"
               >
                 <ChevronLeft size={20} />
               </button>
               
               <div className="flex items-center gap-2 text-sm text-global-text-primary">
-                <span>Página {paginaAtual} de {totalPaginas}</span>
+                <span data-test="indicador-pagina">Página {paginaAtual} de {totalPaginas}</span>
               </div>
               
               <button
@@ -335,6 +342,7 @@ export default function MeusPedidosPage() {
                 disabled={!response?.data?.hasNextPage}
                 className="flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 aria-label="Próxima página"
+                data-test="button-proxima-pagina"
               >
                 <ChevronRight size={20} />
               </button>

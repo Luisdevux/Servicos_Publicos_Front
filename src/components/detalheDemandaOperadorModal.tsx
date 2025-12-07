@@ -187,6 +187,7 @@ export default function DetalhesDemandaOperadorModal({
       <Dialog open={isOpen && !showDevolverModal && !showResolverModal} onOpenChange={onClose}>
         <DialogContent 
           className="max-w-2xl! max-h-[90vh]! overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
+          data-test="modal-detalhes-demanda-operador"
         >
           {/* Background decorativo */}
           <div className="absolute inset-0 pointer-events-none opacity-5 z-0">
@@ -233,55 +234,56 @@ export default function DetalhesDemandaOperadorModal({
             <div className="space-y-6">
               {demanda.descricao && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-global-text-primary">
+                  <h3 className="text-lg font-medium text-global-text-primary" data-test="modal-titulo-descricao">
                     Descrição da demanda
                   </h3>
-                  <div className="bg-global-bg-select p-4 rounded-md">
+                  <div className="bg-global-bg-select p-4 rounded-md" data-test="modal-descricao">
                     <p>{demanda.descricao}</p>
                   </div>
                 </div>
               )}
 
               {demanda.imagem && (
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium text-global-text-primary">
+                <div className="space-y-2" data-test="modal-imagens-demanda-container">
+                  <h3 className="text-lg font-medium text-global-text-primary" data-test="modal-titulo-imagens">
                     {Array.isArray(demanda.imagem) ? 'Imagens da demanda' : 'Imagem da demanda'}
                   </h3>
                   <ImageCarousel 
                     images={Array.isArray(demanda.imagem) ? demanda.imagem : [demanda.imagem]}
                     alt="Imagem da demanda"
                     className="h-48"
+                    data-test="modal-carousel-imagens"
                   />
                 </div>
               )}
 
               {demanda.endereco && (
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium text-global-text-primary">
+                <div className="space-y-2" data-test="modal-endereco-container">
+                  <h3 className="text-lg font-medium text-global-text-primary" data-test="modal-titulo-endereco">
                     Endereço do ocorrido
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Bairro</label>
-                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="modal-endereco-bairro">
                         {demanda.endereco.bairro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Tipo de logradouro</label>
-                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="modal-endereco-tipo-logradouro">
                         {demanda.endereco.tipoLogradouro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Logradouro</label>
-                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="modal-endereco-logradouro">
                         {demanda.endereco.logradouro}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm text-gray-600">Número</label>
-                      <div className="p-2 rounded-md bg-global-bg-select text-sm">
+                      <div className="p-2 rounded-md bg-global-bg-select text-sm" data-test="modal-endereco-numero">
                         {demanda.endereco.numero}
                       </div>
                     </div>
@@ -293,11 +295,11 @@ export default function DetalhesDemandaOperadorModal({
               {demanda.status === "Concluída" && (
                 <>
                   {demanda.resolucao && (
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-global-text-primary">
+                    <div className="space-y-2" data-test="modal-resolucao-container">
+                      <h3 className="text-lg font-medium text-global-text-primary" data-test="modal-titulo-resolucao">
                         Descrição da conclusão da demanda
                       </h3>
-                      <div className="bg-green-50 p-4 rounded-md border border-green-200">
+                      <div className="bg-green-50 p-4 rounded-md border border-green-200" data-test="modal-resolucao">
                         <p className="text-global-text-primary">{demanda.resolucao}</p>
                       </div>
                     </div>
@@ -311,14 +313,15 @@ export default function DetalhesDemandaOperadorModal({
                         : [];
                     
                     return imagensResolucao.length > 0 ? (
-                      <div className="space-y-2">
-                        <h3 className="text-lg font-medium text-global-text-primary">
+                      <div className="space-y-2" data-test="modal-imagens-resolucao-container">
+                        <h3 className="text-lg font-medium text-global-text-primary" data-test="modal-titulo-imagens-resolucao">
                           {imagensResolucao.length > 1 ? 'Imagens da conclusão' : 'Imagem da conclusão'}
                         </h3>
                         <ImageCarousel 
                           images={imagensResolucao}
                           alt="Imagem da conclusão"
                           className="h-48"
+                          data-test="modal-carousel-imagens-resolucao"
                         />
                       </div>
                     ) : null;
@@ -333,12 +336,14 @@ export default function DetalhesDemandaOperadorModal({
               <Button
                 onClick={() => setShowDevolverModal(true)}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                data-test="botao-devolver-demanda"
               >
                 Devolver
               </Button>
               <Button
                 onClick={() => setShowResolverModal(true)}
                 className="flex-1 bg-global-accent hover:bg-global-accent-hover text-white"
+                data-test="botao-resolver-demanda"
               >
                 Resolver
               </Button>
@@ -348,7 +353,7 @@ export default function DetalhesDemandaOperadorModal({
       </Dialog>
 
       <Dialog open={showDevolverModal} onOpenChange={setShowDevolverModal}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="max-w-md bg-white" data-test="modal-devolver-demanda">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-gray-900">
               Motivo da Devolução
@@ -360,11 +365,13 @@ export default function DetalhesDemandaOperadorModal({
               value={motivoDevolucao}
               onChange={(e) => setMotivoDevolucao(e.target.value)}
               className="min-h-[120px]"
+              data-test="textarea-motivo-devolucao"
             />
             <div className="flex gap-3">
               <Button
                 onClick={() => setShowDevolverModal(false)}
                 className="flex-1 border border-gray-300"
+                data-test="botao-cancelar-devolucao"
               >
                 Cancelar
               </Button>
@@ -372,6 +379,7 @@ export default function DetalhesDemandaOperadorModal({
                 onClick={handleDevolver}
                 disabled={!motivoDevolucao.trim() || isDevolvendo}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+                data-test="botao-confirmar-devolucao"
               >
                 {isDevolvendo ? "Devolvendo..." : "Confirmar Devolução"}
               </Button>
@@ -381,7 +389,7 @@ export default function DetalhesDemandaOperadorModal({
       </Dialog>
 
       <Dialog open={showResolverModal} onOpenChange={setShowResolverModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-white border-none shadow-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-white border-none shadow-2xl" data-test="modal-resolver-demanda">
           <DialogHeader className="bg-global-accent py-6 px-6 rounded-t-lg relative overflow-hidden">
             {/* Grid de pontos decorativos */}
             <div className="absolute inset-0 opacity-10">
@@ -433,6 +441,7 @@ export default function DetalhesDemandaOperadorModal({
                   descricaoResolucao.length > 500 && "border-red-500 focus:border-red-500 focus:ring-red-500"
                 )}
                 required
+                data-test="textarea-descricao-resolucao"
               />
             </div>
 
@@ -501,6 +510,7 @@ export default function DetalhesDemandaOperadorModal({
                 disabled={previewUrls.length >= 3}
                 className="hidden"
                 id="upload-resolucao"
+                data-test="input-upload-imagens-resolucao"
               />
 
               <p className="text-xs text-global-text-primary">
@@ -523,6 +533,7 @@ export default function DetalhesDemandaOperadorModal({
                 }}
                 disabled={isResolvendo}
                 className="flex-1 border-2 border-global-border bg-white text-global-text-primary hover:bg-global-bg-select font-medium"
+                data-test="botao-cancelar-resolucao"
               >
                 Cancelar
               </Button>
@@ -533,6 +544,7 @@ export default function DetalhesDemandaOperadorModal({
                   "flex-1 bg-global-accent hover:brightness-110 hover:shadow-lg text-white font-semibold transition-all",
                   (isResolvendo || !descricaoResolucao.trim() || imagensResolucao.length === 0) && "opacity-70 cursor-not-allowed"
                 )}
+                data-test="botao-confirmar-resolucao"
               >
                 {isResolvendo ? (
                   <>

@@ -126,7 +126,11 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
     },
   });
 
-  const grupos: Grupo[] = useMemo(() => Array.isArray(gruposAll) ? gruposAll : [], [gruposAll]);
+  const grupos: Grupo[] = useMemo(() => {
+    const allGrupos = Array.isArray(gruposAll) ? gruposAll : [];
+    // Filtrar para remover "Munícipe" da lista
+    return allGrupos.filter(grupo => grupo.nome?.toLowerCase() !== 'municipe');
+  }, [gruposAll]);
 
   // Popular formulário quando em modo edição
   useEffect(() => {

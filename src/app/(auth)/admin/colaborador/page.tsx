@@ -13,9 +13,11 @@ import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 import { ColaboradorDetailsModal } from "@/components/colaboradorDetailsModal";
 import { toast } from "sonner";
 import { formatCPF, formatPhoneNumber } from "@/lib/profileHelpers";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ColaboradorAdminPage() {
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
   const [page, setPage] = useState(1);
   const [pendingSearchText, setPendingSearchText] = useState("");
   const [searchText, setSearchText] = useState("");
@@ -210,8 +212,21 @@ export default function ColaboradorAdminPage() {
                               </button>
                               <button
                                 type="button"
-                                className="p-1.5 hover:bg-red-50 rounded cursor-pointer"
-                                onClick={(e) => { e.stopPropagation(); setUsuarioToDelete(c); setOpenDelete(true); }}
+                                className={`p-1.5 rounded ${
+                                  c._id === currentUser?.id 
+                                    ? 'opacity-50 cursor-not-allowed' 
+                                    : 'hover:bg-red-50 cursor-pointer'
+                                }`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (c._id === currentUser?.id) {
+                                    toast.error('Você não pode excluir sua própria conta como Administrador! Verifique e peça a outro administrador para realizar esta ação.');
+                                    return;
+                                  }
+                                  setUsuarioToDelete(c);
+                                  setOpenDelete(true);
+                                }}
+                                title={c._id === currentUser?.id ? 'Você não pode excluir sua própria conta' : 'Excluir colaborador'}
                               >
                                 <Trash className="h-4 w-4 text-red-600" />
                               </button>

@@ -97,6 +97,7 @@ export default function DetalhesDemandaSecretariaModal({
       <Dialog open={isOpen && !showRejeitarModal && !showConfirmarModal} onOpenChange={onClose}>
         <DialogContent 
           className="max-w-2xl! max-h-[90vh]! overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col"
+          data-test="modal-detalhes-demanda-secretaria"
         >
           {/* Background decorativo */}
           <div className="absolute inset-0 pointer-events-none opacity-5 z-0">
@@ -312,12 +313,14 @@ export default function DetalhesDemandaSecretariaModal({
               <Button
                 onClick={() => setShowRejeitarModal(true)}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                data-test="botao-rejeitar-demanda"
               >
                 Rejeitar
               </Button>
               <Button
                 onClick={() => setShowConfirmarModal(true)}
                 className="flex-1 bg-global-accent hover:bg-global-accent-hover text-white"
+                data-test="botao-confirmar-demanda"
               >
                 Confirmar
               </Button>
@@ -337,7 +340,7 @@ export default function DetalhesDemandaSecretariaModal({
       </Dialog>
 
       <Dialog open={showRejeitarModal} onOpenChange={setShowRejeitarModal}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="max-w-md bg-white" data-test="modal-rejeitar-demanda">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-gray-900">
               Motivo da Rejeição
@@ -349,11 +352,13 @@ export default function DetalhesDemandaSecretariaModal({
               value={motivoRejeicao}
               onChange={(e) => setMotivoRejeicao(e.target.value)}
               className="min-h-[120px]"
+              data-test="textarea-motivo-rejeicao"
             />
             <div className="flex gap-3">
               <Button
                 onClick={() => setShowRejeitarModal(false)}
                 className="flex-1 border border-gray-300"
+                data-test="botao-cancelar-rejeicao"
               >
                 Cancelar
               </Button>
@@ -361,6 +366,7 @@ export default function DetalhesDemandaSecretariaModal({
                 onClick={handleRejeitar}
                 disabled={!motivoRejeicao.trim() || isRejeitando}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+                data-test="botao-confirmar-rejeicao"
               >
                 {isRejeitando ? "Rejeitando..." : "Confirmar Rejeição"}
               </Button>
@@ -370,7 +376,7 @@ export default function DetalhesDemandaSecretariaModal({
       </Dialog>
 
       <Dialog open={showConfirmarModal} onOpenChange={setShowConfirmarModal}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="max-w-md bg-white" data-test="modal-atribuir-operador">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-gray-900">
               Escolher Operador
@@ -381,8 +387,8 @@ export default function DetalhesDemandaSecretariaModal({
               <label className="text-sm font-medium text-gray-700">
                 Selecione o operador responsável
               </label>
-              <Select value={operadorSelecionado} onValueChange={setOperadorSelecionado}>
-                <SelectTrigger>
+              <Select value={operadorSelecionado} onValueChange={setOperadorSelecionado} data-test="select-operador">
+                <SelectTrigger data-test="select-trigger-operador">
                   <SelectValue placeholder="Escolha um operador" />
                 </SelectTrigger>
                 <SelectContent>
@@ -404,6 +410,7 @@ export default function DetalhesDemandaSecretariaModal({
               <Button
                 onClick={() => setShowConfirmarModal(false)}
                 className="flex-1 border border-gray-300"
+                data-test="botao-cancelar-atribuicao"
               >
                 Cancelar
               </Button>
@@ -411,6 +418,7 @@ export default function DetalhesDemandaSecretariaModal({
                 onClick={handleConfirmar}
                 disabled={!operadorSelecionado || isConfirmando}
                 className="flex-1 bg-global-accent hover:bg-global-accent-hover text-white disabled:opacity-50"
+                data-test="botao-confirmar-atribuicao"
               >
                 {isConfirmando ? "Atribuindo..." : "Atribuir ao Operador"}
               </Button>

@@ -265,13 +265,13 @@ export default function PedidosOperadorPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-global-bg">
+      <div className="min-h-screen bg-global-bg" data-test="page-operador-loading">
         <Banner
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
         />
-        <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8">
+        <div className="px-6 sm:px-6 lg:px-40 py-6 md:py-8" data-test="skeleton-container">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, index) => (
               <CardDemandaOperadorSkeleton key={index} />
@@ -286,13 +286,13 @@ export default function PedidosOperadorPage() {
     const isTokenExpired = error instanceof ApiError && error.status === 498;
     
     return (
-      <div className="min-h-screen bg-global-bg">
+      <div className="min-h-screen bg-global-bg" data-test="page-operador-error">
         <Banner
           icone={ClipboardList}
           titulo="Pedidos recebidos"
           className="mb-6 md:mb-8"
         />
-        <div className="flex items-center justify-center py-12">
+        <div className="flex items-center justify-center py-12" data-test="error-container">
           <div className="text-center max-w-md mx-auto px-4">
             <ClipboardList className="h-16 w-16 text-red-400 mx-auto mb-4" />
             <p className="text-red-600 font-semibold mb-2">
@@ -319,7 +319,7 @@ export default function PedidosOperadorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-global-bg">
+    <div className="min-h-screen bg-global-bg" data-test="page-operador">
       <Banner
         icone={ClipboardList}
         titulo="Pedidos recebidos"
@@ -363,7 +363,7 @@ export default function PedidosOperadorPage() {
       <div className="px-6 sm:px-6 lg:px-40 py-4">
         <div className="mx-auto">
           {/* Abas de Status */}
-          <div className="mb-6 border-b border-gray-200 overflow-x-auto">
+          <div className="mb-6 border-b border-gray-200 overflow-x-auto" data-test="abas-status">
             <div className="flex gap-4 sm:gap-8 min-w-max">
               <button
                 onClick={() => {
@@ -375,12 +375,13 @@ export default function PedidosOperadorPage() {
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
+                data-test="aba-aguardando-resolucao"
               >
                 Aguardando Resolução
                 {contadorAguardandoResolucao > 0 && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
                     abaAtiva === "aguardando-resolucao" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
-                  }`}>
+                  }`} data-test="contador-aguardando-resolucao">
                     {contadorAguardandoResolucao}
                   </span>
                 )}
@@ -396,12 +397,13 @@ export default function PedidosOperadorPage() {
                     ? "border-[#337695] text-[#337695]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
+                data-test="aba-concluidas"
               >
                 Concluídas
                 {contadorConcluidas > 0 && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
                     abaAtiva === "concluidas" ? "bg-blue-100 text-[#337695]" : "bg-gray-100 text-gray-600"
-                  }`}>
+                  }`} data-test="contador-concluidas">
                     {contadorConcluidas}
                   </span>
                 )}
@@ -435,7 +437,7 @@ export default function PedidosOperadorPage() {
           </div>
 
           {demandasFiltradas.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16 mb-8" data-test="grid-demandas">
               {demandasPaginadas.map((demanda) => {
                 const imagensDemanda = demanda.imagem 
                   ? (Array.isArray(demanda.imagem) ? demanda.imagem : [demanda.imagem])
@@ -451,6 +453,8 @@ export default function PedidosOperadorPage() {
                   <div 
                     key={demanda.id}
                     className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden"
+                    data-test="card-demanda"
+                    data-demanda-id={demanda.id}
                   >
                     {imagensParaMostrar.length > 0 && (
                       <div className="w-full h-48 bg-gray-100 relative">
@@ -464,21 +468,22 @@ export default function PedidosOperadorPage() {
                     
                     <div className="p-6 flex flex-col flex-1">
                       <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-gray-700 flex-1">
+                        <h3 className="text-lg font-semibold text-gray-700 flex-1" data-test="card-titulo">
                           {demanda.titulo}
                         </h3>
-                        <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium capitalize whitespace-nowrap ${getStatusColor(demanda.tipo)}`}>
+                        <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium capitalize whitespace-nowrap ${getStatusColor(demanda.tipo)}`} data-test="card-tipo">
                           {demanda.tipo}
                         </span>
                       </div>
                       
-                      <p className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3">
+                      <p className="text-sm text-gray-900/80 mb-6 flex-1 line-clamp-3" data-test="card-descricao">
                         {demanda.descricao}
                       </p>
                       
                       <Button 
                         onClick={() => handleAnalisarDemanda(demanda.id)}
                         className="w-full bg-[#337695] hover:bg-[#2c5f7a] text-white"
+                        data-test="botao-analisar-demanda"
                       >
                         {demanda.status === "Concluída" ? "Analisar Resolução" : "Analisar Demanda"}
                       </Button>
@@ -488,12 +493,12 @@ export default function PedidosOperadorPage() {
               })}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12">
-            <ClipboardList className="h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-global-text-primary mb-2">
+          <div className="flex flex-col items-center justify-center mt-16 mb-8 py-12" data-test="estado-vazio">
+            <ClipboardList className="h-16 w-16 text-gray-400 mb-4" data-test="icone-estado-vazio" />
+            <h3 className="text-lg font-medium text-global-text-primary mb-2" data-test="titulo-estado-vazio">
               Nenhum pedido encontrado
             </h3>
-            <p className="text-sm text-gray-500 text-center">
+            <p className="text-sm text-gray-500 text-center" data-test="mensagem-estado-vazio">
               {filtroSelecionado === "todos" 
                 ? (abaAtiva === "aguardando-resolucao" 
                     ? "Não há pedidos aguardando resolução no momento."
@@ -508,11 +513,12 @@ export default function PedidosOperadorPage() {
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4" data-test="paginacao">
             <button
               onClick={handlePaginaAnterior}
               disabled={paginaAtual === 1}
               className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              data-test="botao-pagina-anterior"
             >
               <ChevronLeft size={20} />
             </button>
@@ -525,6 +531,7 @@ export default function PedidosOperadorPage() {
               onClick={handleProximaPagina}
               disabled={paginaAtual === totalPaginas}
               className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              data-test="botao-proxima-pagina"
             >
               <ChevronRight size={20} />
             </button>
