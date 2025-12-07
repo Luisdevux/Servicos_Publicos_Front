@@ -2,6 +2,10 @@
 
 Sistema web para gestão de demandas públicas municipais.
 
+## Urls do Sistema em Produção:
+- https://servicospublicos.app.fslab.dev
+- https://servicospublicos-api.app.fslab.dev
+
 ## 📋 Pré-requisitos
 
 - Docker e Docker Compose
