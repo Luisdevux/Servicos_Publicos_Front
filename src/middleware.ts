@@ -15,9 +15,9 @@ const ROLE_ROUTES = {
   // Rotas exclusivas de administrador
   admin: ['/admin'],
   // Rotas exclusivas de operador
-  operador: ['/operador'],
+  operador: ['/operador', '/perfil'],
   // Rotas exclusivas de secretário
-  secretario: ['/secretaria'],
+  secretario: ['/secretaria', '/perfil'],
   // Rotas de munícipe (inclui rotas compartilhadas como perfil e demanda genérica)
   municipe: ['/demanda', '/pedidosMunicipe', '/perfil'],
 } as const;
