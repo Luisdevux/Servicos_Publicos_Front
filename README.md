@@ -2,6 +2,10 @@
 
 Sistema web para gestão de demandas públicas municipais.
 
+## Urls do Sistema em Produção:
+- https://servicospublicos.app.fslab.dev
+- https://servicospublicos-api.app.fslab.dev
+
 ## 📋 Pré-requisitos
 
 - Docker e Docker Compose
@@ -38,7 +42,7 @@ fabrica/
 #### 2.2 Cadastre no Mailsender
 
 1. **Acesse o painel de cadastro:**
-   - URL: https://ruan-silva-3001.code.fslab.dev/cadastro
+   - URL: https://mailsender.app.fslab.dev/cadastro
 
 2. **Preencha o formulário:**
    - **Nome:** Nome do seu projeto (ex: "Servicos Publicos Dev")
@@ -57,7 +61,7 @@ fabrica/
 
 2. **Atualize as variáveis:**
    ```env
-   URL_MAIL_SERVICE="https://ruan-silva-5016.code.fslab.dev/api/emails/send"
+   URL_MAIL_SERVICE="https://mailsender.app.fslab.dev/api/emails/send"
    MAIL_API_KEY="sua-api-key-copiada-no-passo-2.2"
    ```
 
@@ -128,7 +132,7 @@ docker compose -f docker-compose-dev.yml up --build
 | **api-servicos** | Backend Node.js/Express | 5011 |
 | **frontend-servicos** | Frontend Next.js 14 | 3000 |
 
-> **Nota:** O serviço de email é hospedado externamente em https://ruan-silva-5016.code.fslab.dev
+> **Nota:** O serviço de email é hospedado externamente em https://mailsender.app.fslab.dev/tutorial
 
 ## ✨ Funcionalidades Principais
 
@@ -154,7 +158,7 @@ docker compose -f docker-compose-dev.yml up --build
 
 ### Email não enviado
 - Verifique se `MAIL_API_KEY` está correto no `.env` da API
-- Confirme que a URL do serviço está acessível: https://ruan-silva-5016.code.fslab.dev
+- Confirme que a URL do serviço está acessível: https://mailsender.app.fslab.dev
 - Veja logs da API: `docker logs api-servicos`
 
 ### Containers não iniciam
@@ -172,3 +176,16 @@ docker compose -f docker-compose-dev.yml up --build
 - **Validação:** Zod
 - **Email:** Mailsender (custom service)
 - **Container:** Docker, Docker Compose 
+
+## 👥 Equipe
+
+| Nome | Função | E-mail |
+|------|--------|--------|
+| Giullia Beatriz Chiarotti | Analista e Gerente de Projeto | giulliachiarotti@gmail.com |
+| Luis Felipe Lopes | Analista | luis.felipe.lopes1275@gmail.com |
+| Danielle Silva de Melo | Analista | danielleesilva.4@gmail.com |
+| Yuri Ribeiro Zetoles | Analista | yurizetoles0123@gmail.com |
+
+## 📄 Licença
+
+> ### Este projeto está licenciado sob a [Licença MIT](./LICENSE).
