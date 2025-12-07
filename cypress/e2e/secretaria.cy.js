@@ -9,7 +9,7 @@ describe('Fluxo de testes da pagina de secretaria', () => {
     cy.logout();
   });
 
-  it.skip('Deve carregar as demandas cadastradas na secretaria do usuario (por status)', () => {
+  it('Deve carregar as demandas cadastradas na secretaria do usuario (por status)', () => {
     cy.getByData('indicador-secretarias-container').should('be.visible');
     cy.getByData('aba-em-aberto').should('be.visible').click();
     cy.getByData('aba-em-andamento').should('be.visible').click();
@@ -25,7 +25,7 @@ describe('Fluxo de testes da pagina de secretaria', () => {
     }
   });
 
-  it.skip('Deve visualizar completamente a demanda selecionada', () => {
+  it('Deve visualizar completamente a demanda selecionada', () => {
     const statusDemanda = [
       { aba: 'aba-em-aberto', nome: 'Em Aberto' },
       { aba: 'aba-em-andamento', nome: 'Em Andamento' },
@@ -58,7 +58,7 @@ describe('Fluxo de testes da pagina de secretaria', () => {
       }
     });
   });
-  it.skip('Deve atribuir uma demanda a um operador da mesma secretaria', () => {
+  it('Deve atribuir uma demanda a um operador da mesma secretaria', () => {
       cy.logout();
       cy.login('municipe@exemplo.com', 'Senha@123', 'municipe');
       cy.getByData('card-servico-coleta').click();
@@ -91,7 +91,7 @@ describe('Fluxo de testes da pagina de secretaria', () => {
       cy.contains('Demanda atribuída com sucesso').should('be.visible');
   });
 
-  it.skip('Deve recusar uma demanda', () => {
+  it('Deve recusar uma demanda', () => {
     cy.logout();
     cy.login('municipe@exemplo.com', 'Senha@123', 'municipe');
     cy.getByData('card-servico-coleta').click();
@@ -133,7 +133,7 @@ describe('Fluxo de testes pagina secretaria - casos de erro', () => {
     cy.logout();
   });
 
-  it.skip('Não deve permitir atribuir uma demanda sem selecionar um operador', () => {
+  it('Não deve permitir atribuir uma demanda sem selecionar um operador', () => {
     cy.logout();
     cy.login('municipe@exemplo.com', 'Senha@123', 'municipe');
     cy.getByData('card-servico-coleta').click();
@@ -202,8 +202,4 @@ describe('Fluxo de testes pagina secretaria - casos de erro', () => {
       cy.getByData('modal-detalhes-demanda-secretaria').should('not.exist');
     
   });
-});
-describe('Fluxo de testes pagina secretaria - consistencia API e FRONT ', () => {
-
-
 });
