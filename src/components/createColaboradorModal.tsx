@@ -352,15 +352,17 @@ export function CreateColaboradorModal({ open, onOpenChange, usuario }: CreateCo
         <div className="p-6 max-h-[calc(95vh-140px)] overflow-y-auto">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-test="formulario-criar-colaborador">
-              {/* Banner informativo sobre email */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4" data-test="banner-info-email">
-                <div className="flex items-start gap-2">
-                  <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
-                  <p className="text-sm text-blue-800">
-                    <strong>Definição de Senha:</strong> Após cadastrar o colaborador, um email será enviado automaticamente com um link para que ele defina sua própria senha de acesso ao sistema.
-                  </p>
+              {/* Banner informativo sobre email, apenas no modo de criação */}
+              {!isEditMode && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4" data-test="banner-info-email">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                    <p className="text-sm text-blue-800">
+                      <strong>Definição de Senha:</strong> Após cadastrar o colaborador, um email será enviado automaticamente com um link para que ele defina sua própria senha de acesso ao sistema.
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Dados pessoais */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

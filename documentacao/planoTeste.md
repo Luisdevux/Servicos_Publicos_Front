@@ -10,7 +10,7 @@ O **Vilhena+Pública** é um sistema web para gerenciamento de serviços públic
 
 O sistema possui três níveis de acesso: **Munícipe** (cidadãos), **Funcionários** (Operadores e Secretários) e **Administradores**, cada um com funcionalidades específicas conforme seu perfil de atuação.
 
-> **Documentação Detalhada:** As suites de teste individuais (15 suites com 389 casos de teste implementados) estão disponíveis em [`documentacao/suites/`](suites/) com índice completo em [`documentacao/README.md`](README.md)
+> **Documentação Detalhada:** As suites de teste individuais (15 suites com 389 casos de teste implementados) estão disponíveis em [`suites/`](suites/) com índice completo em [`README.md`](README.md)
 
 ---
 

@@ -188,7 +188,19 @@ export default function ColaboradorAdminPage() {
                           className="hover:bg-gray-50 cursor-pointer"
                           onClick={() => { setUsuarioDetails(c); setOpenDetails(true); }}
                         >
-                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">{c.nome}</td>
+                          <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">
+                            <div className="flex items-center gap-2">
+                              <span>{c.nome}</span>
+                              {c._id === currentUser?.id && (
+                                <span 
+                                  className="inline-flex items-center rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-xs font-medium"
+                                  data-test="badge-voce"
+                                >
+                                  Você
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">{c.email}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900 hidden md:table-cell">{formatCPF(c.cpf || '')}</td>
                           <td className="px-3 md:px-6 py-3 whitespace-normal wrap-break-word text-sm text-gray-900">{formatPhoneNumber(c.celular || '')}</td>
@@ -220,7 +232,7 @@ export default function ColaboradorAdminPage() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (c._id === currentUser?.id) {
-                                    toast.error('Você não pode excluir sua própria conta como Administrador! Verifique e peça a outro administrador para realizar esta ação.');
+                                    toast.error('Você não pode excluir sua própria conta como administrador! Verifique e peça a outro administrador para realizar esta ação.');
                                     return;
                                   }
                                   setUsuarioToDelete(c);
