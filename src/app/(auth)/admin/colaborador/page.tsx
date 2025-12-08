@@ -232,7 +232,7 @@ export default function ColaboradorAdminPage() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (c._id === currentUser?.id) {
-                                    toast.error('Você não pode excluir sua própria conta como Administrador! Verifique e peça a outro administrador para realizar esta ação.');
+                                    toast.error('Você não pode excluir sua própria conta como administrador! Verifique e peça a outro administrador para realizar esta ação.');
                                     return;
                                   }
                                   setUsuarioToDelete(c);
