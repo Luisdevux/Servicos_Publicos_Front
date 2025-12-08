@@ -18,12 +18,11 @@ Next.js 15 + React 19 com React Query. Formulários com validações complexas (
 | RF003 – Filtrar por nível de acesso | NF003 – Validações rigorosas |
 | RF004 – Filtrar por status (Ativo/Inativo) | NF004 – Proteção admin principal |
 | RF005 – Adicionar colaborador | NF005 – Toast notifications |
-| RF006 – Editar colaborador (exceto admin) | |
-| RF007 – Inativar colaborador (exceto admin) | |
-| RF008 – Reativar colaborador | |
-| RF009 – Validar CPF único e válido | |
-| RF010 – Validar e-mail único | |
-| RF011 – Validar CEP de Vilhena | |
+| RF006 – Editar colaborador | |
+| RF007 – Excluir colaborador (exceto admin)| |
+| RF008 – Validar CPF único e válido | |
+| RF00 – Validar e-mail único | |
+| RF010 – Validar CEP de Vilhena | |
 
 ## 4 - Casos de Teste
 
@@ -36,9 +35,8 @@ Next.js 15 + React 19 com React Query. Formulários com validações complexas (
 | Filtro nível acesso | ● Filtrar por Operador, Secretário, Administrador | ● Dropdown funcional <br>● Lista filtrada | ● Filtro funcional |
 | Filtro status | ● Filtrar por Ativo/Inativo | ● Dropdown funcional <br>● Lista filtrada | ● Filtro funcional |
 | Adicionar | ● Modal com campos: Nome*, Email*, CPF*, Celular*, Data Nascimento*, Cargo*, Portaria*, Nível*, CEP*, Número* <br>● Validações completas | ● Modal abre <br>● Validações funcionam <br>● POST /usuarios <br>● Toast sucesso | ● Criação funcional |
-| Editar | ● Modal com dados pré-preenchidos <br>● Não permitir editar admin principal | ● Dados corretos <br>● Proteção admin <br>● PATCH /usuarios/:id | ● Edição funcional |
-| Inativar | ● Modal confirmação <br>● Não permitir inativar admin principal <br>● Status atualizado | ● Proteção admin <br>● Status mudado <br>● Toast sucesso | ● Inativação funcional |
-| Reativar | ● Permitir reativar inativo | ● Status mudado <br>● Toast sucesso | ● Reativação funcional |
+| Editar | ● Modal com dados pré-preenchidos <br>  | ● Dados corretos <br>● PATCH /usuarios/:id | ● Edição funcional |
+| Excluir | ● Modal confirmação <br> ● Não permitir inativar admin principal <br>● Status atualizado | ● Status mudado <br>● Proteção admin <br>● Toast sucesso | ● Inativação funcional |
 
 #### Validações
 
@@ -53,7 +51,7 @@ Next.js 15 + React 19 com React Query. Formulários com validações complexas (
 
 | Funcionalidades | Comportamento Esperado | Verificações | Critérios de Aceite |
 |-----------------|------------------------|--------------|---------------------|
-| Admin protegido | ● Não permitir editar/excluir admin principal | ● Botões desabilitados ou ocultos <br>● Mensagem informativa | ● Proteção funcional |
+| Admin protegido | ● Não permitir excluir admin principal | ● Botões desabilitados ou ocultos <br>● Mensagem informativa | ● Proteção funcional |
 
 ## 5 - Classificação de Bugs
 
