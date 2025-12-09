@@ -75,7 +75,7 @@ export default function PedidosSecretariaPage() {
     queryKey: ['demandas-secretaria'],
     queryFn: async () => {
       try {
-        const result = await demandaService.buscarDemandas();
+        const result = await demandaService.buscarDemandas({ limit: 1000 });
         return result;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
