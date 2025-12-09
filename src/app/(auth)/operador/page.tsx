@@ -73,7 +73,7 @@ export default function PedidosOperadorPage() {
     queryFn: async () => {
       try {
         // A API já deve retornar apenas as demandas do operador logado
-        const result = await demandaService.buscarDemandas();
+        const result = await demandaService.buscarDemandas({ limit: 1000 });
         return result;
       } catch (err) {
         console.error("Erro ao buscar demandas:", err);
