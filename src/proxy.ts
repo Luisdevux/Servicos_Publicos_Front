@@ -1,4 +1,4 @@
-// src/middleware.ts
+// src/proxy.ts
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -83,7 +83,7 @@ function isProtectedRoute(pathname: string): boolean {
   return allProtectedRoutes.some(route => pathname.startsWith(route));
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Pega o token do NextAuth JWT

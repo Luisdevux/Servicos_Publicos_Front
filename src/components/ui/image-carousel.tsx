@@ -22,14 +22,16 @@ export function ImageCarousel({ images, alt = "Imagem", className }: ImageCarous
   const nextImage = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     e?.preventDefault();
-    setCurrentIndex((prev) => (prev + 1) % images.length);
+    const imagensValidas = images?.filter((img) => img && img.trim() !== '') || [];
+    setCurrentIndex((prev) => (prev + 1) % imagensValidas.length);
     setIsLoading(true);
   };
 
   const prevImage = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     e?.preventDefault();
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    const imagensValidas = images?.filter((img) => img && img.trim() !== '') || [];
+    setCurrentIndex((prev) => (prev - 1 + imagensValidas.length) % imagensValidas.length);
     setIsLoading(true);
   };
 
@@ -52,9 +54,13 @@ export function ImageCarousel({ images, alt = "Imagem", className }: ImageCarous
     setIsFullscreenOpen(true);
   };
 
-  if (!images || images.length === 0) return null;
+  // Filtrar imagens vazias ou inválidas
+  const imagensValidas = images?.filter((img) => img && img.trim() !== '') || [];
+  
+  if (imagensValidas.length === 0) return null;
 
   const zoomScale = isHovering ? 2 : 1;
+  const currentImage = imagensValidas[currentIndex] || imagensValidas[0];
 
   return (
     <>
@@ -64,20 +70,22 @@ export function ImageCarousel({ images, alt = "Imagem", className }: ImageCarous
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <Image
-          src={images[currentIndex]}
-          alt={`${alt} ${currentIndex + 1}`}
-          fill
-          className="object-contain cursor-pointer"
-          style={{ 
-            transform: `scale(${zoomScale})`,
-            transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`,
-            transition: isHovering ? 'transform-origin 0.1s ease-out' : 'transform 0.3s ease-out, transform-origin 0.3s ease-out'
-          }}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          onLoadingComplete={() => setIsLoading(false)}
-          onClick={handleImageClick}
-        />
+        {currentImage && (
+          <Image
+            src={currentImage}
+            alt={`${alt} ${currentIndex + 1}`}
+            fill
+            className="object-contain cursor-pointer"
+            style={{ 
+              transform: `scale(${zoomScale})`,
+              transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`,
+              transition: isHovering ? 'transform-origin 0.1s ease-out' : 'transform 0.3s ease-out, transform-origin 0.3s ease-out'
+            }}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            onLoad={() => setIsLoading(false)}
+            onClick={handleImageClick}
+          />
+        )}
 
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/25">
@@ -85,7 +93,7 @@ export function ImageCarousel({ images, alt = "Imagem", className }: ImageCarous
           </div>
         )}
         
-        {images.length > 1 && (
+        {imagensValidas.length > 1 && (
           <>
             <button
               onClick={(e) => prevImage(e)}
@@ -106,7 +114,7 @@ export function ImageCarousel({ images, alt = "Imagem", className }: ImageCarous
             </button>
             
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
-              {images.map((_, index) => (
+              {imagensValidas.map((_, index) => (
                 <button
                   key={index}
                   onClick={(e) => {
@@ -126,14 +134,14 @@ export function ImageCarousel({ images, alt = "Imagem", className }: ImageCarous
             </div>
             
             <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-sm z-10">
-              {currentIndex + 1} / {images.length}
+              {currentIndex + 1} / {imagensValidas.length}
             </div>
           </>
         )}
       </div>
 
       <ImageFullscreenViewer
-        images={images}
+        images={imagensValidas}
         isOpen={isFullscreenOpen}
         onClose={() => setIsFullscreenOpen(false)}
         initialIndex={currentIndex}
